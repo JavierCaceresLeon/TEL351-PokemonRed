@@ -115,7 +115,7 @@ class RedGymEnv(Env):
             window=head,
         )
 
-        #self.screen = self.pyboy.botsupport_manager().screen()
+        self.screen = self.pyboy.botsupport_manager().screen()
 
         if not config["headless"]:
             self.pyboy.set_emulation_speed(6)
@@ -168,7 +168,7 @@ class RedGymEnv(Env):
         self.seen_coords = {}
 
     def render(self, reduce_res=True):
-        game_pixels_render = self.pyboy.screen.ndarray[:,:,0:1]  # (144, 160, 3)
+        game_pixels_render = self.screen.screen_ndarray()[:,:,0:1]  # (144, 160, 3)
         if reduce_res:
             game_pixels_render = (
                 downscale_local_mean(game_pixels_render, (2,2,1))
@@ -252,10 +252,20 @@ class RedGymEnv(Env):
         # disable rendering when we don't need it
         render_screen = self.save_video or not self.headless
         press_step = 8
-        self.pyboy.tick(press_step, render_screen)
+        
+        # Press step - tick 8 times
+        for i in range(press_step):
+            self.pyboy.tick()
+        
         self.pyboy.send_input(self.release_actions[action])
-        self.pyboy.tick(self.act_freq - press_step - 1, render_screen)
-        self.pyboy.tick(1, True)
+        
+        # Continue for remaining ticks
+        for i in range(self.act_freq - press_step - 1):
+            self.pyboy.tick()
+        
+        # Final tick
+        self.pyboy.tick()
+        
         if self.save_video and self.fast_video:
             self.add_video_frame()
         
@@ -457,8 +467,8 @@ class RedGymEnv(Env):
             self.map_frame_writer.close()
 
     def read_m(self, addr):
-        #return self.pyboy.get_memory_value(addr)
-        return self.pyboy.memory[addr]
+        return self.pyboy.get_memory_value(addr)
+        #return self.pyboy.memory[addr]
 
     def read_bit(self, addr, bit: int) -> bool:
         # add padding so zero will read '0b100000000' instead of '0b0'
