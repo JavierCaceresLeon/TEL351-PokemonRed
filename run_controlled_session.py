@@ -1,179 +1,164 @@
 #!/usr/bin/env python3
 """
-Script para ejecutar sesiones de análisis controladas
-Útil para generar datos sin intervención manual
+Script para ejecutar sesiones controladas de Pokemon Red
+que guarden datos completos sin interrupción manual
 """
 
-import subprocess
+import sys
 import time
 import signal
-import os
-import sys
 from pathlib import Path
-import psutil
+from red_gym_env_v2 import RedGymEnv
+from stable_baselines3 import PPO
+from stable_baselines3.common.vec_env import DummyVecEnv
+import uuid
 
-class SessionController:
-    def __init__(self, session_duration_minutes=10):
-        self.duration = session_duration_minutes * 60
-        self.process = None
-        self.session_dir = None
+class ControlledSession:
+    def __init__(self, max_steps=10000, save_frequency=500):
+        self.max_steps = max_steps
+        self.save_frequency = save_frequency
+        self.running = True
         
-    def run_controlled_session(self, headless=True):
-        """Ejecuta una sesión controlada del agente"""
-        print(f"🚀 Iniciando sesión de {self.duration/60:.1f} minutos...")
+        # Configurar handler para Ctrl+C
+        signal.signal(signal.SIGINT, self.signal_handler)
         
-        # Configurar comando
-        if headless:
-            # Modificar temporalmente el archivo para modo headless
-            self._modify_config_for_headless()
+    def signal_handler(self, signum, frame):
+        print(f"\n\nSeñal de interrupción recibida. Guardando sesión...")
+        self.running = False
+        
+    def run_session(self, checkpoint_path=None):
+        """Ejecuta una sesión controlada con guardado automático"""
+        
+        session_id = str(uuid.uuid4())[:8]
+        sess_path = Path(f'v2/session_{session_id}')
+        sess_path.mkdir(exist_ok=True)
+        
+        print(f"Iniciando sesión controlada: {session_id}")
+        print(f"Directorio de sesión: {sess_path}")
+        print(f"Pasos máximos: {self.max_steps}")
+        print(f"Guardado automático cada: {self.save_frequency} pasos")
+        print("Presiona Ctrl+C para terminar graciosamente\n")
+        
+        # Configuración del entorno
+        env_config = {
+            'headless': False, 
+            'save_final_state': True, 
+            'early_stop': False,
+            'action_freq': 24, 
+            'init_state': '../init.state', 
+            'max_steps': self.max_steps,
+            'print_rewards': True, 
+            'save_video': False, 
+            'fast_video': True, 
+            'session_path': sess_path,
+            'gb_path': '../PokemonRed.gb', 
+            'debug': False, 
+            'sim_frame_dist': 2_000_000.0,
+            'reward_scale': 0.5, 
+            'explore_weight': 0.25
+        }
+        
+        # Crear entorno
+        env = RedGymEnv(env_config)
+        env = DummyVecEnv([lambda: env])
+        
+        # Cargar modelo
+        if checkpoint_path is None:
+            checkpoint_path = 'v2/runs/poke_26214400'
+            
+        print(f"Cargando modelo: {checkpoint_path}")
+        try:
+            model = PPO.load(checkpoint_path, env=env)
+            print("Modelo cargado exitosamente")
+        except Exception as e:
+            print(f"Error cargando modelo: {e}")
+            return
+            
+        # Ejecutar sesión
+        obs = env.reset()
+        step_count = 0
+        last_save = 0
+        
+        start_time = time.time()
         
         try:
-            # Iniciar proceso
-            self.process = subprocess.Popen(
-                ['python', 'run_pretrained_interactive.py'],
-                cwd='v2',
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            
-            print(f"📊 Proceso iniciado (PID: {self.process.pid})")
-            print(f"⏱️ Esperando {self.duration/60:.1f} minutos...")
-            
-            # Esperar duración especificada
-            time.sleep(self.duration)
-            
-            # Terminar proceso limpiamente
-            self._terminate_gracefully()
-            
-            # Buscar directorio de sesión generado
-            self.session_dir = self._find_latest_session()
-            
-            if self.session_dir:
-                print(f"✅ Sesión completada: {self.session_dir}")
-                return self.session_dir
-            else:
-                print("⚠️ No se encontró directorio de sesión")
-                return None
+            while self.running and step_count < self.max_steps:
+                # Predicción del modelo
+                action, _ = model.predict(obs, deterministic=False)
                 
-        except KeyboardInterrupt:
-            print("\n🛑 Sesión interrumpida por usuario")
-            self._terminate_gracefully()
-            return None
-        except Exception as e:
-            print(f"❌ Error durante la sesión: {e}")
-            return None
-        finally:
-            self._restore_config()
-    
-    def _modify_config_for_headless(self):
-        """Modifica temporalmente la configuración para modo headless"""
-        config_file = Path('v2/run_pretrained_interactive.py')
-        if config_file.exists():
-            # Crear backup
-            backup_file = config_file.with_suffix('.py.backup')
-            config_file.replace(backup_file)
-            
-            # Leer archivo original
-            with open(backup_file, 'r') as f:
-                content = f.read()
-            
-            # Modificar para headless
-            modified_content = content.replace(
-                "'headless': False,",
-                "'headless': True,"
-            )
-            
-            # Escribir archivo modificado
-            with open(config_file, 'w') as f:
-                f.write(modified_content)
-    
-    def _restore_config(self):
-        """Restaura la configuración original"""
-        config_file = Path('v2/run_pretrained_interactive.py')
-        backup_file = config_file.with_suffix('.py.backup')
-        
-        if backup_file.exists():
-            backup_file.replace(config_file)
-    
-    def _terminate_gracefully(self):
-        """Termina el proceso de forma limpia"""
-        if self.process and self.process.poll() is None:
-            try:
-                # Intentar terminación suave
-                parent = psutil.Process(self.process.pid)
-                children = parent.children(recursive=True)
+                # Ejecutar acción
+                obs, rewards, dones, info = env.step(action)
+                step_count += 1
                 
-                # Terminar hijos primero
-                for child in children:
-                    child.terminate()
-                
-                # Terminar proceso principal
-                parent.terminate()
-                
-                # Esperar un poco
-                time.sleep(2)
-                
-                # Forzar si es necesario
-                if parent.is_running():
-                    parent.kill()
+                # Guardado automático
+                if step_count - last_save >= self.save_frequency:
+                    self.save_progress(sess_path, step_count, env, start_time)
+                    last_save = step_count
                     
-                print("🔄 Proceso terminado limpiamente")
-                
-            except Exception as e:
-                print(f"⚠️ Error terminando proceso: {e}")
-    
-    def _find_latest_session(self):
-        """Encuentra el directorio de sesión más reciente"""
-        session_dirs = list(Path('v2').glob('session_*'))
-        if session_dirs:
-            # Ordenar por tiempo de modificación
-            latest = max(session_dirs, key=lambda p: p.stat().st_mtime)
-            return latest.name
-        return None
-    
-    def analyze_session(self, session_name=None):
-        """Analiza la sesión generada"""
-        if session_name is None:
-            session_name = self.session_dir
+                # Reiniciar si termina el episodio
+                if dones[0]:
+                    print(f"\nEpisodio completado en paso {step_count}")
+                    obs = env.reset()
+                    
+        except KeyboardInterrupt:
+            print("\nInterrupción detectada por KeyboardInterrupt")
+            
+        # Guardado final
+        self.save_progress(sess_path, step_count, env, start_time, final=True)
         
-        if session_name:
-            print(f"\n🔍 Analizando sesión: {session_name}")
-            subprocess.run([
-                'python', 'analyze_session.py', f'v2/{session_name}'
-            ])
+        elapsed_time = time.time() - start_time
+        print(f"\nSesión completada:")
+        print(f"  Pasos ejecutados: {step_count}")
+        print(f"  Tiempo transcurrido: {elapsed_time:.1f} segundos")
+        print(f"  Pasos por segundo: {step_count/elapsed_time:.1f}")
+        print(f"  Datos guardados en: {sess_path}")
+        
+        env.close()
+        
+    def save_progress(self, sess_path, step_count, env, start_time, final=False):
+        """Guarda el progreso actual"""
+        elapsed = time.time() - start_time
+        
+        if final:
+            print(f"\nGuardado final - Paso {step_count} ({elapsed:.1f}s)")
         else:
-            print("❌ No hay sesión para analizar")
+            print(f"\nGuardado automático - Paso {step_count} ({elapsed:.1f}s)")
+            
+        # Aquí se pueden agregar más operaciones de guardado
+        # como screenshots, estadísticas adicionales, etc.
 
 def main():
-    if len(sys.argv) < 2:
-        print("Uso: python run_controlled_session.py <minutos> [headless]")
-        print("\nEjemplos:")
-        print("  python run_controlled_session.py 5        # 5 minutos con ventana")
-        print("  python run_controlled_session.py 10 True  # 10 minutos sin ventana")
-        return
-    
-    try:
-        duration = float(sys.argv[1])
-        headless = len(sys.argv) > 2 and sys.argv[2].lower() == 'true'
+    if len(sys.argv) > 1:
+        try:
+            max_steps = int(sys.argv[1])
+        except ValueError:
+            print("Error: El primer argumento debe ser un número (max_steps)")
+            return
+    else:
+        max_steps = 10000
         
-        controller = SessionController(duration)
-        session_dir = controller.run_controlled_session(headless)
-        
-        if session_dir:
-            # Analizar automáticamente
-            controller.analyze_session(session_dir)
+    save_freq = 500
+    if len(sys.argv) > 2:
+        try:
+            save_freq = int(sys.argv[2])
+        except ValueError:
+            print("Error: El segundo argumento debe ser un número (save_frequency)")
+            return
             
-            print(f"\n📋 Resumen:")
-            print(f"  • Duración: {duration} minutos")
-            print(f"  • Modo: {'Headless' if headless else 'Con ventana'}")
-            print(f"  • Sesión: {session_dir}")
-            print(f"  • Análisis: Completado")
+    checkpoint = None
+    if len(sys.argv) > 3:
+        checkpoint = sys.argv[3]
         
-    except ValueError:
-        print("❌ Error: La duración debe ser un número")
-    except Exception as e:
-        print(f"❌ Error inesperado: {e}")
+    print("=== Sesión Controlada de Pokemon Red ===")
+    print(f"Uso: python {sys.argv[0]} [max_steps] [save_frequency] [checkpoint_path]")
+    print(f"Parámetros actuales:")
+    print(f"  max_steps: {max_steps}")
+    print(f"  save_frequency: {save_freq}")
+    print(f"  checkpoint: {checkpoint or 'v2/runs/poke_26214400'}")
+    print()
+    
+    session = ControlledSession(max_steps=max_steps, save_frequency=save_freq)
+    session.run_session(checkpoint_path=checkpoint)
 
 if __name__ == "__main__":
     main()
