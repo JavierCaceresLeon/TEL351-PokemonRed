@@ -16,30 +16,30 @@ def analyze_session(session_dir):
     session_path = Path(session_dir)
     
     if not session_path.exists():
-        print(f"❌ Directorio {session_dir} no encontrado")
+        print(f"Directorio {session_dir} no encontrado")
         return
     
-    print(f"🔍 Analizando sesión: {session_path.name}")
+    print(f"Analizando sesión: {session_path.name}")
     print("=" * 50)
     
     # Buscar archivos de estadísticas
     stats_files = list(session_path.glob("agent_stats_*.csv.gz"))
     if not stats_files:
-        print("❌ No se encontraron archivos de estadísticas (agent_stats_*.csv.gz)")
+        print("No se encontraron archivos de estadísticas (agent_stats_*.csv.gz)")
         return
     
     # Cargar estadísticas
     stats_file = stats_files[0]
-    print(f"📊 Cargando: {stats_file.name}")
+    print(f"Cargando: {stats_file.name}")
     
     try:
         df = pd.read_csv(stats_file, compression='gzip')
     except Exception as e:
-        print(f"❌ Error cargando estadísticas: {e}")
+        print(f"Error cargando estadísticas: {e}")
         return
     
     # Análisis básico
-    print(f"\n📈 Estadísticas Básicas:")
+    print(f"\nEstadísticas Básicas:")
     print(f"  • Total de pasos: {df['step'].max():,}")
     print(f"  • Duración: ~{df['step'].max() / 60:.1f} minutos de juego")
     print(f"  • Ubicaciones únicas: {df[['x', 'y', 'map']].drop_duplicates().shape[0]:,}")
@@ -55,7 +55,7 @@ def analyze_session(session_dir):
     
     # Mapas visitados
     maps_visited = df['map'].unique()
-    print(f"\n🗺️ Mapas visitados ({len(maps_visited)}):")
+    print(f"\nMapas visitados ({len(maps_visited)}):")
     map_counts = df['map'].value_counts().head(10)
     for map_id, count in map_counts.items():
         map_name = df[df['map'] == map_id]['map_location'].iloc[0] if 'map_location' in df.columns else f"Mapa {map_id}"
@@ -88,7 +88,7 @@ def analyze_session(session_dir):
         plt.tight_layout()
         output_path = session_path / 'analysis_plot.png'
         plt.savefig(output_path, dpi=150, bbox_inches='tight')
-        print(f"\n📊 Gráfico guardado en: {output_path}")
+        print(f"\nGráfico guardado en: {output_path}")
         plt.show()
     
     # Buscar archivo de resumen
@@ -98,22 +98,22 @@ def analyze_session(session_dir):
         try:
             with open(json_file, 'r') as f:
                 runs_data = json.load(f)
-            print(f"\n🏆 Resumen de ejecuciones ({len(runs_data)} runs):")
+            print(f"\nResumen de ejecuciones ({len(runs_data)} runs):")
             if runs_data:
                 last_run = runs_data[-1]
                 for key, value in last_run.items():
                     print(f"  • {key}: {value:.2f}")
         except Exception as e:
-            print(f"❌ Error cargando resumen: {e}")
+            print(f"Error cargando resumen: {e}")
     
     # Contar screenshots
     screenshots = list(session_path.glob("curframe_*.jpeg"))
-    print(f"\n📸 Screenshots disponibles: {len(screenshots)}")
+    print(f"\nScreenshots disponibles: {len(screenshots)}")
     
     final_states_dir = session_path / 'final_states'
     if final_states_dir.exists():
         final_screenshots = list(final_states_dir.glob("*.jpeg"))
-        print(f"🎯 Estados finales: {len(final_screenshots)}")
+        print(f"Estados finales: {len(final_screenshots)}")
 
 def main():
     if len(sys.argv) < 2:
