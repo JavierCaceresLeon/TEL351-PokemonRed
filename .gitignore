@@ -1,7 +1,6 @@
 __pycache__
 .DS_Store
 rollouts
-*.gb
 *.ram
 .ipynb_checkpoints
 raw_documentation
