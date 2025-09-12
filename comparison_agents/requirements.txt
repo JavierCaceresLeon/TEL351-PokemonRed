@@ -1,22 +1,50 @@
-# Dependencias básicas requeridas
+# Requirements for Pokemon Red Agent Comparison
+
+# Core ML and RL libraries
 numpy>=1.21.0
-scikit-image>=0.19.0
-matplotlib>=3.5.0
-
-# PyBoy para el emulador
-pyboy>=1.6.0
-
-# Para el agente V2 (opcional pero recomendado)
-stable-baselines3>=2.0.0
-torch>=1.12.0
-
-# Para procesamiento de media (usado en v2)
-mediapy>=1.1.0
-einops>=0.6.0
-
-# Para análisis de datos y visualización
-pandas>=1.5.0
+pandas>=1.3.0
+matplotlib>=3.4.0
 seaborn>=0.11.0
+scipy>=1.7.0
+scikit-learn>=1.0.0
 
-# Utilidades
-pathlib2>=2.3.0
+# Deep Learning (if using pre-trained models)
+torch>=1.9.0
+stable-baselines3>=1.6.0
+
+# Game environment (should be installed from v2)
+# pyboy>=1.4.0
+# gymnasium>=0.26.0
+
+# Data visualization and analysis
+plotly>=5.0.0
+plotly-express>=0.4.0
+
+# Statistical analysis
+statsmodels>=0.13.0
+
+# Utilities
+tqdm>=4.62.0
+pathlib2>=2.3.6
+
+# Image processing (for screen analysis)
+Pillow>=8.3.0
+opencv-python>=4.5.0
+
+# Media processing
+mediapy>=1.1.0
+einops>=0.4.0
+
+# Configuration and logging
+pyyaml>=6.0
+python-dateutil>=2.8.0
+
+# For parallel processing
+joblib>=1.1.0
+
+# Memory profiling (optional)
+memory-profiler>=0.60.0
+
+# Testing (optional)
+pytest>=6.2.0
+pytest-cov>=3.0.0

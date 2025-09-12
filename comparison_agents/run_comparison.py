@@ -1,341 +1,335 @@
 """
-Script principal para comparar diferentes agentes en Pokémon Red
-Compara: Agente entrenado (v2), A*, Tabú Search
-Objetivo: Salir de la habitación inicial
+Main Execution Script for Pokemon Red Agent Comparison
+======================================================
+
+This script runs the comprehensive comparison between PPO and Epsilon Greedy agents
+in the Pokemon Red v2 environment.
 """
 
 import sys
-import os
-import time
-import json
+import argparse
 from pathlib import Path
-from datetime import datetime
+import json
+import numpy as np
 
-# Agregar directorios al path
-current_dir = Path(__file__).parent
-sys.path.append(str(current_dir))
-sys.path.append(str(current_dir / "search_algorithms"))
+# Add paths
+sys.path.append('../v2')
+sys.path.append('.')
 
-# Importar agentes
-try:
-    from search_env import SearchEnvironment
-    from search_algorithms.astar_agent import AStarAgent
-    from search_algorithms.tabu_agent import TabuSearchAgent
-    from v2_agent import V2TrainedAgent
-except ImportError as e:
-    print(f"Error importando módulos: {e}")
-    print("Asegúrate de que todas las dependencias estén instaladas")
+from agent_comparison import AgentComparator
+from metrics_analyzer import MetricsAnalyzer
+from epsilon_greedy_agent import EpsilonGreedyAgent
+from v2_agent import V2EpsilonGreedyAgent
 
-class AgentComparison:
-    """Clase para comparar diferentes agentes"""
+
+def setup_environment_config(headless: bool = True, 
+                           max_steps: int = 40960,
+                           session_name: str = "comparison_session") -> dict:
+    """
+    Setup environment configuration for the comparison
+    """
+    return {
+        'headless': headless,
+        'save_final_state': False,
+        'early_stop': False,
+        'action_freq': 24,
+        'init_state': '../init.state',
+        'max_steps': max_steps,
+        'print_rewards': False,
+        'save_video': False,
+        'fast_video': True,
+        'session_path': Path(session_name),
+        'gb_path': '../PokemonRed.gb',
+        'debug': False,
+        'reward_scale': 0.5,
+        'explore_weight': 0.25
+    }
+
+
+def setup_comparison_config(num_episodes: int = 5,
+                          parallel: bool = False,
+                          create_viz: bool = True) -> dict:
+    """
+    Setup comparison configuration
+    """
+    return {
+        'num_episodes': num_episodes,
+        'max_steps_per_episode': 40960,
+        'parallel_execution': parallel,
+        'save_detailed_logs': True,
+        'create_visualizations': create_viz,
+        'metrics_to_compare': [
+            'episode_rewards', 'episode_lengths', 'exploration_efficiency',
+            'convergence_rate', 'stability', 'scenario_adaptation'
+        ]
+    }
+
+
+def setup_epsilon_config(epsilon_start: float = 0.5,
+                        epsilon_min: float = 0.05,
+                        epsilon_decay: float = 0.995,
+                        scenario_detection: bool = True) -> dict:
+    """
+    Setup Epsilon Greedy agent configuration
+    """
+    return {
+        'epsilon_start': epsilon_start,
+        'epsilon_min': epsilon_min,
+        'epsilon_decay': epsilon_decay,
+        'scenario_detection_enabled': scenario_detection
+    }
+
+
+def run_standalone_epsilon_greedy(env_config: dict, 
+                                 agent_config: dict,
+                                 num_episodes: int = 3) -> dict:
+    """
+    Run standalone Epsilon Greedy agent for testing
+    """
+    print("Running standalone Epsilon Greedy agent...")
     
-    def __init__(self, config=None):
-        self.config = config or {
-            'init_state': '../init.state',
-            'gb_path': '../PokemonRed.gb',
-            'headless': True,
-            'max_steps': 1000,
-            'session_path': Path('comparison_session'),
-            'num_runs': 5  # Número de ejecuciones por agente
+    try:
+        # Create agent wrapper
+        agent_wrapper = V2EpsilonGreedyAgent(
+            env_config=env_config,
+            agent_config=agent_config,
+            enable_logging=True
+        )
+        
+        # Run episodes
+        results = agent_wrapper.run_multiple_episodes(
+            num_episodes=num_episodes,
+            max_steps_per_episode=env_config['max_steps'],
+            save_results=True
+        )
+        
+        # Get summary
+        summary = agent_wrapper.get_summary_statistics()
+        
+        agent_wrapper.close()
+        
+        return {
+            'success': True,
+            'results': results,
+            'summary': summary
         }
         
-        self.results = {
-            'v2_agent': [],
-            'astar_agent': [],
-            'tabu_agent': []
+    except Exception as e:
+        print(f"Error running standalone Epsilon Greedy: {e}")
+        import traceback
+        traceback.print_exc()
+        return {'success': False, 'error': str(e)}
+
+
+def run_comprehensive_comparison(env_config: dict,
+                               comparison_config: dict,
+                               epsilon_config: dict,
+                               ppo_model_path: str = None) -> dict:
+    """
+    Run comprehensive comparison between agents
+    """
+    print("Running comprehensive agent comparison...")
+    
+    try:
+        # Create comparator
+        comparator = AgentComparator(
+            env_config=env_config,
+            comparison_config=comparison_config,
+            save_dir="comparison_results"
+        )
+        
+        # Run comparison
+        results = comparator.run_comparison(
+            ppo_model_path=ppo_model_path,
+            epsilon_config=epsilon_config
+        )
+        
+        return {
+            'success': True,
+            'results': results,
+            'save_dir': str(comparator.save_dir)
         }
         
-        self.results_dir = Path(__file__).parent / "results"
-        self.results_dir.mkdir(exist_ok=True)
+    except Exception as e:
+        print(f"Error during comprehensive comparison: {e}")
+        import traceback
+        traceback.print_exc()
+        return {'success': False, 'error': str(e)}
+
+
+def run_detailed_metrics_analysis(comparison_results: dict) -> dict:
+    """
+    Run detailed metrics analysis on comparison results
+    """
+    print("Running detailed metrics analysis...")
     
-    def test_search_environment(self):
-        """Probar que el entorno de búsqueda funciona"""
-        print("Probando entorno de búsqueda...")
-        try:
-            env = SearchEnvironment(self.config)
-            state = env.reset()
-            print(f"Estado inicial: {state['position']}")
-            
-            # Probar algunas acciones
-            for i in range(5):
-                actions = env.get_valid_actions(state)
-                action = actions[0] if actions else 0
-                state, reward, done = env.step(action)
-                print(f"Paso {i+1}: Posición {state['position']}, Recompensa: {reward:.2f}")
-                
-                if done:
-                    print("Episodio terminado")
-                    break
-            
-            env.close()
-            print("✓ Entorno de búsqueda funciona correctamente")
-            return True
-            
-        except Exception as e:
-            print(f"✗ Error en entorno de búsqueda: {e}")
-            return False
-    
-    def run_astar_agent(self, run_id):
-        """Ejecutar agente A*"""
-        print(f"Ejecutando A* - Run {run_id + 1}")
+    try:
+        # Create metrics analyzer
+        analyzer = MetricsAnalyzer("detailed_metrics_analysis")
         
-        try:
-            env = SearchEnvironment(self.config)
-            agent = AStarAgent(env, max_search_depth=500)
+        # Extract metrics from comparison results
+        agent_metrics = {}
+        
+        for agent_name, metrics in comparison_results.items():
+            if hasattr(metrics, 'episode_rewards'):
+                # Calculate comprehensive metrics
+                detailed_metrics = analyzer.calculate_comprehensive_metrics(
+                    agent_name=agent_name,
+                    episode_rewards=metrics.episode_rewards,
+                    episode_lengths=metrics.episode_lengths,
+                    episode_times=[1.0] * len(metrics.episode_rewards),  # Placeholder
+                    game_states=None
+                )
+                agent_metrics[agent_name] = detailed_metrics
+        
+        # Perform comparison if we have metrics
+        if agent_metrics:
+            comparison_analysis = analyzer.compare_agents(
+                agent_metrics=agent_metrics,
+                create_plots=True
+            )
             
-            start_time = time.time()
-            
-            # Búsqueda
-            plan = agent.search()
-            search_time = time.time() - start_time
-            
-            # Ejecutar plan
-            execution_results = agent.execute_plan(plan)
-            
-            # Recopilar resultados
-            stats = agent.get_stats()
-            
-            result = {
-                'run_id': run_id,
-                'agent_type': 'astar',
-                'search_time': search_time,
-                'execution_time': execution_results['execution_time'],
-                'total_time': search_time + execution_results['execution_time'],
-                'plan_length': len(plan),
-                'success': execution_results['success'],
-                'nodes_explored': stats['nodes_explored'],
-                'timestamp': datetime.now().isoformat()
-            }
-            
-            env.close()
-            return result
-            
-        except Exception as e:
-            print(f"Error en A*: {e}")
             return {
-                'run_id': run_id,
-                'agent_type': 'astar',
-                'error': str(e),
-                'success': False,
-                'timestamp': datetime.now().isoformat()
+                'success': True,
+                'analysis': comparison_analysis,
+                'save_dir': str(analyzer.save_dir)
             }
-    
-    def run_tabu_agent(self, run_id):
-        """Ejecutar agente Tabú Search"""
-        print(f"Ejecutando Tabú Search - Run {run_id + 1}")
+        else:
+            return {'success': False, 'error': 'No valid metrics found'}
         
-        try:
-            env = SearchEnvironment(self.config)
-            agent = TabuSearchAgent(env, max_iterations=200, tabu_size=30)
-            
-            start_time = time.time()
-            
-            # Búsqueda
-            plan = agent.search()
-            search_time = time.time() - start_time
-            
-            # Ejecutar plan
-            execution_results = agent.execute_plan(plan)
-            
-            # Recopilar resultados
-            stats = agent.get_stats()
-            
-            result = {
-                'run_id': run_id,
-                'agent_type': 'tabu',
-                'search_time': search_time,
-                'execution_time': execution_results['execution_time'],
-                'total_time': search_time + execution_results['execution_time'],
-                'plan_length': len(plan),
-                'success': execution_results['success'],
-                'iterations': stats['iterations'],
-                'best_fitness': stats['best_fitness'],
-                'timestamp': datetime.now().isoformat()
-            }
-            
-            env.close()
-            return result
-            
-        except Exception as e:
-            print(f"Error en Tabú Search: {e}")
-            return {
-                'run_id': run_id,
-                'agent_type': 'tabu',
-                'error': str(e),
-                'success': False,
-                'timestamp': datetime.now().isoformat()
-            }
-    
-    def run_v2_agent(self, run_id):
-        """Ejecutar agente entrenado v2"""
-        print(f"Ejecutando Agente V2 - Run {run_id + 1}")
-        
-        try:
-            # Configuración específica para v2
-            v2_config = {
-                'headless': True,
-                'save_final_state': False,
-                'early_stop': False,
-                'action_freq': 24,
-                'init_state': self.config['init_state'],
-                'max_steps': self.config['max_steps'],
-                'print_rewards': False,
-                'save_video': False,
-                'fast_video': True,
-                'session_path': self.config['session_path'] / f"v2_run_{run_id}",
-                'gb_path': self.config['gb_path'],
-                'debug': False,
-                'reward_scale': 0.5,
-                'explore_weight': 0.25
-            }
-            
-            agent = V2TrainedAgent(v2_config)
-            
-            if not agent.search_stats['model_loaded']:
-                return {
-                    'run_id': run_id,
-                    'agent_type': 'v2',
-                    'error': 'No se pudo cargar el modelo',
-                    'success': False,
-                    'timestamp': datetime.now().isoformat()
-                }
-            
-            start_time = time.time()
-            
-            # Ejecutar agente
-            plan = agent.search()
-            total_time = time.time() - start_time
-            
-            # Recopilar resultados
-            stats = agent.get_stats()
-            
-            result = {
-                'run_id': run_id,
-                'agent_type': 'v2',
-                'search_time': 0,  # El modelo predice directamente
-                'execution_time': stats['execution_time'],
-                'total_time': total_time,
-                'plan_length': len(plan),
-                'steps_taken': stats['steps_taken'],
-                'success': stats['success'],
-                'timestamp': datetime.now().isoformat()
-            }
-            
-            agent.close()
-            return result
-            
-        except Exception as e:
-            print(f"Error en agente V2: {e}")
-            return {
-                'run_id': run_id,
-                'agent_type': 'v2',
-                'error': str(e),
-                'success': False,
-                'timestamp': datetime.now().isoformat()
-            }
-    
-    def run_comparison(self):
-        """Ejecutar comparación completa"""
-        print("=== Iniciando Comparación de Agentes ===")
-        print(f"Configuración: {self.config}")
-        
-        # Probar entorno primero
-        if not self.test_search_environment():
-            print("Abortando comparación debido a problemas con el entorno")
-            return
-        
-        num_runs = self.config['num_runs']
-        
-        # Ejecutar cada agente múltiples veces
-        print(f"\nEjecutando {num_runs} pruebas por agente...")
-        
-        # A*
-        print("\n--- Ejecutando A* ---")
-        for i in range(num_runs):
-            result = self.run_astar_agent(i)
-            self.results['astar_agent'].append(result)
-            print(f"A* Run {i+1}: {'✓' if result.get('success', False) else '✗'}")
-        
-        # Tabú Search
-        print("\n--- Ejecutando Tabú Search ---")
-        for i in range(num_runs):
-            result = self.run_tabu_agent(i)
-            self.results['tabu_agent'].append(result)
-            print(f"Tabú Run {i+1}: {'✓' if result.get('success', False) else '✗'}")
-        
-        # V2 Agent
-        print("\n--- Ejecutando Agente V2 ---")
-        for i in range(num_runs):
-            result = self.run_v2_agent(i)
-            self.results['v2_agent'].append(result)
-            print(f"V2 Run {i+1}: {'✓' if result.get('success', False) else '✗'}")
-        
-        # Guardar y analizar resultados
-        self.save_results()
-        self.analyze_results()
-    
-    def save_results(self):
-        """Guardar resultados en archivo JSON"""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = self.results_dir / f"comparison_results_{timestamp}.json"
-        
-        with open(filename, 'w') as f:
-            json.dump(self.results, f, indent=2)
-        
-        print(f"\nResultados guardados en: {filename}")
-    
-    def analyze_results(self):
-        """Analizar y mostrar estadísticas de los resultados"""
-        print("\n=== ANÁLISIS DE RESULTADOS ===")
-        
-        for agent_type, results in self.results.items():
-            if not results:
-                continue
-                
-            print(f"\n--- {agent_type.upper()} ---")
-            
-            # Filtrar resultados exitosos
-            successful_runs = [r for r in results if r.get('success', False)]
-            failed_runs = [r for r in results if not r.get('success', False)]
-            
-            success_rate = len(successful_runs) / len(results) * 100
-            print(f"Tasa de éxito: {success_rate:.1f}% ({len(successful_runs)}/{len(results)})")
-            
-            if successful_runs:
-                times = [r.get('total_time', 0) for r in successful_runs]
-                steps = [r.get('plan_length', 0) for r in successful_runs]
-                
-                print(f"Tiempo promedio: {sum(times)/len(times):.2f}s")
-                print(f"Tiempo mínimo: {min(times):.2f}s")
-                print(f"Tiempo máximo: {max(times):.2f}s")
-                print(f"Pasos promedio: {sum(steps)/len(steps):.1f}")
-                print(f"Pasos mínimo: {min(steps)}")
-                print(f"Pasos máximo: {max(steps)}")
-            
-            if failed_runs:
-                print(f"Fallos: {len(failed_runs)}")
-                errors = [r.get('error', 'Unknown') for r in failed_runs if 'error' in r]
-                if errors:
-                    print(f"Errores comunes: {set(errors)}")
+    except Exception as e:
+        print(f"Error during metrics analysis: {e}")
+        import traceback
+        traceback.print_exc()
+        return {'success': False, 'error': str(e)}
+
 
 def main():
-    """Función principal"""
-    print("Comparación de Agentes - Pokémon Red")
-    print("Objetivo: Salir de la habitación inicial")
+    """
+    Main execution function with command line interface
+    """
+    parser = argparse.ArgumentParser(description='Pokemon Red Agent Comparison')
     
-    # Configuración
-    config = {
-        'init_state': '../init.state',
-        'gb_path': '../PokemonRed.gb',
-        'headless': True,
-        'max_steps': 500,  # Reducido para pruebas más rápidas
-        'session_path': Path('comparison_session'),
-        'num_runs': 3  # Reducido para pruebas iniciales
-    }
+    parser.add_argument('--mode', choices=['standalone', 'comparison', 'analysis', 'full'],
+                       default='full', help='Execution mode')
     
-    # Ejecutar comparación
-    comparison = AgentComparison(config)
-    comparison.run_comparison()
+    parser.add_argument('--episodes', type=int, default=5,
+                       help='Number of episodes to run')
+    
+    parser.add_argument('--headless', action='store_true', default=True,
+                       help='Run in headless mode')
+    
+    parser.add_argument('--max-steps', type=int, default=40960,
+                       help='Maximum steps per episode')
+    
+    parser.add_argument('--epsilon-start', type=float, default=0.5,
+                       help='Starting epsilon value')
+    
+    parser.add_argument('--epsilon-decay', type=float, default=0.995,
+                       help='Epsilon decay rate')
+    
+    parser.add_argument('--ppo-model', type=str, default=None,
+                       help='Path to pre-trained PPO model')
+    
+    parser.add_argument('--parallel', action='store_true', default=False,
+                       help='Run agents in parallel')
+    
+    parser.add_argument('--no-viz', action='store_true', default=False,
+                       help='Skip visualizations')
+    
+    args = parser.parse_args()
+    
+    # Setup configurations
+    env_config = setup_environment_config(
+        headless=args.headless,
+        max_steps=args.max_steps
+    )
+    
+    comparison_config = setup_comparison_config(
+        num_episodes=args.episodes,
+        parallel=args.parallel,
+        create_viz=not args.no_viz
+    )
+    
+    epsilon_config = setup_epsilon_config(
+        epsilon_start=args.epsilon_start,
+        epsilon_decay=args.epsilon_decay
+    )
+    
+    print("Pokemon Red Agent Comparison")
+    print("=" * 50)
+    print(f"Mode: {args.mode}")
+    print(f"Episodes: {args.episodes}")
+    print(f"Max Steps: {args.max_steps}")
+    print(f"Epsilon Start: {args.epsilon_start}")
+    print(f"Epsilon Decay: {args.epsilon_decay}")
+    print("")
+    
+    # Execute based on mode
+    if args.mode == 'standalone':
+        # Run only Epsilon Greedy agent
+        result = run_standalone_epsilon_greedy(
+            env_config=env_config,
+            agent_config=epsilon_config,
+            num_episodes=args.episodes
+        )
+        
+        if result['success']:
+            print("Standalone Epsilon Greedy execution completed successfully!")
+            print(f"Summary: {result['summary']}")
+        else:
+            print(f"Standalone execution failed: {result['error']}")
+    
+    elif args.mode == 'comparison':
+        # Run agent comparison
+        result = run_comprehensive_comparison(
+            env_config=env_config,
+            comparison_config=comparison_config,
+            epsilon_config=epsilon_config,
+            ppo_model_path=args.ppo_model
+        )
+        
+        if result['success']:
+            print("Agent comparison completed successfully!")
+            print(f"Results saved to: {result['save_dir']}")
+        else:
+            print(f"Comparison failed: {result['error']}")
+    
+    elif args.mode == 'analysis':
+        # Run detailed analysis (requires existing results)
+        print("Analysis mode requires existing comparison results")
+        print("Please run comparison mode first")
+    
+    elif args.mode == 'full':
+        # Run complete pipeline
+        print("Running full comparison pipeline...")
+        
+        # Step 1: Comprehensive comparison
+        comparison_result = run_comprehensive_comparison(
+            env_config=env_config,
+            comparison_config=comparison_config,
+            epsilon_config=epsilon_config,
+            ppo_model_path=args.ppo_model
+        )
+        
+        if comparison_result['success']:
+            print("✓ Comprehensive comparison completed")
+            
+            # Step 2: Detailed metrics analysis
+            metrics_result = run_detailed_metrics_analysis(
+                comparison_result['results']
+            )
+            
+            if metrics_result['success']:
+                print("✓ Detailed metrics analysis completed")
+                print(f"Analysis saved to: {metrics_result['save_dir']}")
+            else:
+                print(f"✗ Metrics analysis failed: {metrics_result['error']}")
+        else:
+            print(f"✗ Comprehensive comparison failed: {comparison_result['error']}")
+    
+    print("\nExecution completed!")
+
 
 if __name__ == "__main__":
     main()
