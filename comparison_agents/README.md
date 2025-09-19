@@ -257,17 +257,16 @@ Un **episodio** en Pokemon Red es una sesión completa de juego desde el inicio 
 
 ### **Características de los Episodios:**
 
-**🕹️ Inicio del Episodio:**
+**Inicio del Episodio:**
 - El agente comienza desde el estado inicial (`init.state`)
 - Valores resetteados: salud, posición, inventario, etc.
 - Contador de pasos en 0
 
-**🎯 Finalización del Episodio:**
+**Finalización del Episodio:**
 - Límite de pasos alcanzado (ej: 40,960 pasos)
 - Objetivo completado (ej: obtener primer Pokémon)
 - Condición de terminación específica
-
-**📊 Métricas por Episodio:**
+**Métricas por Episodio:**
 - Recompensa total obtenida
 - Número de pasos realizados
 - Tiempo de ejecución
@@ -300,7 +299,7 @@ python run_comparison.py --episodes 5
 python run_comparison.py --episodes 20
 ```
 
-**💡 Recomendaciones:**
+**Recomendaciones:**
 - **1-2 episodios**: Pruebas rápidas y debugging
 - **5-10 episodios**: Comparaciones básicas
 - **20+ episodios**: Análisis estadístico confiable
@@ -433,7 +432,7 @@ results = comparator.run_comparison(epsilon_config=epsilon_config)
 
 ### **Resultados de Pruebas Recientes**
 
-**Prueba Exitosa (Septiembre 2025)**
+**Prueba Exitosa**
 ```
 Mode: standalone, Episodes: 2, Max Steps: 40960
 - Total Steps: 81,920
@@ -740,8 +739,3 @@ Este proyecto utiliza la misma licencia que el proyecto Pokemon Red base.
 - [Gymnasium Environment Interface](https://gymnasium.farama.org/)
 
 ---
-
-**Desarrollado por**: Javier Cáceres León  
-**Última Actualización**: Septiembre 12, 2025  
-**Estado**: Completamente Funcional  
-**Próximo Milestone**: Comparación completa PPO vs Epsilon Greedy con 10+ episodios
