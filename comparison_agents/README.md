@@ -169,28 +169,141 @@ python run_comparison.py --mode comparison --episodes 5
 python run_comparison.py --mode full --episodes 10
 ```
 
-### Visualización Interactiva del Agente Epsilon Greedy (Game Boy)
+## Scripts Disponibles en /comparison_agents
 
-¿Quieres ver el agente Epsilon Greedy tomando decisiones en tiempo real sobre el entorno de Pokemon Red, con la ventana del Game Boy abierta? Usa el nuevo script interactivo:
+### **1. Visualización Interactiva Individual**
 
+#### `run_epsilon_greedy_interactive.py` - Agente Epsilon Greedy Visual
 ```bash
 python run_epsilon_greedy_interactive.py
 ```
 
+**¿Qué hace?**
+- Ejecuta el agente Epsilon Greedy con ventana visual del Game Boy
+- Se detiene automáticamente al obtener el primer Pokémon
+- Guarda métricas detalladas en `results/epsilon_greedy_metrics_[timestamp].md`
+- Ideal para ver el comportamiento heurístico paso a paso
+
 **Características:**
-- Abre la ventana de PyBoy/Game Boy y ejecuta el agente Epsilon Greedy paso a paso
-- Visualización en tiempo real de las acciones del agente
-- Reinicio automático al terminar el episodio
-- Salida limpia con Ctrl+C
+- Visualización en tiempo real de decisiones del agente
+- Detección automática de eventos (elegir Pokémon inicial)
+- Evita presionar la tecla START automáticamente
+- Métricas de rendimiento, tiempo y recursos
 
-Este modo es ideal para observar el comportamiento heurístico del agente, analizar sus decisiones y validar la integración con el entorno visual.
+### **2. Comparación Simultánea Visual**
 
-**Requisitos:**
-- Tener configurado el entorno y dependencias (ver instrucciones arriba)
-- Ejecutar desde la carpeta `comparison_agents`
+#### `run_dual_interactive.py` - Epsilon Greedy vs PPO (Nuevo)
+```bash
+python run_dual_interactive.py
+```
 
-**¿Para qué sirve?**
-Permite ver cómo el agente Epsilon Greedy navega, explora y toma decisiones en el juego, usando la interfaz visual del emulador Game Boy (PyBoy). Es útil para demostraciones, debugging visual y análisis de comportamiento.
+**¿Qué hace?**
+- Ejecuta **simultáneamente** dos ventanas del Game Boy:
+  - Ventana 1: Agente Epsilon Greedy (Heurístico)
+  - Ventana 2: Agente PPO (Deep Learning)
+- Permite comparación visual directa entre ambos algoritmos
+- Cada agente funciona independientemente
+
+**Ideal para:**
+- Comparar comportamientos en tiempo real
+- Demostraciones educativas
+- Análisis visual de estrategias diferentes
+
+### **3. Comparación Automatizada**
+
+#### `run_comparison.py` - Análisis Completo
+```bash
+# Modo básico - Solo Epsilon Greedy
+python run_comparison.py --mode standalone --episodes 5
+
+# Modo comparación - Epsilon Greedy vs PPO
+python run_comparison.py --mode comparison --episodes 5
+
+# Modo completo - Análisis estadístico detallado
+python run_comparison.py --mode full --episodes 10
+```
+
+**¿Qué hace?**
+- Ejecuta múltiples episodios sin interfaz visual (más rápido)
+- Genera reportes estadísticos detallados
+- Crea visualizaciones comparativas
+- Guarda resultados en `comparison_results/`
+
+**Modos disponibles:**
+- `standalone`: Solo agente Epsilon Greedy
+- `comparison`: Ambos agentes con comparación
+- `full`: Análisis completo con métricas avanzadas
+
+### **4. Scripts Especializados**
+
+#### `agent_comparison.py` - Motor de Comparación
+```bash
+python -c "from agent_comparison import AgentComparator; print('Comparador disponible')"
+```
+- Clase principal para comparaciones programáticas
+- Usado internamente por `run_comparison.py`
+
+#### `metrics_analyzer.py` - Análisis de Métricas
+```bash
+python metrics_analyzer.py --input comparison_results/
+```
+- Análisis estadístico avanzado de resultados existentes
+- Genera visualizaciones adicionales
+
+## ¿Qué son los Episodios?
+
+### **Definición de Episodio**
+Un **episodio** en Pokemon Red es una sesión completa de juego desde el inicio hasta un punto de finalización específico. Cada episodio representa una "vida" o "intento" del agente.
+
+### **Características de los Episodios:**
+
+**🕹️ Inicio del Episodio:**
+- El agente comienza desde el estado inicial (`init.state`)
+- Valores resetteados: salud, posición, inventario, etc.
+- Contador de pasos en 0
+
+**🎯 Finalización del Episodio:**
+- Límite de pasos alcanzado (ej: 40,960 pasos)
+- Objetivo completado (ej: obtener primer Pokémon)
+- Condición de terminación específica
+
+**📊 Métricas por Episodio:**
+- Recompensa total obtenida
+- Número de pasos realizados
+- Tiempo de ejecución
+- Eventos completados (badges, captures, etc.)
+
+### **Diferencias entre Algoritmos:**
+
+**Epsilon Greedy:**
+- Cada episodio es independiente
+- No aprende entre episodios
+- Usa las mismas heurísticas cada vez
+- Consistencia en el comportamiento
+
+**PPO (Deep Learning):**
+- Aprende de episodios anteriores
+- Mejora el rendimiento con la experiencia
+- Cada episodio puede ser diferente
+- Evolución del comportamiento
+
+### **Ejemplos de Uso:**
+
+```bash
+# 1 episodio para prueba rápida
+python run_comparison.py --episodes 1
+
+# 5 episodios para análisis básico  
+python run_comparison.py --episodes 5
+
+# 20 episodios para análisis estadístico robusto
+python run_comparison.py --episodes 20
+```
+
+**💡 Recomendaciones:**
+- **1-2 episodios**: Pruebas rápidas y debugging
+- **5-10 episodios**: Comparaciones básicas
+- **20+ episodios**: Análisis estadístico confiable
 
 ### **Opciones Avanzadas**
 

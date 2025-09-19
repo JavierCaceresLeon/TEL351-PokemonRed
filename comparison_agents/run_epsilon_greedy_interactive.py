@@ -77,7 +77,7 @@ if __name__ == "__main__":
     
     print("\n[Interactive Epsilon Greedy Agent] Ejecutando hasta elegir el Pokémon inicial o tener al menos 1 Pokémon en el equipo...")
     try:
-        while not (got_starter or got_pokemon):
+        while True:
             enhanced_obs = agent.enhance_observation_with_heuristics(observation)
             agent.agent.update_position(enhanced_obs)
             # Selección de acción evitando START (índice 6)
@@ -102,12 +102,13 @@ if __name__ == "__main__":
                 got_pokemon = True
                 print(f"\n¡Primer Pokémon obtenido en el equipo! (Paso {step}, Cantidad: {pcount})")
             
-            # Verificar si se cumplió el objetivo
+            # SALIDA INMEDIATA cuando se cumple el objetivo
             if got_starter or got_pokemon:
+                print("\n¡OBJETIVO CUMPLIDO! Guardando métricas y cerrando...")
                 save_metrics()
                 agent.env.close()
-                print("\n¡Objetivo cumplido! Cerrando ejecución...")
-                break
+                print("✓ Ejecución completada exitosamente.")
+                exit(0)  # Forzar salida del programa
                 
             if terminated or truncated or step >= ep_length:
                 print("Episode finished. Resetting...")
