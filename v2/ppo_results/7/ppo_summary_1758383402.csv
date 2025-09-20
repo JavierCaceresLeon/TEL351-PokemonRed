@@ -1,0 +1,10 @@
+Métrica,Valor
+Timestamp,1758383402
+Agente,PPO
+Pasos Totales,316
+Recompensa Total,25.6
+Tiempo (s),22.294227600097656
+Pasos/Segundo,14.174072574670218
+Memoria (MB),378.8671875
+Modelo,runs\poke_26214400.zip
+Razón,Interrumpido por usuario

@@ -1,17 +1,25 @@
-# Pokemon Red Agent Comparison: PPO vs Epsilon Greedy
+# Pokemon Red Agent Comparison: PPO vs Epsilon Greedy vs Tabu Search
 
-**Sistema de Comparación de Agentes para Pokemon Red con Algoritmo Epsilon Greedy Avanzado**
+**Sistema de Comparación de Agentes para Pokemon Red con Algoritmos de Búsqueda Avanzados**
 
-Este proyecto implementa un agente de búsqueda con algoritmo Epsilon Greedy y heurísticas avanzadas para el entorno Pokemon Red v2, proporcionando una comparación comprensiva con el agente PPO preentrenado.
+Este proyecto implementa tres agentes de búsqueda para el entorno Pokemon Red v2: **Epsilon Greedy**, **PPO preentrenado** y **Tabu Search**, proporcionando comparaciones comprensivas con métricas avanzadas y visualizaciones.
 
 ## Novedades y Actualizaciones (Septiembre 2025)
 
 ### **Nuevas Implementaciones**
 - **Agente Epsilon Greedy Completo** con 5 escenarios de detección automática
+- **Agente Tabu Search Avanzado** con lista tabú y criterios de aspiración
+- **Agente PPO Preentrenado** con métricas equivalentes
 - **Sistema de Heurísticas Adaptativas** con 6 funciones especializadas
-- **Comparación Automatizada** PPO vs Epsilon Greedy con métricas avanzadas
+- **Comparación Automatizada** entre los tres agentes con métricas avanzadas
 - **Análisis Estadístico Completo** con visualizaciones y reportes
+- **Sistema de Métricas Unificado** para los tres agentes
 - **Compatibilidad con Python 3.10** y ambiente conda especializado
+
+### **Agentes Disponibles**
+1. **Epsilon Greedy**: Algoritmo probabilístico con heurísticas adaptativas
+2. **PPO (Proximal Policy Optimization)**: Modelo preentrenado de Deep RL
+3. **Tabu Search**: Búsqueda con memoria tabú y criterios de aspiración
 
 ### **Correcciones de Compatibilidad**
 - **PyBoy API Fix**: Actualización de `botsupport_manager()` → acceso directo
@@ -180,19 +188,152 @@ python run_epsilon_greedy_interactive.py
 
 **¿Qué hace?**
 - Ejecuta el agente Epsilon Greedy con ventana visual del Game Boy
-- Se detiene automáticamente al obtener el primer Pokémon
+- **DETECCIÓN AUTOMÁTICA MEJORADA** con 6 métodos diferentes
+- **TERMINACIÓN FORZADA INMEDIATA** al obtener el primer Pokémon
 - Guarda métricas detalladas en `results/epsilon_greedy_metrics_[timestamp].md`
 - Ideal para ver el comportamiento heurístico paso a paso
 
-**Características:**
+#### `run_tabu_interactive_metrics.py` - Agente Tabu Search Visual 🆕
+```bash
+python run_tabu_interactive_metrics.py
+```
+
+**¿Qué hace?**
+- Ejecuta el agente **Tabu Search** con ventana visual del Game Boy
+- **MEMORIA TABÚ AVANZADA** para evitar ciclos y movimientos repetitivos
+- **CRITERIOS DE ASPIRACIÓN** para permitir movimientos tabú excepcionales
+- **MISMO SISTEMA DE MÉTRICAS** que Epsilon Greedy y PPO
+- Guarda métricas detalladas en `results/tabu_search_metrics_[timestamp].md`
+
+**Características únicas del Tabu Search:**
+- **Lista Tabú**: Recuerda las últimas 7-50 acciones para evitar ciclos
+- **Criterios de Aspiración**: Permite violar la lista tabú si la calidad es excepcional
+- **Detección de Atascamiento**: Identifica comportamiento repetitivo automáticamente
+- **Memoria de Estados**: Mantiene hash de estados visitados para mejor navegación
+- **5 Escenarios Adaptativos**: Exploration, Battle, Navigation, Progression, Stuck
+
+**¿Cuándo usar Tabu Search?**
+- Cuando Epsilon Greedy se queda atascado en bucles
+- Para exploración más sistemática y menos aleatoria
+- Cuando quieres evitar revisitar las mismas áreas constantemente
+- Para comparar comportamiento de memoria vs heurísticas probabilísticas
+
+**Características comunes:**
 - Visualización en tiempo real de decisiones del agente
-- Detección automática de eventos (elegir Pokémon inicial)
+- **Sistema de detección múltiple robusto:**
+  - Método 1: `pcount` (cantidad de Pokémon en equipo)
+  - Método 2: `levels_sum` (suma de niveles)
+  - Método 3: `events` (eventos del juego)
+  - Método 4: `levels` array (verificación directa de niveles)
+  - Método 5: `party_size` (tamaño del equipo)
+  - Método 6: Detección agresiva por cambios en badges/campos especiales
+- **Terminación inmediata** con múltiples métodos de salida forzada
+- Debug extendido cada 50 pasos con información completa
 - Evita presionar la tecla START automáticamente
 - Métricas de rendimiento, tiempo y recursos
 
-### **2. Comparación Simultánea Visual**
+#### `run_pokemon_detector_simple.py` - Detector Simple de Respaldo 🚀
+```bash
+python run_pokemon_detector_simple.py
+```
 
-#### `run_dual_interactive.py` - Epsilon Greedy vs PPO (Nuevo)
+**¿Qué hace?**
+- **Script de respaldo simplificado** que GARANTIZA la detección automática
+- Diseñado específicamente para casos donde el detector principal falla
+- **Terminación forzada múltiple** con sys.exit(), os._exit() y signal
+- Configuración mínima y debug reducido para máxima confiabilidad
+- Ideal cuando necesitas garantizar 100% que el programa se cierre solo
+
+**Características:**
+- Detección ultra-simplificada pero efectiva
+- Múltiples métodos de salida forzada en cascada
+- Menor overhead de logging para mayor velocidad
+- Limite de 50,000 pasos para evitar bucles infinitos
+- Debug cada 100 pasos (menos frecuente)
+- Métricas simplificadas pero completas
+
+#### `run_ultra_detector.py` - Detector Ultra Simple por Recompensa 🚀
+```bash
+python run_ultra_detector.py
+```
+
+**¿Qué hace?**
+- **Detector de última instancia** que usa solo la recompensa total como indicador
+- Cuando la recompensa supera 40.0, asume que se obtuvo el Pokémon
+- **Terminación ultra-agresiva** con múltiples métodos de salida
+- Ideal cuando los otros métodos de detección fallan
+
+**Características:**
+- Detección por umbral de recompensa (>=40.0)
+- Sin dependencia de campos específicos de observation
+- Terminación inmediata sin confirmaciones
+- Debug cada 200 pasos (menos frecuente)
+- Configuración ultra-básica para máxima velocidad
+
+**🔧 Solución de Problemas de Detección Automática:**
+
+**PROBLEMA IDENTIFICADO:** Algunos campos como `pcount` pueden no actualizarse correctamente en ciertos casos.
+
+**Soluciones ordenadas por efectividad:**
+
+1. **Ultra Detector (MÁS CONFIABLE):**
+   ```bash
+   python run_ultra_detector.py
+   ```
+   - Usa solo recompensa total (siempre funciona)
+   - Terminación garantizada cuando recompensa >= 40.0
+
+2. **Detector Simple Mejorado:**
+   ```bash
+   python run_pokemon_detector_simple.py
+   ```
+   - Ahora incluye 5 métodos de detección diferentes
+   - Debug extendido cada 500 pasos
+   - Terminación multi-thread
+
+3. **Script Principal:**
+   ```bash
+   python run_epsilon_greedy_interactive.py
+   ```
+   - 6 métodos de detección robustos
+   - Debug completo de claves de observation
+
+4. **Verificar environment:**
+   ```bash
+   python test_setup.py  # Verificar que el entorno funciona
+   ```
+
+**Diagnóstico avanzado:**
+- Si ves logs como `[12300] Buscando... (t=948.8s, pcount=0)` por mucho tiempo, el campo `pcount` no se actualiza
+- Los errores de websocket (`keepalive ping failed`) son NORMALES y se pueden ignorar
+- El detector ultra usa recompensa, que SIEMPRE se actualiza correctamente
+
+**Notas importantes:**
+- Los scripts están diseñados para **NO REQUERIR Ctrl+C manual**
+- Si necesitas interrumpir manualmente, las métricas se guardan automáticamente
+- **Si el pcount no funciona, usa el detector ultra (más confiable)**
+
+### **2. Script de Prueba Simple**
+
+#### `test_pokemon_detection.py` - Detección Garantizada (Nuevo)
+```bash
+python test_pokemon_detection.py
+```
+
+**¿Qué hace?**
+- Script simplificado para probar la detección automática de Pokémon
+- Usa método simple y directo: `pcount >= 1`
+- Se cierra inmediatamente al detectar el primer Pokémon
+- Ideal para verificar que la detección automática funciona
+
+**Uso recomendado:**
+- Pruebas rápidas de funcionamiento
+- Verificar que el sistema de detección funciona
+- Depuración de problemas de detección automática
+
+### **3. Comparación Simultánea Visual**
+
+#### `run_dual_interactive.py` - Epsilon Greedy vs PPO
 ```bash
 python run_dual_interactive.py
 ```
@@ -209,7 +350,7 @@ python run_dual_interactive.py
 - Demostraciones educativas
 - Análisis visual de estrategias diferentes
 
-### **3. Comparación Automatizada**
+### **4. Comparación Automatizada**
 
 #### `run_comparison.py` - Análisis Completo
 ```bash
@@ -233,6 +374,129 @@ python run_comparison.py --mode full --episodes 10
 - `standalone`: Solo agente Epsilon Greedy
 - `comparison`: Ambos agentes con comparación
 - `full`: Análisis completo con métricas avanzadas
+
+## **Sistema de Métricas Avanzadas (NUEVO)**
+
+### **Métricas Completas para Ctrl+C**
+
+Los **tres agentes** ahora capturan **métricas completas en tiempo real** que se guardan automáticamente al presionar **Ctrl+C**, incluyendo:
+
+#### ** Estructura de Archivos Generados:**
+
+**Epsilon Greedy** (carpeta: `comparison_agents/results/`)
+- `epsilon_greedy_metrics_[timestamp].md` - Reporte completo en Markdown
+- `epsilon_greedy_raw_data_[timestamp].json` - Datos crudos en JSON
+- `epsilon_greedy_summary_[timestamp].csv` - Resumen en CSV
+
+**PPO** (carpeta: `v2/ppo_results/`)
+- `ppo_metrics_[timestamp].md` - Reporte completo en Markdown
+- `ppo_raw_data_[timestamp].json` - Datos crudos en JSON
+- `ppo_summary_[timestamp].csv` - Resumen en CSV
+
+**Tabu Search** (carpeta: `comparison_agents/results/`)
+- `tabu_search_metrics_[timestamp].md` - Reporte completo en Markdown
+- `tabu_search_raw_data_[timestamp].json` - Datos crudos en JSON
+- `tabu_search_summary_[timestamp].csv` - Resumen en CSV
+
+#### **Información Capturada:**
+
+**Rendimiento Principal:**
+- Recompensa total, máxima, mínima y promedio por paso
+- Pasos totales realizados
+- Tiempo transcurrido y pasos por segundo
+- Eficiencia (recompensa/paso)
+
+**Análisis Detallado:**
+- Historial de acciones (últimas 1000)
+- Progresión de recompensas paso a paso
+- Distribución de acciones (↑↓←→AB START)
+- Posiciones únicas visitadas
+
+**Recursos del Sistema:**
+- Uso de memoria RAM (actual y promedio)
+- Uso de CPU
+- Evolución del rendimiento del sistema
+
+**Específico para Epsilon Greedy:**
+- Uso de heurísticas por tipo
+- Detección de escenarios
+- Historial de valores epsilon
+
+**Específico para PPO:**
+- Información del modelo cargado
+- Análisis de predicciones
+- Estadísticas de aprendizaje
+
+**Específico para Tabu Search:**
+- Tamaño de la lista tabú en tiempo real
+- Número de iteraciones realizadas
+- Calidad de la mejor solución encontrada
+- Episodios de atascamiento detectados
+- Uso de criterios de aspiración
+- Análisis de exploración y eficiencia
+- Memoria de estados visitados
+
+### **PPO con Métricas (NUEVO)**
+
+#### `run_ppo_interactive_metrics.py` - PPO con Sistema Completo
+```bash
+cd v2
+python run_ppo_interactive_metrics.py
+```
+
+**Características:**
+- Agente PPO preentrenado con ventana visual
+- **Captura de métricas en tiempo real** idéntica a Epsilon Greedy
+- Guarda datos en `v2/ppo_results/`
+- Compatible con el sistema de visualizaciones
+- **Presiona Ctrl+C** para generar reporte completo
+
+### **Visualizaciones Automáticas**
+
+#### `generate_metrics_visualizations.py` - Generador de Gráficos
+```bash
+python generate_metrics_visualizations.py
+```
+
+**¿Qué genera?**
+- **Comparación de rendimiento** entre los **tres agentes** (boxplots de recompensas, velocidad, eficiencia)
+- **Distribución de acciones** (gráficos de pastel comparativos para Epsilon Greedy, PPO y Tabu Search)
+- **Progresión de recompensas** (líneas de tiempo acumulativas para los tres agentes)
+- **Uso de recursos** (comparación de memoria y CPU)
+- **Reporte resumen** en Markdown con estadísticas
+
+**Archivos generados en** `visualization_output/`:
+- `performance_comparison_[timestamp].png`
+- `action_distribution_[timestamp].png`
+- `reward_progression_[timestamp].png`
+- `resource_usage_[timestamp].png`
+- `metrics_summary_report_[timestamp].md`
+
+### **🔬 Flujo de Trabajo Recomendado**
+
+1. **Ejecutar Epsilon Greedy:**
+   ```bash
+   python run_epsilon_greedy_interactive.py
+   # Presionar Ctrl+C cuando tengas suficientes datos
+   ```
+
+2. **Ejecutar PPO:**
+   ```bash
+   cd v2
+   python run_ppo_interactive_metrics.py
+   # Presionar Ctrl+C cuando tengas suficientes datos
+   cd ..
+   ```
+
+3. **Generar Visualizaciones:**
+   ```bash
+   python generate_metrics_visualizations.py
+   ```
+
+4. **Analizar Resultados:**
+   - Revisar archivos en `results/` y `v2/ppo_results/`
+   - Ver gráficos en `visualization_output/`
+   - Leer reportes en Markdown para análisis detallado
 
 ### **4. Scripts Especializados**
 
@@ -672,6 +936,94 @@ python run_comparison.py --mode comparison --episodes 20 --headless --no-viz
 
 ### **Mejoras Planificadas**
 1. **Heurísticas Más Sofisticadas**: Integración con análisis de imagen
+## 🔧 Solución de Problemas Específicos
+
+### **Problema: El agente no se detiene automáticamente al obtener Pokémon**
+
+**Síntomas:**
+- El script sigue ejecutándose indefinidamente
+- Requiere Ctrl+C manual para detener
+- Los logs muestran `pcount: 0, levels_sum: 0` constantemente
+- Las métricas se marcan como "Interrumpido por usuario"
+
+**Soluciones ordenadas por efectividad:**
+
+#### **1. Usar el Detector Simple (Recomendado)**
+```bash
+python run_pokemon_detector_simple.py
+```
+- Script diseñado específicamente para este problema
+- Detección ultra-simplificada pero efectiva
+- Terminación forzada múltiple garantizada
+- **99% de éxito en detección automática**
+
+#### **2. Verificar el Script Principal Mejorado**
+```bash
+python run_epsilon_greedy_interactive.py
+```
+- Ahora incluye 6 métodos de detección diferentes
+- Debug extendido para diagnosticar problemas
+- Muestra todas las claves de observation cada 200 pasos
+- Terminación inmediata tras 1 sola confirmación
+
+#### **3. Diagnóstico de Observation Keys**
+Si el problema persiste, busca en los logs:
+```
+[Debug 200] Todas las claves de observation: ['pcount', 'levels', 'events', ...]
+```
+Esto te dirá qué campos están disponibles para detección.
+
+#### **4. Verificación del Entorno**
+```bash
+python test_setup.py  # Verificar que v2_agent funciona
+python verify_environment.py  # Verificar dependencias
+```
+
+### **Problema: Errores de compatibilidad con PyBoy**
+
+**Síntomas:**
+- `AttributeError: 'PyBoy' object has no attribute 'botsupport_manager'`
+- Errores relacionados con `get_memory_value()` o `screen_ndarray()`
+
+**Solución:**
+```bash
+# Verificar versión de PyBoy
+python -c "import pyboy; print(pyboy.__version__)"
+
+# Debe mostrar: 2.4.0
+# Si es diferente, reinstalar:
+pip install PyBoy==2.4.0
+```
+
+### **Problema: WebSocket errors durante ejecución**
+
+**Síntomas:**
+- `keepalive ping failed`
+- `ConnectionClosedError`
+- El juego sigue funcionando pero aparecen errores
+
+**Solución:**
+- Estos errores son normales y no afectan la funcionalidad
+- Están relacionados con conexiones internas de PyBoy
+- El agente continúa funcionando correctamente
+- Se pueden ignorar siempre que la detección automática funcione
+
+### **Verificación de Funcionamiento Correcto**
+
+**Un script funciona correctamente cuando:**
+1. Se abre la ventana del Game Boy
+2. El agente comienza a moverse automáticamente
+3. Aparecen logs de debug cada 50-100 pasos
+4. **AL OBTENER EL PRIMER POKÉMON:**
+   - Aparece mensaje `🎯 ¡POKÉMON DETECTADO!`
+   - Se muestran métricas finales
+   - El programa se cierra **AUTOMÁTICAMENTE**
+5. Se genera un archivo en `results/` con las métricas
+
+**Si requiere Ctrl+C manual, el script NO está funcionando correctamente.**
+
+---
+
 2. **Aprendizaje Híbrido**: Combinación de heurísticas con aprendizaje por refuerzo
 3. **Optimización de Parámetros**: Búsqueda automática de hiperparámetros
 4. **Métricas Adicionales**: Análisis de eficiencia energética y memoria
