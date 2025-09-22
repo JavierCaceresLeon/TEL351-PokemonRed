@@ -12,28 +12,29 @@
 \usepackage{setspace}
 \onehalfspacing
 \usepackage{textgreek}
-\usepackage{hyperref}
 \usepackage{caption}
 \usepackage{csquotes}
 \usepackage{booktabs}
-\usepackage{hyperref}
 \usepackage{listings}
 \usepackage{xcolor}
-\usepackage{float}
-\usepackage{caption}
 \usepackage{subcaption}
 \usepackage{matlab-prettifier}
+\usepackage{hyperref}
+
 \hypersetup{
     colorlinks=true,
     linkcolor=blue,
     urlcolor=blue,
+    citecolor=blue
 }
+
 % --- Portada ---
 \title{
     {\Large \textbf{UNIVERSIDAD TÉCNICA FEDERICO SANTA MARÍA}}\\[1mm]
     {\large DEPARTAMENTO DE ELECTRÓNICA}\\[1mm]
-    % \includegraphics[width=4.5cm]{Logo_UTFSM.png}\\[2mm]
-    {\Large \textbf{Tarea 1 | Agentes de Búsqueda}}\\[2mm]
+    % La imagen se mantiene, asumiendo que estará disponible durante la compilación.
+    \includegraphics[width=4.5cm]{Logo_UTFSM.png}\\[2mm]
+    {\Large \textbf{Tarea 1 | Agentes de Búsqueda y Aprendizaje por Refuerzo}}\\[2mm]
     {\Large TEL351 - Seminario de Telemática I - 2025-2}\\[1mm]
     {\large Fecha de entrega: Lunes, 22 de Septiembre de 2025}\\[0.5mm]
     {\normalsize PROFESOR:}\\[0.5mm]
@@ -45,33 +46,17 @@
     {\normalsize Camilo Troncoso Hormazabal - 202130004-K}\\[0.5mm]
 }
 
-\hypersetup{
-  colorlinks=true,
-  linkcolor=blue,
-  urlcolor=blue,
-  citecolor=blue
-}
-
-\lstdefinestyle{py}{
-  language=Python,
-  basicstyle=\ttfamily\small,
-  keywordstyle=\color{blue},
-  commentstyle=\color{gray},
-  stringstyle=\color{teal},
-  showstringspaces=false,
-  frame=single,
-  breaklines=true
-}
-
+% Definición de colores para el código
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
+% Estilo mejorado para los listados de código
 \lstdefinestyle{mystyle}{
     backgroundcolor=\color{backcolour},   
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{magenta},
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{magenta}\bfseries,
     numberstyle=\tiny\color{codegray},
     stringstyle=\color{codepurple},
     basicstyle=\footnotesize\ttfamily,
@@ -84,9 +69,11 @@
     showspaces=false,                
     showstringspaces=false,
     showtabs=false,                  
-    tabsize=2
+    tabsize=2,
+    frame=single,
+    framerule=0.5pt,
+    rulecolor=\color{black}
 }
-
 \lstset{style=mystyle}
 
 \author{}
@@ -98,15 +85,16 @@
 \newpage
 
 \section{Introducción}
-El presente informe técnico detalla el análisis, implementación y evaluación de agentes inteligentes en el contexto del videojuego Pokémon Red. El objetivo principal de los agentes es resolver una tarea específica y fundamental: la selección del Pokémon inicial (Bulbasaur, Charmander o Squirtle) en el menor tiempo o número de pasos posible. Este problema, aunque aparentemente simple, encapsula desafíos clave en el campo de la inteligencia artificial, como la navegación en un entorno parcialmente observable, la interacción con menús y la toma de decisiones secuencial.
+El presente informe técnico detalla el análisis, implementación y evaluación comparativa de diversas familias de agentes inteligentes en el contexto del videojuego \textit{Pokémon Rojo}. El objetivo principal de los agentes es resolver una tarea específica y fundamental: la selección del Pokémon inicial en el menor tiempo o número de pasos posible. Este problema, aunque aparentemente simple, encapsula desafíos clave en el campo de la inteligencia artificial, como la navegación en entornos parcialmente observables, la interacción con menús y la toma de decisiones secuencial.
 
-Para abordar este desafío, se exploran y comparan diversas estrategias algorítmicas, abarcando desde búsquedas heurísticas clásicas hasta métodos de aprendizaje por refuerzo profundo (Deep Reinforcement Learning). Específicamente, se analiza el desempeño de dos agentes principales:
+Para abordar este desafío, se exploran y comparan tres familias de estrategias algorítmicas, abarcando desde búsquedas clásicas hasta métodos avanzados de aprendizaje por refuerzo (RL):
 \begin{itemize}
-    \item \textbf{Epsilon-Greedy con Heurísticas}: Un enfoque que combina la exploración aleatoria con un conjunto de reglas y heurísticas predefinidas para guiar al agente. Es transparente y no requiere entrenamiento previo.
-    \item \textbf{Proximal Policy Optimization (PPO)}: Un algoritmo de aprendizaje por refuerzo profundo de última generación, que aprende una política óptima a través de la interacción y la experiencia, sin conocimiento explícito del dominio.
+    \item \textbf{Algoritmos de Búsqueda Clásicos}: Métodos informados y no informados (como A*, BFS y Hill Climbing) que planifican una ruta basándose en un modelo explícito del entorno.
+    \item \textbf{Aprendizaje por Refuerzo Simple (Epsilon-Greedy)}: Un enfoque que equilibra la exploración y la explotación para aprender una política de acción a través de la experiencia, sin un modelo complejo.
+    \item \textbf{Aprendizaje por Refuerzo Profundo (PPO)}: Un algoritmo de última generación que utiliza redes neuronales profundas para aprender una política óptima directamente desde las observaciones de píxeles, sin conocimiento previo del dominio.
 \end{itemize}
 
-El informe se estructura en torno a siete preguntas fundamentales que guían el análisis, desde la selección y comprensión del entorno de simulación hasta la implementación y comparación cuantitativa de los algoritmos. Se presentarán tablas, gráficos y conclusiones derivadas del análisis de los datos experimentales recopilados de múltiples ejecuciones (contenidos en las carpetas \texttt{RESULTADOS/}), con el fin de ofrecer una evaluación rigurosa y autocontenida del rendimiento de cada estrategia. El énfasis no recae únicamente en el éxito de una estrategia sobre otra, sino en el proceso analítico y la comprensión profunda de sus fortalezas y debilidades en este dominio particular.
+El informe se estructura en torno a siete preguntas fundamentales que guían el análisis, desde la selección y comprensión del entorno de simulación hasta la implementación y comparación cuantitativa de los algoritmos. Se presentarán tablas, gráficos y conclusiones derivadas del análisis de datos experimentales recopilados de 143 ejecuciones, con el fin de ofrecer una evaluación rigurosa y autocontenida del rendimiento de cada estrategia. El énfasis no recae únicamente en el éxito de una estrategia sobre otra, sino en el proceso analítico y la comprensión profunda de sus fortalezas, debilidades y compromisos inherentes en este dominio particular.
 
 \section{El Mundo de Pokémon Rojo: Un Contexto para la IA}
 \label{sec:contexto_pokemon}
@@ -127,8 +115,8 @@ El alcance de este informe se centra en la primera tarea crucial del juego: \tex
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{assets/poke_map.gif}
-    \caption{Visualización del mapa del juego y el agente (personaje rojo) navegando hacia el laboratorio del Profesor Oak.}
+    \includegraphics[width=1\textwidth]{3cf5c11a-703f-4a37-a774-85a4b9ed6d26-6.png}
+    \caption{Visualización del mapa del juego y el agente navegando por el mapa.}
     \label{fig:poke_map}
 \end{figure}
 
@@ -194,7 +182,7 @@ Una de las fortalezas de este proyecto es la clara separación entre la lógica 
 \subsection{Separación Agente-Entorno}
 El diseño sigue el paradigma estándar del aprendizaje por refuerzo, popularizado por OpenAI Gym:
 \begin{itemize}
-    \item \textbf{El Entorno (\texttt{RedGymEnv}):} El archivo \texttt{baselines/red\_gym\_env.py} define una clase, \texttt{RedGymEnv}, que hereda de \texttt{gym.Env}. Esta clase actúa como un "wrapper" o envoltorio alrededor del emulador PyBoy. Su responsabilidad es:
+    \item \textbf{El Entorno (\texttt{RedGymEnv}):} El archivo \texttt{baselines/red\_gym\_env.py} define una clase, \texttt{RedGymEnv}, que hereda de \texttt{gym.Env}. Esta clase actúa como un wrapper alrededor del emulador PyBoy. Su responsabilidad es:
     \begin{enumerate}
         \item Iniciar y gestionar el estado del emulador.
         \item Definir el espacio de acciones y de observaciones.
@@ -248,7 +236,7 @@ Estos algoritmos, a diferencia de PPO o Epsilon-Greedy, no "aprenden". En cambio
 \section{Metodología Experimental y Métricas de Comparación}
 \label{sec:metodologia}
 
-Para realizar una comparación justa y rigurosa entre las diferentes estrategias, se diseñó un protocolo experimental robusto y se definieron un conjunto de métricas clave.
+Para realizar una comparación justa y rigurosa entre las diferentes estrategias, se diseñó un protocolo experimental robusto y se definió un conjunto de métricas clave.
 
 \subsection{Protocolo Experimental}
 Se realizaron tres grandes conjuntos de experimentos, todos con el mismo objetivo (elegir el Pokémon inicial) y bajo las mismas condiciones de hardware:
@@ -274,7 +262,7 @@ Para cuantificar el rendimiento de cada agente, se seleccionaron las siguientes 
     \item \textbf{Tiempo de Ejecución (s):} El tiempo real en segundos que tardó la ejecución. Mide la eficiencia computacional del algoritmo.
     \item \textbf{Recompensa Total:} La suma de todas las recompensas obtenidas durante el episodio. Dado que la recompensa se diseñó para incentivar el progreso, este valor refleja qué tan bien el agente cumplió los sub-objetivos.
     \item \textbf{Tasa de Éxito (\%):} El porcentaje de ejecuciones (de las 11 realizadas) en las que el agente logró completar el objetivo. Una tasa del 100\% indica que el algoritmo es robusto y fiable.
-    \item \textbf{Eficiencia (Pasos/Segundo o Recompensa/Paso):} Una métrica derivada para normalizar el rendimiento. Para los algoritmos de búsqueda, se usó la \textbf{eficiencia de recompensa} (Recompensa Total / Pasos Totales) para medir cuánto valor se obtiene por cada acción.
+    \item \textbf{Eficiencia (Recompensa/Paso):} Una métrica derivada para normalizar el rendimiento. Para los algoritmos de búsqueda, se usó la \textbf{eficiencia de recompensa} (Recompensa Total / Pasos Totales) para medir cuánto valor se obtiene por cada acción.
 \end{itemize}
 
 Estas métricas permiten una comparación multidimensional, evaluando no solo si un agente es rápido, sino también si es eficiente, robusto y efectivo en maximizar su recompensa.
@@ -287,7 +275,7 @@ En esta sección se presentan y analizan los resultados obtenidos de los tres co
 \subsection{Análisis de la Comparación Epsilon-Greedy}
 Se evaluaron cinco configuraciones de $\epsilon$ para entender el impacto del balance entre exploración y explotación.
 
-\input{informe_visuals/epsilon_comparison_table.tex}
+\input{epsilon_comparison_table.tex}
 
 La Tabla \ref{tab:epsilon_comparison} resume los promedios de las 11 ejecuciones por configuración. A primera vista, los resultados parecen contraintuitivos: la configuración "Muy Greedy" ($\epsilon=0.1$) y "Alta Exploración" ($\epsilon=0.9$) tomaron la mayor cantidad de pasos. Sin embargo, esto se alinea con la teoría:
 \begin{itemize}
@@ -297,28 +285,44 @@ La Tabla \ref{tab:epsilon_comparison} resume los promedios de las 11 ejecuciones
 \end{itemize}
 
 \begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{informe_visuals/epsilon_pasos_comparacion.png}
+        \includegraphics[width=1\textwidth]{epsilon_pasos_comparacion.png}
         \caption{Comparación de Pasos Totales.}
         \label{fig:epsilon_pasos}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{informe_visuals/epsilon_recompensa_comparacion.png}
+\end{figure}
+\begin{figure}[H]
+        \includegraphics[width=1\textwidth]{epsilon_recompensa_comparacion.png}
         \caption{Comparación de Recompensa Total.}
         \label{fig:epsilon_recompensa}
-    \end{subfigure}
-    \caption{Rendimiento de las configuraciones Epsilon-Greedy.}
-    \label{fig:epsilon_graphs}
 \end{figure}
 
-Como se observa en la Figura \ref{fig:epsilon_graphs}, la configuración con $\epsilon=0.3$ no solo minimizó los pasos, sino que también mantuvo una recompensa competitiva, indicando una trayectoria de alta calidad. Todas las configuraciones lograron una tasa de éxito del 100\%, lo que demuestra que, aunque ineficiente en algunos casos, Epsilon-Greedy es un método robusto para este problema.
+Como se observa en la Figura \ref{fig:epsilon_pasos} y \ref{fig:epsilon_recompensa}, la configuración con $\epsilon=0.3$ no solo minimizó los pasos, sino que también mantuvo una recompensa competitiva, indicando una trayectoria de alta calidad. Todas las configuraciones lograron una tasa de éxito del 100\%, lo que demuestra que, aunque ineficiente en algunos casos, Epsilon-Greedy es un método robusto para este problema.
 
 \subsection{Análisis de los Algoritmos de Búsqueda}
 Los algoritmos de búsqueda, al tener un modelo del mundo (el mapa), mostraron un rendimiento drásticamente superior en eficiencia.
 
-\input{informe_visuals/search_comparison_table.tex}
+% Se ajusta la tabla para que no exceda los márgenes de la página
+\begin{table}[H]
+\centering
+\caption{Comparación de Algoritmos de Búsqueda}
+\label{tab:search_comparison}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\textbf{Algoritmo} & \textbf{Pasos} &  \textbf{Recompensa} & \textbf{Éxito (\%)} & \textbf{Eficiencia (Rec/Paso)} \\
+\hline
+Breadth-First Search & 29 ± 16  & 19.1 ± 6.4 & 100.0 & 0.7400 ± 0.1800 \\
+\hline
+Hill Climbing (First Imp.) & 2 ± nan & 11.5 ± nan & 100.0 & 5.7600 ± nan \\
+\hline
+Hill Climbing (Random Restart) & 3 ± 1 & 11.9 ± 0.6 & 100.0 & 4.9800 ± 1.8200 \\
+\hline
+Hill Climbing (Steepest) & 3 ± 1 & 11.6 ± 0.1 & 100.0 & 4.3300 ± 2.0300 \\
+\hline
+Simulated Annealing & 14 ± 15 & 15.0 ± 4.8 & 100.0 & 2.9500 ± 3.3800 \\
+\hline
+\end{tabular}%
+}
+\end{table}
 
 La Tabla \ref{tab:search_comparison} y la Figura \ref{fig:search_graphs} revelan varios hallazgos clave:
 \begin{itemize}
@@ -329,23 +333,17 @@ La Tabla \ref{tab:search_comparison} y la Figura \ref{fig:search_graphs} revelan
 \end{itemize}
 
 \begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{informe_visuals/search_pasos_comparacion.png}
+        \includegraphics[width=1\textwidth]{search_pasos_comparacion.png}
         \caption{Comparación de Pasos Totales.}
         \label{fig:search_pasos}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
-        \includegraphics[width=\textwidth]{informe_visuals/search_eficiencia_comparacion.png}
+\end{figure}
+\begin{figure}[H]
+        \includegraphics[width=1\textwidth]{search_eficiencia_comparacion.png}
         \caption{Comparación de Eficiencia (Recompensa/Paso).}
         \label{fig:search_eficiencia}
-    \end{subfigure}
-    \caption{Rendimiento de los Algoritmos de Búsqueda.}
-    \label{fig:search_graphs}
 \end{figure}
 
-Los algoritmos A* y Tabu Search no produjeron suficientes resultados válidos en las ejecuciones para ser incluidos en el análisis comparativo final, probablemente debido a timeouts o errores de implementación que los hicieron inviables en la práctica bajo las condiciones del experimento.
+Los algoritmos A* y Tabú Search no produjeron suficientes resultados válidos en las ejecuciones para ser incluidos en el análisis comparativo final, probablemente debido a timeouts o errores de implementación que los hicieron inviables en la práctica bajo las condiciones del experimento.
 
 \subsection{Comparativa General: PPO vs. Epsilon-Greedy vs. Búsqueda}
 Al comparar las tres familias de algoritmos, emerge una clara jerarquía de rendimiento para esta tarea específica:
@@ -357,7 +355,7 @@ Al comparar las tres familias de algoritmos, emerge una clara jerarquía de rend
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{informe_visuals/tiempo_comparacion.png}
+    \includegraphics[width=1\textwidth]{tiempo_comparacion.png}
     \caption{Comparación de Tiempos de Ejecución Totales por tipo de Agente. Nótese la escala logarítmica en el eje Y, que evidencia la enorme diferencia de rendimiento.}
     \label{fig:tiempo_comparacion_general}
 \end{figure}
@@ -370,8 +368,8 @@ La Figura \ref{fig:tiempo_comparacion_general} ilustra dramáticamente esta dife
 Este proyecto ha permitido realizar un análisis exhaustivo y comparativo de diferentes estrategias de inteligencia artificial aplicadas a un problema complejo y no estándar: la navegación inicial en \textit{Pokémon Rojo}. Los resultados obtenidos nos llevan a las siguientes conclusiones clave:
 
 \begin{enumerate}
-    \item \textbf{No Hay una "Bala de Plata":} La elección del algoritmo óptimo depende críticamente de la naturaleza del problema y del conocimiento previo disponible. Para una tarea de navegación pura con un mapa conocido, los algoritmos de búsqueda clásicos como Hill Climbing son abrumadoramente superiores.
-    \item \textbf{La Eficiencia de la Simplicidad:} En entornos donde la función de recompensa es relativamente simple y monótona (como acercarse a un objetivo), los algoritmos "greedy" como Hill Climbing pueden superar a métodos más complejos. Su simplicidad computacional se traduce en una velocidad de decisión casi instantánea.
+    \item \textbf{No existe una solución definitiva:} La elección del algoritmo óptimo depende críticamente de la naturaleza del problema y del conocimiento previo disponible. Para una tarea de navegación pura con un mapa conocido, los algoritmos de búsqueda clásicos como Hill Climbing son abrumadoramente superiores.
+    \item \textbf{La eficiencia está en lo simple:} En entornos donde la función de recompensa es relativamente simple y monótona (como acercarse a un objetivo), los algoritmos "greedy" como Hill Climbing pueden superar a métodos más complejos. Su simplicidad computacional se traduce en una velocidad de decisión casi instantánea.
     \item \textbf{El Costo del Aprendizaje "End-to-End":} El agente PPO, que aprende directamente de los píxeles, es un enfoque mucho más general y potente. Sin embargo, esta generalidad tiene un costo computacional significativo, tanto en entrenamiento (no cubierto en este análisis) como en inferencia. Su rendimiento, aunque inferior al de los algoritmos de búsqueda, es notablemente bueno considerando que no tiene un modelo explícito del mundo.
     \item \textbf{Los Límites de Epsilon-Greedy:} La estrategia Epsilon-Greedy, aunque es un pilar en la teoría del aprendizaje por refuerzo, demuestra ser insuficiente para problemas con secuencias de acción largas y recompensas escasas. Su dependencia de la exploración aleatoria y una memoria simple de acciones pasadas la convierte en la estrategia menos eficiente de las analizadas.
     \item \textbf{La Importancia del Equilibrio Exploración-Explotación:} El análisis de las variantes de Epsilon-Greedy confirmó empíricamente la teoría. Tanto un exceso de exploración ($\epsilon=0.9$) como un exceso de explotación ($\epsilon=0.1$) conducen a un rendimiento deficiente. Un valor balanceado (en este caso, $\epsilon=0.3$) es crucial para encontrar soluciones eficientes.
@@ -379,9 +377,7 @@ Este proyecto ha permitido realizar un análisis exhaustivo y comparativo de dif
     \item \textbf{Robustez vs. Eficiencia:} Mientras que los algoritmos de búsqueda fueron los más eficientes, su implementación puede ser frágil (como se vio con A* y Tabu Search, que fallaron en producir resultados consistentes). Estrategias como PPO y Epsilon-Greedy, aunque más lentas, demostraron ser más robustas y capaces de completar la tarea en el 100\% de los casos.
     \item \textbf{Ingeniería de Recompensas es Clave:} El éxito de cualquier agente de RL en este entorno está fuertemente ligado al diseño de la función de recompensa. Una buena función de recompensa puede guiar a un agente simple hacia el éxito, mientras que una mala puede hacer que incluso el algoritmo más avanzado falle.
     \item \textbf{El Valor de la Simulación de Alta Velocidad:} Los experimentos con los algoritmos de búsqueda se beneficiaron enormemente de un runner simplificado que se ejecutaba a máxima velocidad. Esto demuestra el potencial de desacoplar la lógica del agente de la renderización del emulador para acelerar la investigación y la experimentación.
-    \item \textbf{Futuras Líneas de Investigación:} Los resultados sugieren que un enfoque híbrido podría ser extremadamente poderoso: utilizar algoritmos de búsqueda para la navegación a gran escala (planificar una ruta a través del mapa del mundo) y aprendizaje por refuerzo para tareas locales y complejas (como las batallas Pokémon o la navegación dentro de un edificio).
 \end{enumerate}
 
-En definitiva, este trabajo no solo ha identificado las estrategias más efectivas para un objetivo concreto, sino que también ha proporcionado una profunda visión sobre las fortalezas, debilidades y compromisos inherentes a cada familia de algoritmos de inteligencia artificial cuando se enfrentan a un desafío del mundo real, rico y complejo.
-
+\noindent Para finalizar, este trabajo no solo ha identificado las estrategias más efectivas para un objetivo concreto, sino que también ha proporcionado una profunda visión sobre las fortalezas, debilidades y compromisos inherentes a cada familia de algoritmos de inteligencia artificial cuando se enfrentan a un desafío del mundo real, amplio y, sobre todo, complejo.
 \end{document}
