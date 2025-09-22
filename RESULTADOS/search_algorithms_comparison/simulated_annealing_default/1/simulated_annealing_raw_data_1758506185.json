@@ -1,0 +1,166 @@
+{
+  "algorithm_config": {
+    "name": "Simulated Annealing",
+    "algorithm": "simulated_annealing",
+    "params": {}
+  },
+  "execution_summary": {
+    "steps": 5,
+    "time_seconds": 0.0015110969543457031,
+    "total_reward": 12.15,
+    "termination_reason": "Pokemon obtenido",
+    "pokemon_obtained": true
+  },
+  "action_statistics": {
+    "0": 1,
+    "1": 1,
+    "2": 0,
+    "3": 1,
+    "4": 0,
+    "5": 0,
+    "6": 2
+  },
+  "position_history": [
+    [
+      12,
+      3
+    ],
+    [
+      16,
+      9
+    ],
+    [
+      10,
+      9
+    ],
+    [
+      15,
+      16
+    ],
+    [
+      5,
+      9
+    ]
+  ],
+  "reward_history": [
+    0.01,
+    0.02,
+    0.03,
+    0.04,
+    12.05
+  ],
+  "agent_info_samples": [
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        12,
+        3
+      ],
+      "current_energy": 9.0,
+      "best_energy": 9.0,
+      "temperature": 100.0,
+      "acceptance_rate": 0.0,
+      "accepted_moves": 1,
+      "rejected_moves": 0,
+      "steps_without_improvement": 0,
+      "visited_positions": 1,
+      "step_count": 1,
+      "recent_actions": [
+        0
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        16,
+        9
+      ],
+      "current_energy": 14.0,
+      "best_energy": 9.0,
+      "temperature": 100.0,
+      "acceptance_rate": 0.0,
+      "accepted_moves": 2,
+      "rejected_moves": 0,
+      "steps_without_improvement": 1,
+      "visited_positions": 2,
+      "step_count": 2,
+      "recent_actions": [
+        0,
+        6
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        10,
+        9
+      ],
+      "current_energy": 8.0,
+      "best_energy": 8.0,
+      "temperature": 100.0,
+      "acceptance_rate": 0.0,
+      "accepted_moves": 3,
+      "rejected_moves": 0,
+      "steps_without_improvement": 0,
+      "visited_positions": 3,
+      "step_count": 3,
+      "recent_actions": [
+        0,
+        6,
+        3
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        15,
+        16
+      ],
+      "current_energy": 20.0,
+      "best_energy": 8.0,
+      "temperature": 100.0,
+      "acceptance_rate": 0.0,
+      "accepted_moves": 4,
+      "rejected_moves": 0,
+      "steps_without_improvement": 1,
+      "visited_positions": 4,
+      "step_count": 4,
+      "recent_actions": [
+        0,
+        6,
+        3,
+        1
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        5,
+        9
+      ],
+      "current_energy": 3.0,
+      "best_energy": 3.0,
+      "temperature": 100.0,
+      "acceptance_rate": 0.0,
+      "accepted_moves": 5,
+      "rejected_moves": 0,
+      "steps_without_improvement": 0,
+      "visited_positions": 5,
+      "step_count": 5,
+      "recent_actions": [
+        0,
+        6,
+        3,
+        1,
+        6
+      ]
+    }
+  ],
+  "performance_metrics": {
+    "positions_visited": 5,
+    "efficiency": 2.43,
+    "speed": 50.0,
+    "most_used_action": 6,
+    "action_diversity": 4
+  }
+}

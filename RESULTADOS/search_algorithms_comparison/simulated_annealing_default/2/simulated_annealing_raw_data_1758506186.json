@@ -1,0 +1,366 @@
+{
+  "algorithm_config": {
+    "name": "Simulated Annealing",
+    "algorithm": "simulated_annealing",
+    "params": {}
+  },
+  "execution_summary": {
+    "steps": 20,
+    "time_seconds": 0.00460362434387207,
+    "total_reward": 14.6,
+    "termination_reason": "Pokemon obtenido",
+    "pokemon_obtained": true
+  },
+  "action_statistics": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 4,
+    "4": 1,
+    "5": 5,
+    "6": 1
+  },
+  "position_history": [
+    [
+      0,
+      12
+    ],
+    [
+      9,
+      2
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      7,
+      15
+    ],
+    [
+      19,
+      11
+    ],
+    [
+      2,
+      17
+    ],
+    [
+      9,
+      12
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      16,
+      2
+    ],
+    [
+      10,
+      14
+    ],
+    [
+      2,
+      16
+    ],
+    [
+      11,
+      6
+    ],
+    [
+      17,
+      7
+    ],
+    [
+      16,
+      7
+    ],
+    [
+      9,
+      8
+    ],
+    [
+      6,
+      15
+    ],
+    [
+      16,
+      12
+    ],
+    [
+      16,
+      0
+    ],
+    [
+      15,
+      12
+    ],
+    [
+      6,
+      3
+    ]
+  ],
+  "reward_history": [
+    0.01,
+    0.02,
+    0.03,
+    0.04,
+    0.05,
+    0.06,
+    0.07,
+    0.58,
+    0.09,
+    0.1,
+    0.11,
+    0.12,
+    0.13,
+    0.14,
+    0.15,
+    0.16,
+    0.17,
+    0.18,
+    0.19,
+    12.2
+  ],
+  "agent_info_samples": [
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        2,
+        16
+      ],
+      "current_energy": 13.0,
+      "best_energy": 5.0,
+      "temperature": 90.25,
+      "acceptance_rate": 1.0,
+      "accepted_moves": 11,
+      "rejected_moves": 0,
+      "steps_without_improvement": 3,
+      "visited_positions": 11,
+      "step_count": 11,
+      "recent_actions": [
+        1,
+        5,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        11,
+        6
+      ],
+      "current_energy": 9.1,
+      "best_energy": 5.0,
+      "temperature": 81.451,
+      "acceptance_rate": 1.0,
+      "accepted_moves": 12,
+      "rejected_moves": 0,
+      "steps_without_improvement": 4,
+      "visited_positions": 12,
+      "step_count": 12,
+      "recent_actions": [
+        5,
+        0,
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        17,
+        7
+      ],
+      "current_energy": 15.2,
+      "best_energy": 5.0,
+      "temperature": 73.509,
+      "acceptance_rate": 1.0,
+      "accepted_moves": 13,
+      "rejected_moves": 0,
+      "steps_without_improvement": 5,
+      "visited_positions": 13,
+      "step_count": 13,
+      "recent_actions": [
+        0,
+        1,
+        2,
+        0,
+        3
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        16,
+        7
+      ],
+      "current_energy": 14.3,
+      "best_energy": 5.0,
+      "temperature": 66.342,
+      "acceptance_rate": 1.0,
+      "accepted_moves": 14,
+      "rejected_moves": 0,
+      "steps_without_improvement": 6,
+      "visited_positions": 14,
+      "step_count": 14,
+      "recent_actions": [
+        1,
+        2,
+        0,
+        3,
+        2
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        9,
+        8
+      ],
+      "current_energy": 6.4,
+      "best_energy": 5.0,
+      "temperature": 59.874,
+      "acceptance_rate": 1.0,
+      "accepted_moves": 15,
+      "rejected_moves": 0,
+      "steps_without_improvement": 7,
+      "visited_positions": 15,
+      "step_count": 15,
+      "recent_actions": [
+        2,
+        0,
+        3,
+        2,
+        5
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        6,
+        15
+      ],
+      "current_energy": 10.5,
+      "best_energy": 5.0,
+      "temperature": 54.036,
+      "acceptance_rate": 1.0,
+      "accepted_moves": 16,
+      "rejected_moves": 0,
+      "steps_without_improvement": 8,
+      "visited_positions": 16,
+      "step_count": 16,
+      "recent_actions": [
+        0,
+        3,
+        2,
+        5,
+        3
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        16,
+        12
+      ],
+      "current_energy": 17.6,
+      "best_energy": 5.0,
+      "temperature": 48.767,
+      "acceptance_rate": 1.0,
+      "accepted_moves": 17,
+      "rejected_moves": 0,
+      "steps_without_improvement": 9,
+      "visited_positions": 17,
+      "step_count": 17,
+      "recent_actions": [
+        3,
+        2,
+        5,
+        3,
+        3
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        16,
+        0
+      ],
+      "current_energy": 16.7,
+      "best_energy": 5.0,
+      "temperature": 44.013,
+      "acceptance_rate": 1.0,
+      "accepted_moves": 18,
+      "rejected_moves": 0,
+      "steps_without_improvement": 10,
+      "visited_positions": 18,
+      "step_count": 18,
+      "recent_actions": [
+        2,
+        5,
+        3,
+        3,
+        5
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        15,
+        12
+      ],
+      "current_energy": 16.8,
+      "best_energy": 5.0,
+      "temperature": 39.721,
+      "acceptance_rate": 1.0,
+      "accepted_moves": 19,
+      "rejected_moves": 0,
+      "steps_without_improvement": 11,
+      "visited_positions": 19,
+      "step_count": 19,
+      "recent_actions": [
+        5,
+        3,
+        3,
+        5,
+        1
+      ]
+    },
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        6,
+        3
+      ],
+      "current_energy": 3.9,
+      "best_energy": 3.9,
+      "temperature": 35.849,
+      "acceptance_rate": 1.0,
+      "accepted_moves": 20,
+      "rejected_moves": 0,
+      "steps_without_improvement": 0,
+      "visited_positions": 20,
+      "step_count": 20,
+      "recent_actions": [
+        3,
+        3,
+        5,
+        1,
+        4
+      ]
+    }
+  ],
+  "performance_metrics": {
+    "positions_visited": 20,
+    "efficiency": 0.73,
+    "speed": 200.0,
+    "most_used_action": 5,
+    "action_diversity": 7
+  }
+}

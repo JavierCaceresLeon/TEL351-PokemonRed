@@ -1,0 +1,38 @@
+{
+  "timestamp": 1758505058,
+  "epsilon_config": {
+    "epsilon_start": 0.7,
+    "epsilon_min": 0.05,
+    "epsilon_decay": 0.9995
+  },
+  "final_state": {
+    "step": 142,
+    "reward": 0,
+    "total_reward": 125.08970400000001,
+    "pokemon_count": 1,
+    "position": {
+      "x": -4,
+      "y": -14,
+      "map": 0
+    },
+    "health": 1.0,
+    "levels_sum": 5,
+    "badges": 0,
+    "exploration_score": 0
+  },
+  "performance_metrics": {
+    "avg_reward": 0.8809134084507043,
+    "steps_per_second": 142.0,
+    "exploration_efficiency": 0.323943661971831,
+    "success": true
+  },
+  "action_distribution": {
+    "action_0": 20,
+    "action_1": 28,
+    "action_2": 24,
+    "action_3": 34,
+    "action_4": 23,
+    "action_5": 15
+  },
+  "epsilon_final": 0.6513598985744581
+}

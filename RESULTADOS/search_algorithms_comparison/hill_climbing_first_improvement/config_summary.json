@@ -1,0 +1,18 @@
+{
+  "algorithm_info": {
+    "name": "Hill Climbing (First Improvement)",
+    "algorithm": "hill_climbing",
+    "variant": "first_improvement",
+    "description": "Hill Climbing con primera mejora encontrada"
+  },
+  "execution_summary": {
+    "total_runs": 11,
+    "successful_runs": 1,
+    "failed_runs": 10,
+    "success_rate": 0.09090909090909091,
+    "total_time_seconds": 7.251576662063599,
+    "average_time_per_run": 0.6592342420057817
+  },
+  "timestamp": 1758506207.190018,
+  "status": "completed"
+}

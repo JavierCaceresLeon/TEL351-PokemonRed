@@ -1,0 +1,18 @@
+{
+  "algorithm_info": {
+    "name": "Hill Climbing (Random Restart)",
+    "algorithm": "hill_climbing",
+    "variant": "random_restart",
+    "description": "Hill Climbing con reinicio aleatorio"
+  },
+  "execution_summary": {
+    "total_runs": 11,
+    "successful_runs": 3,
+    "failed_runs": 8,
+    "success_rate": 0.2727272727272727,
+    "total_time_seconds": 7.252407789230347,
+    "average_time_per_run": 0.6593097990209406
+  },
+  "timestamp": 1758506214.4439402,
+  "status": "completed"
+}

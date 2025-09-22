@@ -1,0 +1,18 @@
+{
+  "algorithm_info": {
+    "name": "Breadth-First Search",
+    "algorithm": "bfs",
+    "variant": "default",
+    "description": "Búsqueda por amplitud sistemática"
+  },
+  "execution_summary": {
+    "total_runs": 11,
+    "successful_runs": 11,
+    "failed_runs": 0,
+    "success_rate": 1.0,
+    "total_time_seconds": 7.423139810562134,
+    "average_time_per_run": 0.6748308918692849
+  },
+  "timestamp": 1758506185.0613294,
+  "status": "completed"
+}

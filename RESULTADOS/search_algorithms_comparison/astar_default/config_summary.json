@@ -1,0 +1,18 @@
+{
+  "algorithm_info": {
+    "name": "A* Search",
+    "algorithm": "astar",
+    "variant": "default",
+    "description": "Búsqueda A* con heurística de distancia Manhattan"
+  },
+  "execution_summary": {
+    "total_runs": 11,
+    "successful_runs": 0,
+    "failed_runs": 11,
+    "success_rate": 0.0,
+    "total_time_seconds": 7.48277735710144,
+    "average_time_per_run": 0.6802524870092218
+  },
+  "timestamp": 1758506177.6366751,
+  "status": "completed"
+}

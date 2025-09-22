@@ -1,0 +1,6 @@
+Algoritmo,Pasos_Promedio,Pasos_Desviacion,Tiempo_Promedio,Tiempo_Desviacion,Recompensa_Promedio,Recompensa_Desviacion,Tasa_Exito,Eficiencia_Promedio,Eficiencia_Desviacion
+Breadth-First Search,29.09,15.93,0.01,0.0,19.07,6.41,100.0,0.74,0.18
+Hill Climbing (First Imp.),2.0,,0.0,,11.53,,100.0,5.76,
+Hill Climbing (Random Restart),2.67,1.15,0.0,0.0,11.89,0.56,100.0,4.98,1.82
+Hill Climbing (Steepest),3.0,1.41,0.0,0.0,11.56,0.05,100.0,4.33,2.03
+Simulated Annealing,14.27,15.41,0.0,0.0,14.96,4.79,100.0,2.95,3.38

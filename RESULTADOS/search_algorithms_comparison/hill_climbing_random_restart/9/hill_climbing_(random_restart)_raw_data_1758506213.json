@@ -1,0 +1,87 @@
+{
+  "algorithm_config": {
+    "name": "Hill Climbing (random_restart)",
+    "algorithm": "hill_climbing",
+    "params": {
+      "variant": "HillClimbingVariant.RANDOM_RESTART"
+    }
+  },
+  "execution_summary": {
+    "steps": 2,
+    "time_seconds": 0.0,
+    "total_reward": 12.53,
+    "termination_reason": "Pokemon obtenido",
+    "pokemon_obtained": true
+  },
+  "action_statistics": {
+    "0": 1,
+    "1": 1,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0
+  },
+  "position_history": [
+    [
+      4,
+      1
+    ],
+    [
+      3,
+      6
+    ]
+  ],
+  "reward_history": [
+    1.01,
+    11.52
+  ],
+  "agent_info_samples": [
+    {
+      "algorithm": "Hill Climbing (random_restart)",
+      "current_position": [
+        4,
+        1
+      ],
+      "current_fitness": 8.0,
+      "best_fitness": 8.0,
+      "steps_without_improvement": 0,
+      "plateau_escapes": 0,
+      "random_restarts": 0,
+      "evaluations": 7,
+      "visited_positions": 1,
+      "step_count": 1,
+      "recent_actions": [
+        0
+      ],
+      "improvement_frequency": 1.0
+    },
+    {
+      "algorithm": "Hill Climbing (random_restart)",
+      "current_position": [
+        3,
+        6
+      ],
+      "current_fitness": 15.9,
+      "best_fitness": 15.9,
+      "steps_without_improvement": 0,
+      "plateau_escapes": 0,
+      "random_restarts": 0,
+      "evaluations": 14,
+      "visited_positions": 2,
+      "step_count": 2,
+      "recent_actions": [
+        0,
+        1
+      ],
+      "improvement_frequency": 1.0
+    }
+  ],
+  "performance_metrics": {
+    "positions_visited": 2,
+    "efficiency": 6.265,
+    "speed": 20.0,
+    "most_used_action": 0,
+    "action_diversity": 2
+  }
+}

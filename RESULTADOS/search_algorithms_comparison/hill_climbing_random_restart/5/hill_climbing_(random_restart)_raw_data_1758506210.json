@@ -1,0 +1,140 @@
+{
+  "algorithm_config": {
+    "name": "Hill Climbing (random_restart)",
+    "algorithm": "hill_climbing",
+    "params": {
+      "variant": "HillClimbingVariant.RANDOM_RESTART"
+    }
+  },
+  "execution_summary": {
+    "steps": 4,
+    "time_seconds": 0.0015141963958740234,
+    "total_reward": 11.6,
+    "termination_reason": "Pokemon obtenido",
+    "pokemon_obtained": true
+  },
+  "action_statistics": {
+    "0": 2,
+    "1": 1,
+    "2": 1,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0
+  },
+  "position_history": [
+    [
+      14,
+      9
+    ],
+    [
+      23,
+      14
+    ],
+    [
+      10,
+      14
+    ],
+    [
+      3,
+      6
+    ]
+  ],
+  "reward_history": [
+    0.01,
+    0.02,
+    0.03,
+    11.54
+  ],
+  "agent_info_samples": [
+    {
+      "algorithm": "Hill Climbing (random_restart)",
+      "current_position": [
+        14,
+        9
+      ],
+      "current_fitness": -10.0,
+      "best_fitness": -10.0,
+      "steps_without_improvement": 0,
+      "plateau_escapes": 0,
+      "random_restarts": 0,
+      "evaluations": 7,
+      "visited_positions": 1,
+      "step_count": 1,
+      "recent_actions": [
+        0
+      ],
+      "improvement_frequency": 1.0
+    },
+    {
+      "algorithm": "Hill Climbing (random_restart)",
+      "current_position": [
+        23,
+        14
+      ],
+      "current_fitness": -22.1,
+      "best_fitness": -10.0,
+      "steps_without_improvement": 0,
+      "plateau_escapes": 0,
+      "random_restarts": 0,
+      "evaluations": 14,
+      "visited_positions": 2,
+      "step_count": 2,
+      "recent_actions": [
+        0,
+        0
+      ],
+      "improvement_frequency": 1.0
+    },
+    {
+      "algorithm": "Hill Climbing (random_restart)",
+      "current_position": [
+        10,
+        14
+      ],
+      "current_fitness": -9.2,
+      "best_fitness": -9.2,
+      "steps_without_improvement": 0,
+      "plateau_escapes": 0,
+      "random_restarts": 0,
+      "evaluations": 21,
+      "visited_positions": 3,
+      "step_count": 3,
+      "recent_actions": [
+        0,
+        0,
+        2
+      ],
+      "improvement_frequency": 1.0
+    },
+    {
+      "algorithm": "Hill Climbing (random_restart)",
+      "current_position": [
+        3,
+        6
+      ],
+      "current_fitness": 11.7,
+      "best_fitness": 11.7,
+      "steps_without_improvement": 0,
+      "plateau_escapes": 0,
+      "random_restarts": 0,
+      "evaluations": 28,
+      "visited_positions": 4,
+      "step_count": 4,
+      "recent_actions": [
+        0,
+        0,
+        2,
+        1
+      ],
+      "improvement_frequency": 1.0
+    }
+  ],
+  "performance_metrics": {
+    "positions_visited": 4,
+    "efficiency": 2.9,
+    "speed": 40.0,
+    "most_used_action": 0,
+    "action_diversity": 3
+  }
+}

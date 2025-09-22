@@ -1,0 +1,353 @@
+{
+  "algorithm_config": {
+    "name": "Bfs",
+    "algorithm": "bfs",
+    "params": {}
+  },
+  "execution_summary": {
+    "steps": 12,
+    "time_seconds": 0.0030243396759033203,
+    "total_reward": 12.280000000000001,
+    "termination_reason": "Pokemon obtenido",
+    "pokemon_obtained": true
+  },
+  "action_statistics": {
+    "0": 3,
+    "1": 3,
+    "2": 3,
+    "3": 3,
+    "4": 0,
+    "5": 0,
+    "6": 0
+  },
+  "position_history": [
+    [
+      19,
+      23
+    ],
+    [
+      15,
+      8
+    ],
+    [
+      2,
+      14
+    ],
+    [
+      18,
+      12
+    ],
+    [
+      17,
+      5
+    ],
+    [
+      24,
+      24
+    ],
+    [
+      2,
+      24
+    ],
+    [
+      16,
+      12
+    ],
+    [
+      13,
+      16
+    ],
+    [
+      6,
+      20
+    ],
+    [
+      23,
+      14
+    ],
+    [
+      5,
+      4
+    ]
+  ],
+  "reward_history": [
+    0.01,
+    0.02,
+    0.03,
+    0.04,
+    0.05,
+    0.06,
+    0.07,
+    0.08,
+    0.09,
+    0.1,
+    0.11,
+    11.620000000000001
+  ],
+  "agent_info_samples": [
+    {
+      "algorithm": "BFS",
+      "current_position": [
+        2,
+        14
+      ],
+      "goal_position": [
+        5,
+        3
+      ],
+      "visited_positions": 3,
+      "step_count": 3,
+      "nodes_explored": 3,
+      "paths_found": 3,
+      "search_time": 0.0,
+      "current_path_length": 0,
+      "path_progress": "0/0",
+      "stuck_counter": 0,
+      "recent_actions": [
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "algorithm": "BFS",
+      "current_position": [
+        18,
+        12
+      ],
+      "goal_position": [
+        5,
+        3
+      ],
+      "visited_positions": 4,
+      "step_count": 4,
+      "nodes_explored": 4,
+      "paths_found": 4,
+      "search_time": 0.0,
+      "current_path_length": 0,
+      "path_progress": "0/0",
+      "stuck_counter": 0,
+      "recent_actions": [
+        1,
+        2,
+        0,
+        3
+      ]
+    },
+    {
+      "algorithm": "BFS",
+      "current_position": [
+        17,
+        5
+      ],
+      "goal_position": [
+        5,
+        3
+      ],
+      "visited_positions": 5,
+      "step_count": 5,
+      "nodes_explored": 5,
+      "paths_found": 5,
+      "search_time": 0.0,
+      "current_path_length": 0,
+      "path_progress": "0/0",
+      "stuck_counter": 0,
+      "recent_actions": [
+        1,
+        2,
+        0,
+        3,
+        1
+      ]
+    },
+    {
+      "algorithm": "BFS",
+      "current_position": [
+        24,
+        24
+      ],
+      "goal_position": [
+        5,
+        3
+      ],
+      "visited_positions": 6,
+      "step_count": 6,
+      "nodes_explored": 6,
+      "paths_found": 6,
+      "search_time": 0.0,
+      "current_path_length": 0,
+      "path_progress": "0/0",
+      "stuck_counter": 0,
+      "recent_actions": [
+        2,
+        0,
+        3,
+        1,
+        2
+      ]
+    },
+    {
+      "algorithm": "BFS",
+      "current_position": [
+        2,
+        24
+      ],
+      "goal_position": [
+        5,
+        3
+      ],
+      "visited_positions": 7,
+      "step_count": 7,
+      "nodes_explored": 7,
+      "paths_found": 7,
+      "search_time": 0.0,
+      "current_path_length": 0,
+      "path_progress": "0/0",
+      "stuck_counter": 0,
+      "recent_actions": [
+        0,
+        3,
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "algorithm": "BFS",
+      "current_position": [
+        16,
+        12
+      ],
+      "goal_position": [
+        5,
+        3
+      ],
+      "visited_positions": 8,
+      "step_count": 8,
+      "nodes_explored": 8,
+      "paths_found": 8,
+      "search_time": 0.0,
+      "current_path_length": 0,
+      "path_progress": "0/0",
+      "stuck_counter": 0,
+      "recent_actions": [
+        3,
+        1,
+        2,
+        0,
+        3
+      ]
+    },
+    {
+      "algorithm": "BFS",
+      "current_position": [
+        13,
+        16
+      ],
+      "goal_position": [
+        5,
+        3
+      ],
+      "visited_positions": 9,
+      "step_count": 9,
+      "nodes_explored": 9,
+      "paths_found": 9,
+      "search_time": 0.0,
+      "current_path_length": 0,
+      "path_progress": "0/0",
+      "stuck_counter": 0,
+      "recent_actions": [
+        1,
+        2,
+        0,
+        3,
+        1
+      ]
+    },
+    {
+      "algorithm": "BFS",
+      "current_position": [
+        6,
+        20
+      ],
+      "goal_position": [
+        5,
+        3
+      ],
+      "visited_positions": 10,
+      "step_count": 10,
+      "nodes_explored": 10,
+      "paths_found": 10,
+      "search_time": 0.0,
+      "current_path_length": 0,
+      "path_progress": "0/0",
+      "stuck_counter": 0,
+      "recent_actions": [
+        2,
+        0,
+        3,
+        1,
+        2
+      ]
+    },
+    {
+      "algorithm": "BFS",
+      "current_position": [
+        23,
+        14
+      ],
+      "goal_position": [
+        5,
+        3
+      ],
+      "visited_positions": 11,
+      "step_count": 11,
+      "nodes_explored": 11,
+      "paths_found": 11,
+      "search_time": 0.0,
+      "current_path_length": 0,
+      "path_progress": "0/0",
+      "stuck_counter": 0,
+      "recent_actions": [
+        0,
+        3,
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "algorithm": "BFS",
+      "current_position": [
+        5,
+        4
+      ],
+      "goal_position": [
+        5,
+        3
+      ],
+      "visited_positions": 12,
+      "step_count": 12,
+      "nodes_explored": 12,
+      "paths_found": 12,
+      "search_time": 0.0,
+      "current_path_length": 0,
+      "path_progress": "0/0",
+      "stuck_counter": 0,
+      "recent_actions": [
+        3,
+        1,
+        2,
+        0,
+        3
+      ]
+    }
+  ],
+  "performance_metrics": {
+    "positions_visited": 12,
+    "efficiency": 1.0233333333333334,
+    "speed": 120.0,
+    "most_used_action": 0,
+    "action_diversity": 4
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "algorithm_info": {
+    "name": "Simulated Annealing",
+    "algorithm": "simulated_annealing",
+    "variant": "default",
+    "description": "Recocido simulado con enfriamiento adaptativo"
+  },
+  "execution_summary": {
+    "total_runs": 11,
+    "successful_runs": 11,
+    "failed_runs": 0,
+    "success_rate": 1.0,
+    "total_time_seconds": 7.555014133453369,
+    "average_time_per_run": 0.686819466677579
+  },
+  "timestamp": 1758506192.6178594,
+  "status": "completed"
+}

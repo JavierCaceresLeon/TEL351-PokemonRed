@@ -1,0 +1,18 @@
+{
+  "algorithm_info": {
+    "name": "Tabu Search",
+    "algorithm": "tabu_search",
+    "variant": "default",
+    "description": "Búsqueda Tabú con lista de movimientos prohibidos"
+  },
+  "execution_summary": {
+    "total_runs": 11,
+    "successful_runs": 0,
+    "failed_runs": 11,
+    "success_rate": 0.0,
+    "total_time_seconds": 7.217021703720093,
+    "average_time_per_run": 0.6560928821563721
+  },
+  "timestamp": 1758506221.6624737,
+  "status": "completed"
+}

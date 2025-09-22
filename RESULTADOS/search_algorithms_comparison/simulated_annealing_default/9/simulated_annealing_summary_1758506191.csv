@@ -1,0 +1,11 @@
+Métrica,Valor
+Algoritmo,Simulated Annealing
+Pasos Totales,8
+Tiempo (s),0.002
+Recompensa Total,12.36
+Pokemon Obtenidos,1
+Razón de Terminación,Pokemon obtenido
+Posiciones Visitadas,8
+Acción Más Usada,2
+Eficiencia (Recompensa/Paso),1.545
+Velocidad (Pasos/s),80.0

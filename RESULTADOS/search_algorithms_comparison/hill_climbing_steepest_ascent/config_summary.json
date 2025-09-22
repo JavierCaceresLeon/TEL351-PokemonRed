@@ -1,0 +1,18 @@
+{
+  "algorithm_info": {
+    "name": "Hill Climbing (Steepest Ascent)",
+    "algorithm": "hill_climbing",
+    "variant": "steepest_ascent",
+    "description": "Hill Climbing con selección de mejor mejora"
+  },
+  "execution_summary": {
+    "total_runs": 11,
+    "successful_runs": 2,
+    "failed_runs": 9,
+    "success_rate": 0.18181818181818182,
+    "total_time_seconds": 7.317426681518555,
+    "average_time_per_run": 0.6652206074107777
+  },
+  "timestamp": 1758506199.936928,
+  "status": "completed"
+}

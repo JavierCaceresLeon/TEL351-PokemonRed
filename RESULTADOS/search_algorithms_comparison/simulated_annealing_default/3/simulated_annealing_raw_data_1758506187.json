@@ -1,0 +1,60 @@
+{
+  "algorithm_config": {
+    "name": "Simulated Annealing",
+    "algorithm": "simulated_annealing",
+    "params": {}
+  },
+  "execution_summary": {
+    "steps": 1,
+    "time_seconds": 0.0,
+    "total_reward": 12.01,
+    "termination_reason": "Pokemon obtenido",
+    "pokemon_obtained": true
+  },
+  "action_statistics": {
+    "0": 0,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 1,
+    "5": 0,
+    "6": 0
+  },
+  "position_history": [
+    [
+      2,
+      6
+    ]
+  ],
+  "reward_history": [
+    12.01
+  ],
+  "agent_info_samples": [
+    {
+      "algorithm": "Simulated Annealing",
+      "current_position": [
+        2,
+        6
+      ],
+      "current_energy": 3.0,
+      "best_energy": 3.0,
+      "temperature": 100.0,
+      "acceptance_rate": 0.0,
+      "accepted_moves": 1,
+      "rejected_moves": 0,
+      "steps_without_improvement": 0,
+      "visited_positions": 1,
+      "step_count": 1,
+      "recent_actions": [
+        4
+      ]
+    }
+  ],
+  "performance_metrics": {
+    "positions_visited": 1,
+    "efficiency": 12.01,
+    "speed": 10.0,
+    "most_used_action": 4,
+    "action_diversity": 1
+  }
+}

@@ -1,0 +1,14 @@
+Métrica,Valor
+Timestamp,1758505060
+Epsilon Start,0.3
+Epsilon Min,0.01
+Epsilon Decay,0.9998
+Pasos Totales,190
+Tiempo (s),0.0
+Pasos/Segundo,190.0
+Recompensa Total,85.981664
+Recompensa Promedio,0.4525350736842105
+Pokemon Obtenidos,1
+Suma de Niveles,10
+Posiciones Exploradas,80
+Eficiencia Exploración,0.42105263157894735

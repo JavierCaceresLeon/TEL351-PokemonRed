@@ -1,0 +1,11 @@
+Métrica,Valor
+Algoritmo,Hill Climbing (random_restart)
+Pasos Totales,4
+Tiempo (s),0.002
+Recompensa Total,11.6
+Pokemon Obtenidos,1
+Razón de Terminación,Pokemon obtenido
+Posiciones Visitadas,4
+Acción Más Usada,0
+Eficiencia (Recompensa/Paso),2.9
+Velocidad (Pasos/s),40.0

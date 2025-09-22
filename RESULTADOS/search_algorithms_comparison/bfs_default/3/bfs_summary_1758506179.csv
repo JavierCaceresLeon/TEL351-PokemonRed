@@ -1,0 +1,11 @@
+Métrica,Valor
+Algoritmo,Bfs
+Pasos Totales,24
+Tiempo (s),0.004
+Recompensa Total,16.5
+Pokemon Obtenidos,1
+Razón de Terminación,Pokemon obtenido
+Posiciones Visitadas,24
+Acción Más Usada,0
+Eficiencia (Recompensa/Paso),0.6875
+Velocidad (Pasos/s),240.0
