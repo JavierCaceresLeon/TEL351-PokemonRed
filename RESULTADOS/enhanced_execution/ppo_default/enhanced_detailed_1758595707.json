@@ -1,0 +1,115 @@
+{
+  "algorithm": "ppo",
+  "variant": "default",
+  "success": true,
+  "execution_time": 451.98244857788086,
+  "total_steps": 600,
+  "total_reward": 28.9,
+  "final_state": {
+    "total_steps": 600,
+    "total_reward": 28.9,
+    "execution_time_wall": 56.49780607223511,
+    "execution_time_reported": 451.98244857788086,
+    "success": true
+  },
+  "metrics_history": [
+    {
+      "step": 50,
+      "reward": 0.0,
+      "total_reward": 2.2,
+      "timestamp": 1758595664.2852812,
+      "memory_usage": 490.48828125,
+      "cpu_percent": 0.0
+    },
+    {
+      "step": 100,
+      "reward": 0.10000000000000053,
+      "total_reward": 4.6000000000000005,
+      "timestamp": 1758595668.2687528,
+      "memory_usage": 490.58203125,
+      "cpu_percent": 663.6
+    },
+    {
+      "step": 150,
+      "reward": 0.09999999999999964,
+      "total_reward": 7.0,
+      "timestamp": 1758595672.1934667,
+      "memory_usage": 490.6484375,
+      "cpu_percent": 696.8
+    },
+    {
+      "step": 200,
+      "reward": 0.0,
+      "total_reward": 8.9,
+      "timestamp": 1758595676.1120076,
+      "memory_usage": 490.71875,
+      "cpu_percent": 699.2
+    },
+    {
+      "step": 250,
+      "reward": 0.0,
+      "total_reward": 9.200000000000001,
+      "timestamp": 1758595680.0464232,
+      "memory_usage": 490.78125,
+      "cpu_percent": 693.7
+    },
+    {
+      "step": 300,
+      "reward": 0.0,
+      "total_reward": 10.600000000000001,
+      "timestamp": 1758595683.9614122,
+      "memory_usage": 490.85546875,
+      "cpu_percent": 705.2
+    },
+    {
+      "step": 350,
+      "reward": 0.0,
+      "total_reward": 16.3,
+      "timestamp": 1758595687.883706,
+      "memory_usage": 490.8984375,
+      "cpu_percent": 699.2
+    },
+    {
+      "step": 400,
+      "reward": 0.0,
+      "total_reward": 16.3,
+      "timestamp": 1758595691.8016567,
+      "memory_usage": 490.96484375,
+      "cpu_percent": 702.8
+    },
+    {
+      "step": 450,
+      "reward": 0.0,
+      "total_reward": 16.9,
+      "timestamp": 1758595695.7080553,
+      "memory_usage": 491.0390625,
+      "cpu_percent": 702.8
+    },
+    {
+      "step": 500,
+      "reward": 0.0,
+      "total_reward": 24.9,
+      "timestamp": 1758595699.6288192,
+      "memory_usage": 491.1171875,
+      "cpu_percent": 705.6
+    },
+    {
+      "step": 550,
+      "reward": 0.0,
+      "total_reward": 24.9,
+      "timestamp": 1758595703.58684,
+      "memory_usage": 491.1796875,
+      "cpu_percent": 668.9
+    },
+    {
+      "step": 600,
+      "reward": 0.0,
+      "total_reward": 28.9,
+      "timestamp": 1758595707.5160928,
+      "memory_usage": 491.2421875,
+      "cpu_percent": 700.8
+    }
+  ],
+  "error_message": null,
+  "timestamp": 1758595707
+}

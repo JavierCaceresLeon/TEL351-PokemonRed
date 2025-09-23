@@ -148,6 +148,23 @@ El entorno de \textit{Pokémon Rojo}, facilitado por el emulador \textbf{PyBoy},
 
 En resumen, el entorno es suficientemente complejo para un proyecto de esta envergadura, ya que combina desafíos de visión por computadora, planificación a largo plazo, exploración en un mundo con recompensas escasas y la necesidad de manejar una alta dimensionalidad tanto en el estado como en la secuencia de acciones.
 
+\begin{table}[H]
+    \centering
+    \caption{Componentes del entorno y justificación de complejidad}
+    \label{tab:entorno_componentes}
+    \begin{tabular}{@{}llp{7.5cm}@{}}
+        	oprule
+        Componente & Fuente & Por qué aporta complejidad \\
+        \midrule
+        Emulador PyBoy & \texttt{pyboy} & Observaciones de píxeles; sincronización con FPS; interacción a nivel de botones. \\
+        Wrapper RedGym v2 & \texttt{v2/red\_gym\_env\_v2.py} & API tipo Gym; espacios de acción y observación; reseteo con estados guardados (\texttt{init.state}). \\
+        Mundo Kanto 2D & ROM \texttt{PokemonRed.gb} & Navegación en grilla con obstáculos, triggers de eventos (Oak), transiciones y menús. \\
+        Recompensas & Runner y métricas & Señales escasas/retardadas; dependencia de eventos (elección del inicial). \\
+        Render/Headless & Stream/Headless & Necesidad de desacoplar visualización de la lógica; factor \texttt{real\_time\_factor}. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
 \subsection{Instalación y Dependencias}
 El proyecto se basa en un repositorio de código abierto con una comunidad activa. La instalación requiere una configuración precisa para asegurar la compatibilidad entre el emulador, las librerías de aprendizaje por refuerzo y el sistema operativo.
 
@@ -176,6 +193,34 @@ El proceso de instalación, detallado en los archivos \texttt{README.md} y \text
 \end{enumerate}
 Las pruebas realizadas durante este proyecto confirman que, siguiendo las guías proporcionadas, el entorno se ejecuta correctamente en un sistema Windows 11 con Python 3.12, demostrando la viabilidad de la configuración.
 
+\subsubsection{Validación en un PC local (evidencia práctica)}
+Para sustentar la reproducibilidad, se realizaron pruebas de humo y corridas controladas:
+\begin{itemize}
+    \item Verificación de ROM y entorno: carga exitosa de \texttt{PokemonRed.gb} y creación del entorno v2.
+    \item Corridas headless y visuales: BFS, A*, Hill Climbing (first/steepest), Simulated Annealing y Epsilon-Greedy se ejecutaron desde \texttt{init.state} con ventanas PyBoy opcionales.
+    \item Generación de artefactos: resúmenes CSV/JSON/MD depositados bajo \texttt{RESULTADOS/} y visualizaciones bajo \texttt{informe\_visuals/}.
+    \item Compilación del informe: \LaTeX{} (MiKTeX) compila este documento y embebe tablas/figuras generadas automáticamente.
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{Dependencias principales (alto nivel)}
+    \label{tab:deps}
+    \begin{tabular}{@{}ll@{}}
+        	oprule
+        Paquete & Rol \\
+        \midrule
+        PyBoy & Emulación de Game Boy. \\
+        Gymnasium & Interfaz estándar RL (\texttt{Env}, \texttt{step}, \texttt{reset}). \\
+        Stable-Baselines3 (PPO) & Agente RL profundo preentrenado. \\
+        PyTorch & Backend de redes neuronales. \\
+        NumPy/Pandas & Procesamiento y agregación de datos. \\
+        Matplotlib/Seaborn & Visualización y gráficos comparativos. \\
+        \LaTeX{} (MiKTeX) & Compilación del informe. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
 \section{Arquitectura del Agente y Estrategias Implementadas}
 \label{sec:arquitectura_agentes}
 
@@ -196,6 +241,29 @@ El diseño sigue el paradigma estándar del aprendizaje por refuerzo, populariza
 
 Esta separación es crucial, ya que permite que cualquier algoritmo, desde una simple búsqueda hasta una compleja red neuronal, pueda interactuar con el juego siempre que respete la interfaz definida por Gymnasium. Las pruebas de concepto realizadas en \texttt{comparison\_agents/} demuestran esto: se crearon múltiples agentes (\texttt{epsilon\_greedy\_agent.py}, \texttt{astar\_agent.py}, etc.) que operan sobre el mismo entorno sin requerir cambios en \texttt{RedGymEnv}.
 
+\paragraph{Prueba de concepto mínima (código)} Un ejemplo autocontenido que evidencia el desacoplamiento:
+\begin{lstlisting}[language=Python, caption={Runner mínimo con separación agente-entorno}, label={lst:runner_minimo}]
+from v2.red_gym_env_v2 import RedGymEnv
+
+class RandomAgent:
+    def __init__(self, action_space):
+        self.action_space = action_space
+    def select_action(self, obs):
+        # Política trivial: acción aleatoria válida
+        return self.action_space.sample()
+
+env = RedGymEnv(rom_path="PokemonRed.gb", headless=True)
+obs = env.reset()
+agent = RandomAgent(env.action_space)
+done, total_steps = False, 0
+while not done and total_steps < 100:
+    action = agent.select_action(obs)
+    obs, reward, done, info = env.step(action)
+    total_steps += 1
+env.close()
+\end{lstlisting}
+Este patrón funciona de igual forma reemplazando \texttt{RandomAgent} por BFS/A*/Hill Climbing/Epsilon-Greedy/PPO sin modificar el entorno.
+
 \subsection{Estrategia 1: Epsilon-Greedy (Alternativa Simple)}
 La estrategia Epsilon-Greedy es un método clásico de aprendizaje por refuerzo que equilibra la exploración y la explotación. Fue implementada en \texttt{comparison\_agents/simple\_epsilon\_runner.py} como una alternativa más simple a los modelos complejos de RL.
 
@@ -213,6 +281,20 @@ El valor de $\epsilon$ es un hiperparámetro clave:
 \end{itemize}
 
 Esta estrategia es simple de implementar y computacionalmente ligera, pero puede ser ineficiente en encontrar soluciones óptimas si el valor de $\epsilon$ no está bien ajustado.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{epsilon_eficiencia_comparacion.png}
+    \caption{Eficiencia (recompensa/paso) por configuración $\epsilon$.}
+    \label{fig:epsilon_eficiencia}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{epsilon_exito_comparacion.png}
+    \caption{Tasa de éxito (\%) de las variantes $\epsilon$.}
+    \label{fig:epsilon_exito}
+\end{figure}
 
 \subsection{Estrategia 2: Algoritmos de Búsqueda Informada y No Informada}
 Para un problema de navegación como el de alcanzar al Pokémon inicial, los algoritmos de búsqueda clásicos son una alternativa poderosa. A diferencia de Epsilon-Greedy, que aprende de la experiencia, estos algoritmos planifican una secuencia de acciones utilizando un modelo del entorno. Se implementaron varios de estos algoritmos en la carpeta \texttt{comparison\_agents/search\_algorithms/}.
@@ -330,6 +412,20 @@ La Tabla \ref{tab:search_comparison} y la Figura \ref{fig:search_graphs} revelan
 
 Los algoritmos A* y Tabú Search no produjeron suficientes resultados válidos en las ejecuciones para ser incluidos en el análisis comparativo final, probablemente debido a timeouts o errores de implementación que los hicieron inviables en la práctica bajo las condiciones del experimento.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{search_distribuciones_comparacion.png}
+    \caption{Distribuciones de pasos/tiempos entre algoritmos de búsqueda.}
+    \label{fig:search_distribuciones}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{search_exito_comparacion.png}
+    \caption{Tasa de éxito (\%) en algoritmos de búsqueda.}
+    \label{fig:search_exito}
+\end{figure}
+
 \subsection{Comparativa General: PPO vs. Epsilon-Greedy vs. Búsqueda}
 Al comparar las tres familias de algoritmos, emerge una clara jerarquía de rendimiento para esta tarea específica:
 \begin{enumerate}
@@ -370,6 +466,32 @@ Al comparar las tres familias de algoritmos, emerge una clara jerarquía de rend
 \end{figure}
 
 La Figura \ref{fig:tiempo_comparacion_general} ilustra dramáticamente esta diferencia. Mientras que los algoritmos de búsqueda resuelven la tarea casi instantáneamente, PPO toma segundos y Epsilon-Greedy puede tardar minutos.
+
+\subsection{Evidencia y Reproducibilidad}
+Para asegurar trazabilidad y defensa de resultados:
+\begin{itemize}
+    \item Los archivos fuente de datos (CSV/JSON/MD) están bajo \texttt{RESULTADOS/} con subcarpetas por algoritmo/variantes (incluye ejecuciones mejoradas en \texttt{enhanced\_execution/}).
+    \item Las tablas/figuras embebidas provienen de \texttt{informe\_visuals/} y se regeneran ejecutando los scripts de agregación y gráficos del repositorio.
+    \item Todas las corridas parten de \texttt{init.state}; el tiempo se reporta como \emph{equivalente a tiempo real} (ajustado por \texttt{real\_time\_factor}).
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{Mapa de artefactos del informe}
+    \label{tab:artefactos}
+    \begin{tabular}{@{}lp{9.5cm}@{}}
+        	oprule
+        Artefacto & Descripción \\
+        \midrule
+        	exttt{informe\_visuals/master\_comparison\_table.tex} & Tabla maestra agregada (búsqueda vs PPO vs $\epsilon$). \\
+        	exttt{informe\_visuals/search\_*.png} & Gráficos comparativos de búsqueda (pasos, tiempo, eficiencia, éxito, distribuciones). \\
+        	exttt{informe\_visuals/epsilon\_*.png} & Gráficos por variantes $\epsilon$ (pasos, tiempo, recompensa, eficiencia, éxito). \\
+        	exttt{RESULTADOS/*summary*.csv} & Resúmenes por corrida (métricas base). \\
+        	exttt{RESULTADOS/*detailed*.json} & Trazas detalladas por ejecución. \\
+        	exttt{RESULTADOS/*report*.md} & Reportes legibles por humano para auditoría. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 \subsection{Fortalezas y Debilidades por Familia de Algoritmos}
 \label{sec:pros_cons}
