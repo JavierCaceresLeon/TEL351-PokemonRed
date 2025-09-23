@@ -1,0 +1,18 @@
+{
+  "algorithm": "astar",
+  "variant": "default",
+  "success": true,
+  "execution_time": 1.0059270858764648,
+  "total_steps": 40,
+  "total_reward": 1.2000000000000002,
+  "final_state": {
+    "total_steps": 40,
+    "total_reward": 1.2000000000000002,
+    "execution_time_wall": 0.16765451431274414,
+    "execution_time_reported": 1.0059270858764648,
+    "success": true
+  },
+  "metrics_history": [],
+  "error_message": null,
+  "timestamp": 1758594287
+}

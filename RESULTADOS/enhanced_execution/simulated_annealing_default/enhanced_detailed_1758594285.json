@@ -1,0 +1,18 @@
+{
+  "algorithm": "simulated_annealing",
+  "variant": "default",
+  "success": true,
+  "execution_time": 1.0137434005737305,
+  "total_steps": 40,
+  "total_reward": 0.6000000000000001,
+  "final_state": {
+    "total_steps": 40,
+    "total_reward": 0.6000000000000001,
+    "execution_time_wall": 0.16895723342895508,
+    "execution_time_reported": 1.0137434005737305,
+    "success": true
+  },
+  "metrics_history": [],
+  "error_message": null,
+  "timestamp": 1758594285
+}

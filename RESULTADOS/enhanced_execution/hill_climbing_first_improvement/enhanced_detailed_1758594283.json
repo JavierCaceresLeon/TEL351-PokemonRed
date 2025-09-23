@@ -1,0 +1,18 @@
+{
+  "algorithm": "hill_climbing",
+  "variant": "first_improvement",
+  "success": true,
+  "execution_time": 0.9673662185668945,
+  "total_steps": 40,
+  "total_reward": 0.5,
+  "final_state": {
+    "total_steps": 40,
+    "total_reward": 0.5,
+    "execution_time_wall": 0.16122770309448242,
+    "execution_time_reported": 0.9673662185668945,
+    "success": true
+  },
+  "metrics_history": [],
+  "error_message": null,
+  "timestamp": 1758594283
+}
