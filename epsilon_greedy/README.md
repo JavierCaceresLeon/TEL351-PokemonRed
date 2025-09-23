@@ -10,9 +10,9 @@ El algoritmo **Eps#### Uso del Triple Demo Mejorado:
 python epsilon_greedy/run_triple_epsilon_demo.py
 
 # Verás 3 ventanas CLARAMENTE IDENTIFICADAS:
-# 📺 Izquierda: "EPSILON 0.3 MODERADO" + [EPSILON-0.3-MODERADO]
-# 📺 Centro: "EPSILON 0.9 CAOTICO" + [EPSILON-0.9-CAOTICO]
-# 📺 Derecha: "EPSILON VARIABLE INTERACTIVO" + [EPSILON-VARIABLE-INTERACTIVO]
+# Izquierda: "EPSILON 0.3 MODERADO" + [EPSILON-0.3-MODERADO]
+# Centro: "EPSILON 0.9 CAOTICO" + [EPSILON-0.9-CAOTICO]
+# Derecha: "EPSILON VARIABLE INTERACTIVO" + [EPSILON-VARIABLE-INTERACTIVO]
 ```
 
 #### Identificación Sin Elementos Visuales:
@@ -50,24 +50,24 @@ En Pokemon Red, donde el objetivo es navegar eficientemente sin conocimiento pre
 Aunque el **PPO preentrenado** (disponible en `/v2`) es **más rápido** para completar Pokemon Red, el **Epsilon Greedy Adaptativo** ofrece ventajas fundamentales:
 
 #### Ventajas del PPO:
-- ⚡ **Velocidad**: Completa objetivos en 2-4 minutos
-- 🎯 **Eficiencia**: Movimientos optimizados y directos
-- 📈 **Rendimiento**: Maximiza recompensas acumulativas
+- **Velocidad**: Completa objetivos en 2-4 minutos
+- **Eficiencia**: Movimientos optimizados y directos
+- **Rendimiento**: Maximiza recompensas acumulativas
 
 #### Limitaciones del PPO:
-- 🔒 **Dependiente de entrenamiento**: Requiere miles de episodios previos
-- 🎭 **Caja negra**: Difícil explicar decisiones específicas
-- 🎮 **Especialización**: Optimizado solo para Pokemon Red específico
-- 💰 **Costo computacional**: Entrenamiento requiere recursos significativos
-- 🔄 **Falta de adaptabilidad**: No se ajusta a variaciones del entorno
+- **Dependiente de entrenamiento**: Requiere miles de episodios previos
+- **Caja negra**: Difícil explicar decisiones específicas
+- **Especialización**: Optimizado solo para Pokemon Red específico
+- **Costo computacional**: Entrenamiento requiere recursos significativos
+- **Falta de adaptabilidad**: No se ajusta a variaciones del entorno
 
 #### Ventajas del Epsilon Greedy Adaptativo:
-- 🚀 **Sin entrenamiento**: Funciona inmediatamente "out of the box"
-- 🔍 **Transparencia**: Cada decisión es explicable mediante heurísticas
-- 🌍 **Generalizable**: Se adapta a Pokemon Blue, hacks, modificaciones
-- ⚖️ **Robusto**: Funciona en situaciones no vistas previamente
-- 💡 **Comportamiento humano**: Decisiones similares a las que tomaría un jugador
-- 🔧 **Modificable**: Fácil ajustar heurísticas según necesidades
+- **Sin entrenamiento**: Funciona inmediatamente "out of the box"
+- **Transparencia**: Cada decisión es explicable mediante heurísticas
+- **Generalizable**: Se adapta a Pokemon Blue, hacks, modificaciones
+- **Robusto**: Funciona en situaciones no vistas previamente
+- **Comportamiento humano**: Decisiones similares a las que tomaría un jugador
+- **Modificable**: Fácil ajustar heurísticas según necesidades
 
 #### El Factor Crucial: Generalización vs Optimización
 - **PPO**: Optimizado para Pokemon Red → Rápido pero especializado

@@ -13,11 +13,11 @@ Cuando los títulos de ventana, colores o prefijos no son visibles, necesitamos 
 
 ### PPO Preentrenado
 **Características Observables:**
-- ✅ **Movimientos fluidos**: Sin paradas innecesarias
-- ✅ **Direccionalidad clara**: Siempre va hacia un objetivo específico
-- ✅ **Mínimas correcciones**: Raramente "cambia de opinión"
-- ✅ **Eficiencia máxima**: Camino más corto visible
-- ✅ **Sin exploración innecesaria**: No investiga áreas irrelevantes
+- **Movimientos fluidos**: Sin paradas innecesarias
+- **Direccionalidad clara**: Siempre va hacia un objetivo específico
+- **Mínimas correcciones**: Raramente "cambia de opinión"
+- **Eficiencia máxima**: Camino más corto visible
+- **Sin exploración innecesaria**: No investiga áreas irrelevantes
 
 **Patrón Típico en Habitación:**
 ```
@@ -27,11 +27,11 @@ Tiempo: ~5-10 segundos
 
 ### Epsilon 0.9 (CAÓTICO)
 **Características Observables:**
-- 🌪️ **Movimientos completamente erráticos**: Cambios de dirección sin sentido
-- 🌪️ **Exploración exhaustiva**: Visita TODOS los rincones
-- 🌪️ **Patrones aleatorios**: Círculos, zigzags, movimientos impredecibles
-- 🌪️ **Alta actividad**: Nunca se queda quieto por mucho tiempo
-- 🌪️ **Aparente "confusión"**: Como si no supiera qué hacer
+- **Movimientos completamente erráticos**: Cambios de dirección sin sentido
+- **Exploración exhaustiva**: Visita TODOS los rincones
+- **Patrones aleatorios**: Círculos, zigzags, movimientos impredecibles
+- **Alta actividad**: Nunca se queda quieto por mucho tiempo
+- **Aparente "confusión"**: Como si no supiera qué hacer
 
 **Patrón Típico en Habitación:**
 ```
@@ -41,11 +41,11 @@ Tiempo: ~30-60 segundos (muy variable)
 
 ### Epsilon 0.3 (MODERADO)
 **Características Observables:**
-- ⚖️ **Balance visible**: Mezcla exploración con direccionalidad
-- ⚖️ **Progreso interrumpido**: Avanza, explora un poco, continúa
-- ⚖️ **Correcciones ocasionales**: Cambia de rumbo pero con lógica aparente
-- ⚖️ **Exploración limitada**: No examina exhaustivamente como 0.9
-- ⚖️ **Consistencia general**: Mantiene un rumbo general hacia objetivos
+- **Balance visible**: Mezcla exploración con direccionalidad
+- **Progreso interrumpido**: Avanza, explora un poco, continúa
+- **Correcciones ocasionales**: Cambia de rumbo pero con lógica aparente
+- **Exploración limitada**: No examina exhaustivamente como 0.9
+- **Consistencia general**: Mantiene un rumbo general hacia objetivos
 
 **Patrón Típico en Habitación:**
 ```
@@ -55,11 +55,11 @@ Tiempo: ~15-25 segundos
 
 ### Epsilon Adaptativo (INTERACTIVO)
 **Características Observables:**
-- 🧠 **Comportamiento contextual**: Cambia según la situación
-- 🧠 **"Inteligencia" aparente**: Decisiones que "tienen sentido"
-- 🧠 **Progreso dirigido**: Exploración con propósito visible
-- 🧠 **Adaptación visible**: Cambia estrategia cuando algo no funciona
-- 🧠 **Eficiencia progresiva**: Mejora su comportamiento durante la ejecución
+- **Comportamiento contextual**: Cambia según la situación
+- **"Inteligencia" aparente**: Decisiones que "tienen sentido"
+- **Progreso dirigido**: Exploración con propósito visible
+- **Adaptación visible**: Cambia estrategia cuando algo no funciona
+- **Eficiencia progresiva**: Mejora su comportamiento durante la ejecución
 
 **Patrón Típico en Habitación:**
 ```

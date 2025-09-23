@@ -32,10 +32,10 @@ El objetivo principal de cualquier agente en Pokemon Red es:
 - Optimizado para maximizar recompensas acumulativas
 
 **Ventajas Observadas:**
-- ⚡ **MÁS RÁPIDO**: Completa el objetivo en menor tiempo
-- 🎯 **EFICIENTE**: Movimientos directos y orientados a objetivos
-- 🧠 **CONOCIMIENTO PREVIO**: Ya "sabe" qué hacer en cada situación
-- 📈 **OPTIMIZADO**: Entrenado específicamente para Pokemon Red
+- **MÁS RÁPIDO**: Completa el objetivo en menor tiempo
+- **EFICIENTE**: Movimientos directos y orientados a objetivos
+- **CONOCIMIENTO PREVIO**: Ya "sabe" qué hacer en cada situación
+- **OPTIMIZADO**: Entrenado específicamente para Pokemon Red
 
 **Comportamiento Visual:**
 - Movimientos fluidos y decididos
@@ -50,10 +50,10 @@ El objetivo principal de cualquier agente en Pokemon Red es:
 - Comportamiento balanceado y estratégico
 
 **Comportamiento Visual Distintivo:**
-- 🔄 **MOVIMIENTOS CALCULADOS**: Patrones más predecibles que 0.9
-- ⚖️ **BALANCE VISIBLE**: Combina exploración con direccionalidad
-- 🎯 **PROGRESO CONSTANTE**: Avanza hacia objetivos de manera consistente
-- 🤔 **PAUSAS REFLEXIVAS**: Ocasionalmente "piensa" antes de actuar
+- **MOVIMIENTOS CALCULADOS**: Patrones más predecibles que 0.9
+- **BALANCE VISIBLE**: Combina exploración con direccionalidad
+- **PROGRESO CONSTANTE**: Avanza hacia objetivos de manera consistente
+- **PAUSAS REFLEXIVAS**: Ocasionalmente "piensa" antes de actuar
 
 **Identificación Visual:**
 - Menos errático que 0.9, más exploratorio que PPO
@@ -67,10 +67,10 @@ El objetivo principal de cualquier agente en Pokemon Red es:
 - Comportamiento altamente exploratorio y aparentemente aleatorio
 
 **Comportamiento Visual Distintivo:**
-- 🌪️ **MOVIMIENTOS ERRÁTICOS**: Cambios de dirección constantes y aparentemente aleatorios
-- 🔄 **EXPLORACIÓN EXTREMA**: Visita áreas innecesarias repetidamente
-- ⚡ **ACTIVIDAD FRENÉTICA**: Nunca se queda quieto, siempre en movimiento
-- 🎲 **IMPREDECIBLE**: Imposible anticipar su próximo movimiento
+- **MOVIMIENTOS ERRÁTICOS**: Cambios de dirección constantes y aparentemente aleatorios
+- **EXPLORACIÓN EXTREMA**: Visita áreas innecesarias repetidamente
+- **ACTIVIDAD FRENÉTICA**: Nunca se queda quieto, siempre en movimiento
+- **IMPREDECIBLE**: Imposible anticipar su próximo movimiento
 
 **Identificación Visual:**
 - **EL MÁS FÁCIL DE IDENTIFICAR**: Movimientos caóticos y aleatorios
@@ -85,10 +85,10 @@ El objetivo principal de cualquier agente en Pokemon Red es:
 - Sistema inteligente de detección de situaciones
 
 **Comportamiento Visual Distintivo:**
-- 🧠 **COMPORTAMIENTO CONTEXTUAL**: Cambia según la situación
-- 📊 **PROGRESO INTELIGENTE**: Se adapta cuando detecta estancamiento
-- 🔍 **EXPLORACIÓN DIRIGIDA**: Explora con propósito, no aleatoriamente
-- ⚡ **EFICIENCIA PROGRESIVA**: Mejora su comportamiento con el tiempo
+- **COMPORTAMIENTO CONTEXTUAL**: Cambia según la situación
+- **PROGRESO INTELIGENTE**: Se adapta cuando detecta estancamiento
+- **EXPLORACIÓN DIRIGIDA**: Explora con propósito, no aleatoriamente
+- **EFICIENCIA PROGRESIVA**: Mejora su comportamiento con el tiempo
 
 **Identificación Visual:**
 - Movimientos que "tienen sentido" en el contexto
