@@ -12,13 +12,15 @@ import numpy as np
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 
+# Add parent directory to path
+sys.path.append(str(Path(__file__).parent.parent))
+
 # Import v2 environment
-sys.path.append('../v2')
-from red_gym_env_v2 import RedGymEnv
-from stream_agent_wrapper import StreamWrapper
+from v2.red_gym_env import RedGymEnv
+from v2.stream_wrapper import StreamWrapper
 
 # Import our A* agent
-from search_algorithms.astar_agent import PokemonAStarAgent
+from astar_search.astar_agent import PokemonAStarAgent
 
 
 class V2AStarAgent:

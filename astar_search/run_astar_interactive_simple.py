@@ -8,13 +8,18 @@ Run the A* agent continuously like epsilon greedy - no episodes, just one sessio
 import time
 import numpy as np
 import os
+import sys
 from pathlib import Path
-from v2_astar_agent import V2AStarAgent
+
+# Add parent directory to path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from astar_search.v2_astar_agent import V2AStarAgent
 
 if __name__ == "__main__":
-    print("🌟 Interactive A* Search Agent for Pokemon Red")
-    print("🧭 Intelligent pathfinding with goal-directed exploration")
-    print("⏹️  Press Ctrl+C to stop at any time")
+    print(" Interactive A* Search Agent for Pokemon Red")
+    print(" Intelligent pathfinding with goal-directed exploration")
+    print("  Press Ctrl+C to stop at any time")
     print()
     
     # Session and environment configuration
@@ -44,27 +49,27 @@ if __name__ == "__main__":
         'stuck_threshold': 50,
     }
     
-    print("⚙️  A* Agent Configuration:")
-    print(f"   🎯 Exploration Bonus: {agent_config['exploration_bonus']}")
-    print(f"   🚫 Stuck Threshold: {agent_config['stuck_threshold']}")
+    print("  A* Agent Configuration:")
+    print(f"   Exploration Bonus: {agent_config['exploration_bonus']}")
+    print(f"   Stuck Threshold: {agent_config['stuck_threshold']}")
     print()
     
     try:
         # Initialize A* agent
-        print("🤖 Initializing A* Search Agent...")
+        print("Initializing A* Search Agent...")
         agent = V2AStarAgent(env_config, agent_config, enable_logging=True)
-        print("✅ A* Agent ready!")
+        print("A* Agent ready!")
         print()
         
-        print("🔄 Resetting environment...")
+        print("Resetting environment...")
         observation, info = agent.env.reset()
-        print("✅ Environment reset complete")
+        print("Environment reset complete")
         print()
         
-        print("🎮 Interactive Mode Active:")
-        print("   📺 Game Boy window is open")
-        print("   🧭 A* pathfinding in progress")
-        print("   🎯 Goal-directed exploration enabled")
+        print("Interactive Mode Active:")
+        print("   Game Boy window is open")
+        print("   A* pathfinding in progress")
+        print("   Goal-directed exploration enabled")
         print()
         
         # Continuous execution like epsilon greedy
@@ -72,8 +77,8 @@ if __name__ == "__main__":
         total_reward = 0
         start_time = time.time()
         
-        print("🚀 Starting A* continuous session...")
-        print("⏹️  Press Ctrl+C in terminal to stop")
+        print("Starting A* continuous session...")
+        print("Press Ctrl+C in terminal to stop")
         print("=" * 50)
         
         while True:
@@ -98,35 +103,35 @@ if __name__ == "__main__":
                     steps_per_sec = step / elapsed if elapsed > 0 else 0
                     unique_positions = len(getattr(agent.agent, 'visited_positions', set()))
                     current_objective = getattr(agent.agent, 'current_objective', 'exploring')
-                    print(f"📊 Step {step:,} | Reward: {total_reward:.2f} | "
+                    print(f"Step {step:,} | Reward: {total_reward:.2f} | "
                           f"Positions: {unique_positions} | Objective: {current_objective} | "
                           f"Speed: {steps_per_sec:.1f} steps/sec")
                 
                 if terminated or truncated:
-                    print("🏁 Episode terminated, resetting...")
+                    print("Episode terminated, resetting...")
                     observation, info = agent.env.reset()
                     total_reward = 0
                 
             except KeyboardInterrupt:
-                print("\n🛑 Stopping A* session...")
+                print("\nStopping A* session...")
                 break
             except Exception as e:
-                print(f"\n❌ Error during execution: {e}")
+                print(f"\nError during execution: {e}")
                 break
         
         # Final statistics
         elapsed = time.time() - start_time
         print("\n" + "=" * 50)
-        print("🎯 A* Session Results:")
-        print(f"🚶 Total Steps: {step:,}")
-        print(f"🏆 Total Reward: {total_reward:.2f}")
-        print(f"⏱️  Session Duration: {elapsed:.1f} seconds")
+        print(" A* Session Results:")
+        print(f" Total Steps: {step:,}")
+        print(f" Total Reward: {total_reward:.2f}")
+        print(f"  Session Duration: {elapsed:.1f} seconds")
         if elapsed > 0:
-            print(f"⚡ Average Speed: {step/elapsed:.1f} steps/second")
-        print("🌟 A* session completed!")
+            print(f" Average Speed: {step/elapsed:.1f} steps/second")
+        print(" A* session completed!")
         
     except Exception as e:
-        print(f"❌ Error initializing A* agent: {e}")
+        print(f" Error initializing A* agent: {e}")
         import traceback
         traceback.print_exc()
         
@@ -134,6 +139,6 @@ if __name__ == "__main__":
         try:
             if 'agent' in locals():
                 agent.env.close()
-                print("🔒 Environment closed")
+                print(" Environment closed")
         except:
             pass

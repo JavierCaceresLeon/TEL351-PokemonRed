@@ -1,3 +1,4 @@
+[Video TAREA 1 DEMOSTRACIÓN](https://youtu.be/EyTkha_VWgY)
 # Entrenamiento de Agentes de Aprendizaje por Refuerzo para Pokémon Red
 
 Este proyecto implementa un entorno de aprendizaje por refuerzo para entrenar agentes de IA que jueguen Pokémon Red automáticamente. El agente aprende a navegar por el mundo del juego, capturar Pokémon, luchar en batallas y completar objetivos usando técnicas de aprendizaje profundo.
