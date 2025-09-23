@@ -1,0 +1,18 @@
+{
+  "algorithm": "epsilon_greedy",
+  "variant": "balanceada",
+  "success": true,
+  "execution_time": 1.0474324226379395,
+  "total_steps": 20,
+  "total_reward": 0.2,
+  "final_state": {
+    "total_steps": 20,
+    "total_reward": 0.2,
+    "execution_time_wall": 0.10474324226379395,
+    "execution_time_reported": 1.0474324226379395,
+    "success": true
+  },
+  "metrics_history": [],
+  "error_message": null,
+  "timestamp": 1758592939
+}

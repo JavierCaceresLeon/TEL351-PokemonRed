@@ -1,0 +1,12 @@
+{
+  "algorithm": "hill_climbing",
+  "variant": "first_improvement",
+  "success": false,
+  "execution_time": 18.23019504547119,
+  "total_steps": 0,
+  "total_reward": 0.0,
+  "final_state": {},
+  "metrics_history": [],
+  "error_message": "sequence index must be integer, not 'slice'",
+  "timestamp": 1758592730
+}

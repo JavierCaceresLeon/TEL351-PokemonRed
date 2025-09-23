@@ -1,0 +1,12 @@
+{
+  "algorithm": "tabu_search",
+  "variant": "default",
+  "success": false,
+  "execution_time": 25.105984210968018,
+  "total_steps": 0,
+  "total_reward": 0.0,
+  "final_state": {},
+  "metrics_history": [],
+  "error_message": "'float' object has no attribute 'get'",
+  "timestamp": 1758593495
+}

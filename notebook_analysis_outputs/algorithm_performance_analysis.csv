@@ -1,0 +1,13 @@
+Algoritmo,Categoría,Complejidad,Experimentos,Fortalezas,Debilidades,Casos de Uso
+A* Search,Búsqueda Informada,Media,6,"Optimalidad garantizada, Eficiencia dirigida, Predictibilidad","Requiere heurística, Memoria intensiva, Rigidez","Navegación directa, Objetivos claros, Optimalidad requerida"
+Breadth-First Search,Búsqueda No Informada,Media,6,"Completitud garantizada, Optimalidad, Simplicidad conceptual","Exponencial en memoria, Lentitud, No dirigido","Espacios pequeños, Garantías teóricas, Análisis exhaustivo"
+Epsilon-Greedy (Alta),Búsqueda Probabilística,Baja,6,"Exploración alta, Simplicidad, Robustez","Convergencia lenta, Muchos pasos, Ineficiencia","Exploración extensiva, Espacios desconocidos, Baseline comparativo"
+Epsilon-Greedy (Balanceada),Búsqueda Probabilística,Baja,6,"Balance exploración-explotación, Simplicidad, Predictibilidad","Subóptimo para objetivos específicos, Dependencia de parámetros","Uso general, Espacios moderadamente conocidos, Prototipado rápido"
+Epsilon-Greedy (Conservadora),Búsqueda Probabilística,Baja,6,"Explotación rápida, Eficiencia en conocidos, Pocos pasos","Exploración limitada, Óptimos locales, Rigidez","Entornos conocidos, Objetivos claros, Eficiencia prioritaria"
+Hill Climbing (First),Búsqueda Local,Baja,6,"Velocidad de decisión, Simplicidad extrema, Bajo costo","Suboptimalidad, Óptimos locales, Impredecibilidad","Soluciones rápidas, Recursos muy limitados, Aproximaciones"
+Hill Climbing (Random),Búsqueda Local,Baja,6,"Escapar óptimos locales, Diversidad, Robustez","Inconsistencia, Muchos reintentos, Impredecibilidad","Espacios complejos, Múltiples intentos, Exploración local"
+Hill Climbing (Steepest),Búsqueda Local,Baja,6,"Rapidez local, Simplicidad, Eficiencia computacional","Óptimos locales, No exploración global, Dependencia inicial","Mejora local, Recursos limitados, Optimización rápida"
+PPO,Aprendizaje por Refuerzo,Alta,12,"Adaptabilidad, Optimización continua, Manejo de recompensas","Tiempo de entrenamiento, Complejidad computacional, Configuración","Entornos complejos, Optimización a largo plazo, Adaptación dinámica"
+Simulated Annealing,Metaheurística,Media,6,"Exploración global, Escapar óptimos locales, Convergencia","Configuración de temperatura, Tiempo variable, Parámetros críticos","Optimización global, Espacios rugosos, Soluciones de calidad"
+Tabu Search,Metaheurística,Media-Alta,6,"Evita óptimos locales, Memoria adaptativa, Flexibilidad","Configuración compleja, Memoria requerida, Parámetros sensibles","Optimización compleja, Espacios con óptimos locales, Búsqueda avanzada"
+,Desconocida,N/A,0,N/A,N/A,N/A

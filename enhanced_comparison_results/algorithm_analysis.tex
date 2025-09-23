@@ -1,0 +1,236 @@
+\section{Análisis Detallado de Algoritmos}
+
+
+\subsection{PPO (Proximal Policy Optimization)}
+
+\textbf{Categoría:} Deep Reinforcement Learning
+
+\textbf{Complejidad Temporal:} O(n×m×k) per episode
+
+\textbf{Complejidad Espacial:} O(n×m) network parameters
+
+\textbf{Rendimiento Experimental:}
+\begin{itemize}
+    \item Tiempo promedio de ejecución: 23.75 segundos
+    \item Pasos promedio: 329.8
+    \item Eficiencia promedio: 0.0789 recompensa/paso
+\end{itemize}
+
+\textbf{Fortalezas:}
+\begin{itemize}
+    \item Excellent long-term learning capability
+    \item Robust policy optimization
+    \item Handles complex state spaces well
+    \item Proven performance in similar environments
+\end{itemize}
+
+\textbf{Debilidades:}
+\begin{itemize}
+    \item Requires extensive training time
+    \item High computational requirements
+    \item Black-box decision making
+    \item Needs large datasets for optimal performance
+\end{itemize}
+
+\textbf{Escenarios Óptimos:}
+\begin{itemize}
+    \item Complex decision making with delayed rewards
+    \item Environments with large state spaces
+    \item Long-term strategic planning
+    \item When sample efficiency is not critical
+\end{itemize}
+
+\textbf{Calidad de Implementación:} Production-Ready
+
+\textbf{Compatibilidad PyBoy:} Sí
+
+\textbf{Factor de Tiempo Real:} 1.0x
+
+
+
+\subsection{Epsilon-Greedy with Heuristics}
+
+\textbf{Categoría:} Simple Reinforcement Learning
+
+\textbf{Complejidad Temporal:} O(1) per decision
+
+\textbf{Complejidad Espacial:} O(k) heuristic parameters
+
+\textbf{Rendimiento Experimental:}
+\begin{itemize}
+    \item Tiempo promedio de ejecución: 216.11 segundos
+    \item Pasos promedio: 3537.1
+    \item Eficiencia promedio: 1.1606 recompensa/paso
+\end{itemize}
+
+\textbf{Fortalezas:}
+\begin{itemize}
+    \item Extremely fast decision making
+    \item Transparent and interpretable
+    \item Easy to debug and modify
+    \item Low computational overhead
+\end{itemize}
+
+\textbf{Debilidades:}
+\begin{itemize}
+    \item Limited learning capability
+    \item Relies heavily on heuristic quality
+    \item May get stuck in local optima
+    \item Poor performance in complex scenarios
+\end{itemize}
+
+\textbf{Escenarios Óptimos:}
+\begin{itemize}
+    \item Real-time decision making requirements
+    \item Simple exploration tasks
+    \item When interpretability is crucial
+    \item Resource-constrained environments
+\end{itemize}
+
+\textbf{Calidad de Implementación:} Baseline
+
+\textbf{Compatibilidad PyBoy:} Sí
+
+\textbf{Factor de Tiempo Real:} 6.0x
+
+
+
+\subsection{Breadth-First Search}
+
+\textbf{Categoría:} Uninformed Search
+
+\textbf{Complejidad Temporal:} O(b^d)
+
+\textbf{Complejidad Espacial:} O(b^d)
+
+\textbf{Rendimiento Experimental:}
+\begin{itemize}
+    \item Tiempo promedio de ejecución: 0.01 segundos
+    \item Pasos promedio: 29.1
+    \item Eficiencia promedio: 0.7358 recompensa/paso
+\end{itemize}
+
+\textbf{Fortalezas:}
+\begin{itemize}
+    \item Guaranteed shortest path
+    \item Complete algorithm
+    \item Systematic exploration
+    \item Simple implementation
+\end{itemize}
+
+\textbf{Debilidades:}
+\begin{itemize}
+    \item Exponential space complexity
+    \item Very slow for deep solutions
+    \item No heuristic guidance
+    \item Impractical for large spaces
+\end{itemize}
+
+\textbf{Escenarios Óptimos:}
+\begin{itemize}
+    \item Small search spaces
+    \item When shortest path is critical
+    \item Educational/baseline comparisons
+    \item Graph problems with uniform costs
+\end{itemize}
+
+\textbf{Calidad de Implementación:} Educational
+
+\textbf{Compatibilidad PyBoy:} Sí
+
+\textbf{Factor de Tiempo Real:} 8.0x
+
+
+
+\subsection{Hill Climbing (Multiple Variants)}
+
+\textbf{Categoría:} Local Search
+
+\textbf{Complejidad Temporal:} O(n) per iteration
+
+\textbf{Complejidad Espacial:} O(1) current state
+
+\textbf{Rendimiento Experimental:}
+\begin{itemize}
+    \item Tiempo promedio de ejecución: 0.00 segundos
+    \item Pasos promedio: 2.7
+    \item Eficiencia promedio: 4.8933 recompensa/paso
+\end{itemize}
+
+\textbf{Fortalezas:}
+\begin{itemize}
+    \item Very fast execution
+    \item Low memory requirements
+    \item Simple implementation
+    \item Good for local optimization
+\end{itemize}
+
+\textbf{Debilidades:}
+\begin{itemize}
+    \item Gets stuck in local optima
+    \item No backtracking capability
+    \item Sensitive to initial state
+    \item Poor in plateau regions
+\end{itemize}
+
+\textbf{Escenarios Óptimos:}
+\begin{itemize}
+    \item Quick approximation needs
+    \item Local optimization problems
+    \item Resource-constrained scenarios
+    \item When restarts are possible
+\end{itemize}
+
+\textbf{Calidad de Implementación:} Basic
+
+\textbf{Compatibilidad PyBoy:} Sí
+
+\textbf{Factor de Tiempo Real:} 6.0x
+
+
+
+\subsection{Simulated Annealing}
+
+\textbf{Categoría:} Stochastic Search
+
+\textbf{Complejidad Temporal:} O(k×n) iterations
+
+\textbf{Complejidad Espacial:} O(1) current state
+
+\textbf{Rendimiento Experimental:}
+\begin{itemize}
+    \item Tiempo promedio de ejecución: 0.00 segundos
+    \item Pasos promedio: 14.3
+    \item Eficiencia promedio: 2.9542 recompensa/paso
+\end{itemize}
+
+\textbf{Fortalezas:}
+\begin{itemize}
+    \item Escapes local optima probabilistically
+    \item Good global optimization properties
+    \item Annealing schedule flexibility
+    \item Works well in large spaces
+\end{itemize}
+
+\textbf{Debilidades:}
+\begin{itemize}
+    \item Parameter tuning critical
+    \item No optimality guarantees
+    \item Cooling schedule dependency
+    \item May be slow to converge
+\end{itemize}
+
+\textbf{Escenarios Óptimos:}
+\begin{itemize}
+    \item Global optimization needs
+    \item Large search spaces
+    \item When good approximation is sufficient
+    \item Combinatorial problems
+\end{itemize}
+
+\textbf{Calidad de Implementación:} Intermediate
+
+\textbf{Compatibilidad PyBoy:} Sí
+
+\textbf{Factor de Tiempo Real:} 7.0x
+

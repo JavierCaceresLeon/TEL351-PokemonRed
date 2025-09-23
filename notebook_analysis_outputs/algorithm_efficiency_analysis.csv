@@ -1,0 +1,13 @@
+Algoritmo,Experimentos,temporal,espacial,description
+A* Search,6,O(b^d),O(b^d),"b=factor ramificación, d=profundidad"
+Breadth-First Search,6,O(b^d),O(b^d),"b=factor ramificación, d=profundidad"
+Epsilon-Greedy (Alta),6,O(n),O(1),n=pasos de exploración
+Epsilon-Greedy (Balanceada),6,O(n),O(1),n=pasos balanceados
+Epsilon-Greedy (Conservadora),6,O(n),O(1),n=pasos conservadores
+Hill Climbing (First),6,O(n),O(1),n=pasos hasta mejora local
+Hill Climbing (Random),6,O(n×r),O(1),"n=pasos, r=reinicios"
+Hill Climbing (Steepest),6,O(n×k),O(1),"n=pasos, k=vecinos evaluados"
+PPO,12,O(n×m×k),O(n×m),"n=episodios, m=pasos/episodio, k=actualizaciones"
+Simulated Annealing,6,O(n×T),O(1),"n=pasos, T=enfriamiento"
+Tabu Search,6,O(n×m),O(m),"n=iteraciones, m=tamaño memoria tabú"
+,0,N/A,N/A,N/A

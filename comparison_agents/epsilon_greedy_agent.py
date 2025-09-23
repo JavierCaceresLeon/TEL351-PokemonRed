@@ -317,43 +317,226 @@ class EpsilonGreedyAgent:
             
         return 0.0
     
+    def get_action(self, observation: Dict) -> int:
+        """
+        Enhanced PyBoy-compatible action selection method
+        """
+        return self.select_action(observation)
+    
     def select_action(self, observation: Dict) -> int:
         """
-        Select action using epsilon-greedy strategy with heuristics
+        Enhanced epsilon-greedy action selection with professional improvements
         """
+        import time
+        start_time = time.time()
+        
         self.step_count += 1
         
-        # Detect current scenario
+        # Update state tracking with enhanced observation processing
+        self._update_state_tracking(observation)
+        
+        # Detect current scenario with improved logic
         current_scenario = self.detect_scenario(observation)
         self.scenario_history.append(current_scenario)
         
-        # Epsilon-greedy decision
+        # Enhanced epsilon-greedy decision with anti-cycling
         if np.random.random() < self.epsilon:
-            # Random action (exploration)
-            action = np.random.choice(self.valid_actions)
+            # Smart exploration - avoid recent actions and favor diverse exploration
+            action = self._select_smart_exploration_action()
         else:
-            # Greedy action based on heuristics
-            action_scores = {}
-            
-            for action in self.valid_actions:
-                score = self.calculate_heuristic_score(action, observation, current_scenario)
-                action_scores[action] = score
-            
-            # Select action with highest score
-            action = max(action_scores.items(), key=lambda x: x[1])[0]
-            
-            # Store heuristic scores for analysis
-            self.heuristic_scores.append(action_scores)
+            # Enhanced greedy action based on comprehensive heuristics
+            action = self._select_enhanced_greedy_action(observation, current_scenario)
         
-        # Update epsilon
-        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+        # Apply action filtering to prevent problematic sequences
+        action = self._apply_action_filtering(action)
         
-        # Update history
+        # Update epsilon with adaptive strategy
+        self._update_epsilon_adaptively(current_scenario)
+        
+        # Update history with size management
         self.action_history.append(action)
         if len(self.action_history) > 100:
             self.action_history.pop(0)
+        
+        # Track performance metrics
+        decision_time = time.time() - start_time
+        self.decision_times.append(decision_time)
+        if len(self.decision_times) > 1000:
+            self.decision_times.pop(0)
             
         return action
+    
+    def _update_state_tracking(self, observation: Dict):
+        """Enhanced state tracking with better observation processing"""
+        # Extract position information
+        position = self._extract_position_from_observation(observation)
+        self.previous_positions.append(position)
+        if len(self.previous_positions) > 50:
+            self.previous_positions.pop(0)
+    
+    def _extract_position_from_observation(self, observation: Dict) -> Tuple[int, int, int]:
+        """Extract position from observation with multiple fallback methods"""
+        try:
+            # Method 1: Direct position extraction
+            if 'x' in observation and 'y' in observation:
+                x = int(observation['x'])
+                y = int(observation['y'])
+                map_id = int(observation.get('map', 0))
+                return (x, y, map_id)
+            
+            # Method 2: Extract from screen if available
+            if 'screen' in observation:
+                screen = observation['screen']
+                # Use screen hash as position approximation
+                screen_hash = hash(screen.tobytes()) % 10000
+                return (screen_hash % 100, screen_hash // 100, 0)
+            
+            # Method 3: Use step count as fallback
+            return (self.step_count % 100, (self.step_count // 100) % 100, 0)
+            
+        except Exception:
+            return (0, 0, 0)
+    
+    def _select_smart_exploration_action(self) -> int:
+        """Enhanced exploration that considers action history and scenarios"""
+        # Avoid actions used frequently in recent history
+        recent_actions = self.action_history[-10:] if len(self.action_history) >= 10 else self.action_history
+        action_frequency = {action: recent_actions.count(action) for action in self.valid_actions}
+        
+        # Find least used actions
+        min_frequency = min(action_frequency.values()) if action_frequency else 0
+        least_used_actions = [action for action, freq in action_frequency.items() if freq == min_frequency]
+        
+        # If stuck, prioritize movement actions
+        if self._is_stuck_enhanced():
+            movement_options = [action for action in least_used_actions if action in self.movement_actions]
+            if movement_options:
+                return np.random.choice(movement_options)
+        
+        # General exploration
+        return np.random.choice(least_used_actions if least_used_actions else self.valid_actions)
+    
+    def _select_enhanced_greedy_action(self, observation: Dict, scenario: GameScenario) -> int:
+        """Enhanced greedy selection with improved heuristics"""
+        action_scores = {}
+        
+        for action in self.valid_actions:
+            # Calculate comprehensive score
+            base_score = self.calculate_heuristic_score(action, observation, scenario)
+            
+            # Add anti-cycling bonus
+            cycling_penalty = self._calculate_cycling_penalty(action)
+            
+            # Add scenario-specific bonus
+            scenario_bonus = self._calculate_enhanced_scenario_bonus(action, scenario)
+            
+            # Combine scores
+            total_score = base_score - cycling_penalty + scenario_bonus
+            action_scores[action] = total_score
+        
+        # Select best action
+        best_action = max(action_scores.items(), key=lambda x: x[1])[0]
+        
+        # Store for analysis
+        self.heuristic_scores.append(action_scores)
+        if len(self.heuristic_scores) > 100:
+            self.heuristic_scores.pop(0)
+        
+        return best_action
+    
+    def _calculate_cycling_penalty(self, action: int) -> float:
+        """Calculate penalty for repetitive actions"""
+        if len(self.action_history) < 5:
+            return 0.0
+        
+        recent_actions = self.action_history[-5:]
+        action_count = recent_actions.count(action)
+        
+        # Exponential penalty for repetition
+        return action_count * 0.3
+    
+    def _calculate_enhanced_scenario_bonus(self, action: int, scenario: GameScenario) -> float:
+        """Enhanced scenario-specific action bonuses"""
+        bonuses = {
+            GameScenario.EXPLORATION: {
+                **{move_action: 0.5 for move_action in self.movement_actions},
+                4: 0.3  # A button for interaction
+            },
+            GameScenario.BATTLE: {
+                4: 1.0,  # A button priority in battle
+                5: 0.3   # B button for escape
+            },
+            GameScenario.NAVIGATION: {
+                **{move_action: 0.7 for move_action in self.movement_actions},
+                4: 0.4
+            },
+            GameScenario.PROGRESSION: {
+                4: 0.9,  # A button for progression
+                3: 0.6,  # UP often leads to progression
+                0: 0.4   # DOWN as secondary
+            },
+            GameScenario.STUCK: {
+                **{move_action: 0.8 for move_action in self.movement_actions}
+            }
+        }
+        
+        return bonuses.get(scenario, {}).get(action, 0.0)
+    
+    def _apply_action_filtering(self, action: int) -> int:
+        """Apply filters to prevent problematic action sequences"""
+        # Prevent excessive menu actions
+        if action == 6:  # START button
+            recent_menu_count = sum(1 for a in self.action_history[-3:] if a == 6)
+            if recent_menu_count >= 2:
+                return np.random.choice(self.movement_actions)
+        
+        # Prevent action loops (same action repeated too many times)
+        if len(self.action_history) >= 4:
+            if all(a == action for a in self.action_history[-4:]):
+                different_actions = [a for a in self.valid_actions if a != action]
+                return np.random.choice(different_actions) if different_actions else action
+        
+        return action
+    
+    def _update_epsilon_adaptively(self, scenario: GameScenario):
+        """Update epsilon with scenario-aware adaptive strategy"""
+        # Base decay
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+        
+        # Scenario-specific adjustments
+        if scenario == GameScenario.STUCK:
+            # Increase exploration when stuck
+            self.epsilon = min(0.5, self.epsilon * 1.3)
+        elif scenario == GameScenario.PROGRESSION:
+            # Reduce exploration when progressing well
+            self.epsilon = max(self.epsilon_min, self.epsilon * 0.95)
+        
+        # Performance-based adjustments
+        if len(self.scenario_history) >= 20:
+            recent_stuck_ratio = sum(1 for s in self.scenario_history[-20:] if s == GameScenario.STUCK) / 20
+            if recent_stuck_ratio > 0.3:  # Too much stuck time
+                self.epsilon = min(0.6, self.epsilon * 1.2)
+    
+    def _is_stuck_enhanced(self) -> bool:
+        """Enhanced stuck detection with multiple criteria"""
+        if len(self.previous_positions) < 10:
+            return False
+        
+        # Check position diversity
+        recent_positions = self.previous_positions[-10:]
+        unique_positions = len(set(recent_positions))
+        position_diversity = unique_positions / len(recent_positions)
+        
+        # Check action diversity
+        if len(self.action_history) >= 10:
+            recent_actions = self.action_history[-10:]
+            unique_actions = len(set(recent_actions))
+            action_diversity = unique_actions / len(recent_actions)
+        else:
+            action_diversity = 1.0
+        
+        # Consider stuck if low diversity in both position and actions
+        return position_diversity < 0.4 and action_diversity < 0.5
     
     def update_position(self, observation: Dict):
         """Update position tracking"""

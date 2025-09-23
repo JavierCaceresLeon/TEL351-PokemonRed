@@ -1,0 +1,8 @@
+Algoritmo,Complejidad Temporal,Complejidad Espacial,Categoría,Optimalidad,Completitud
+PPO,O(n×m×k),O(n×m),RL,Aproximada,Sí
+Epsilon-Greedy,O(n),O(1),Probabilístico,No garantizada,Sí
+A* Search,O(b^d),O(b^d),Informada,Garantizada*,Sí*
+BFS,O(b^d),O(b^d),No Informada,Garantizada,Sí
+Tabu Search,O(n×m),O(m),Metaheurística,No garantizada,No
+Hill Climbing,O(n×k),O(1),Local,No garantizada,No
+Simulated Annealing,O(n×T),O(1),Metaheurística,No garantizada,No

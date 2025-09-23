@@ -1,0 +1,61 @@
+\begin{table}[H]
+\centering
+\caption{Comparación Exhaustiva de Algoritmos de Navegación en Pokémon Red}
+\label{tab:enhanced_algorithm_comparison}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Algoritmo} & \textbf{Tiempo (s)} & \textbf{Pasos Totales} & \textbf{Eficiencia} & \textbf{Velocidad (pasos/s)} \\
+\hline
+bfs\_default & 0.01 ± 0.00 & 29.1 ± 15.9 & 0.7358 ± 0.1847 & 290.9 ± 159.3 \\
+\hline
+epsilon\_greedy & 1404.68 ± 921.57 & 20857.9 ± 13678.0 & 0.0035 ± 0.0022 & 14.8 ± 0.1 \\
+\hline
+epsilon\_greedy\_alta\_exploracion & 0.00 ± 0.00 & 374.8 ± 376.9 & 2.9302 ± 7.4548 & 3748.2 ± 3768.8 \\
+\hline
+epsilon\_greedy\_balanceada & 0.00 ± 0.00 & 356.0 ± 402.8 & 0.9245 ± 0.8651 & 3560.0 ± 4027.7 \\
+\hline
+epsilon\_greedy\_conservadora & 0.00 ± 0.00 & 216.5 ± 156.1 & 0.7416 ± 0.4850 & 2165.5 ± 1560.9 \\
+\hline
+epsilon\_greedy\_moderada\_alta & 0.00 ± 0.00 & 300.2 ± 307.3 & 1.5275 ± 2.9014 & 3001.8 ± 3072.9 \\
+\hline
+epsilon\_greedy\_muy\_greedy & 0.00 ± 0.00 & 691.9 ± 736.4 & 0.7311 ± 0.8256 & 6919.1 ± 7364.0 \\
+\hline
+hill\_climbing\_first\_improvement & 0.00 ± nan & 2.0 ± nan & 5.7650 ± nan & 20.0 ± nan \\
+\hline
+hill\_climbing\_random\_restart & 0.00 ± 0.00 & 2.7 ± 1.2 & 4.9767 ± 1.8157 & 26.7 ± 11.5 \\
+\hline
+hill\_climbing\_steepest\_ascent & 0.00 ± 0.00 & 3.0 ± 1.4 & 4.3325 ± 2.0259 & 30.0 ± 14.1 \\
+\hline
+ppo & 23.75 ± 2.45 & 329.8 ± 24.2 & 0.0789 ± 0.0053 & 13.9 ± 0.7 \\
+\hline
+simulated\_annealing\_default & 0.00 ± 0.00 & 14.3 ± 15.4 & 2.9542 ± 3.3817 & 142.7 ± 154.1 \\
+\hline
+unknown & 0.96 ± 3.03 & 92.2 ± 332.3 & 0.0163 ± 0.0586 & 921.5 ± 3322.7 \\
+\hline
+\end{tabular}
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Matriz de Recomendaciones por Escenario de Uso}
+\label{tab:algorithm_recommendations}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Escenario} & \textbf{Algoritmo Recomendado} & \textbf{Justificación} \\
+\hline
+Tiempo Real & Epsilon-Greedy & Decisiones instantáneas, baja complejidad \\
+\hline
+Precisión Óptima & A* Search & Garantiza solución óptima con heurística adecuada \\
+\hline
+Aprendizaje Complejo & PPO & Capacidad de aprendizaje profundo y adaptación \\
+\hline
+Espacios Grandes & Tabu Search & Evita óptimos locales, memoria adaptativa \\
+\hline
+Recursos Limitados & Hill Climbing & Mínimos requisitos de memoria y procesamiento \\
+\hline
+Exploración Equilibrada & Simulated Annealing & Balance exploración-explotación probabilístico \\
+\hline
+\end{tabular}
+\end{table}

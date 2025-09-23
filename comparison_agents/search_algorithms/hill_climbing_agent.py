@@ -383,8 +383,9 @@ class HillClimbingAgent:
                 return GameScenario.STUCK
         
         # Check for progression
-        if reward > 0.1 or (len(self.fitness_history) > 0 and 
-                           self.current_state.fitness > max(self.fitness_history[-5:] if len(self.fitness_history) >= 5 else [0])):
+        if (reward > 0.1 or 
+            (len(self.fitness_history) > 0 and 
+             self.current_state.fitness > max(list(self.fitness_history)[-5:] if len(self.fitness_history) >= 5 else [0]))):
             return GameScenario.PROGRESSION
         
         # Distance-based scenario detection

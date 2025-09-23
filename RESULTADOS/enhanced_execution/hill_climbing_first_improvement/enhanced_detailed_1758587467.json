@@ -1,0 +1,12 @@
+{
+  "algorithm": "hill_climbing",
+  "variant": "first_improvement",
+  "success": false,
+  "execution_time": 0.0,
+  "total_steps": 0,
+  "total_reward": 0.0,
+  "final_state": {},
+  "metrics_history": [],
+  "error_message": "Failed to create environment",
+  "timestamp": 1758587467
+}

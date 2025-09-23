@@ -1,0 +1,12 @@
+Algoritmo,Velocidad,Optimalidad,Simplicidad,Estabilidad,Escalabilidad,Recursos,Adaptabilidad,Puntuación Total,Ranking
+Epsilon-Greedy (Conservadora),5,2,5,5,4,5,2,28,1
+Epsilon-Greedy (Balanceada),3,2,5,4,4,5,3,26,2
+Simulated Annealing,3,4,3,4,3,4,4,25,3
+Hill Climbing (First),5,1,5,2,3,5,2,23,4
+A* Search,4,5,3,5,2,3,1,23,4
+Hill Climbing (Steepest),4,2,4,3,3,4,2,22,6
+Epsilon-Greedy (Alta),1,2,5,2,4,5,3,22,6
+PPO,2,3,1,4,5,1,5,21,8
+Tabu Search,3,3,2,3,3,3,4,21,8
+Hill Climbing (Random),3,2,4,2,3,4,3,21,8
+BFS,2,5,4,5,1,2,1,20,11

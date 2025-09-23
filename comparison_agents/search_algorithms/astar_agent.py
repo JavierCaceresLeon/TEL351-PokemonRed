@@ -260,60 +260,255 @@ class AStarAgent:
         else:
             return GameScenario.NAVIGATION
     
+    def get_action(self, observation: Dict) -> int:
+        """
+        PyBoy-compatible action selection method
+        """
+        reward = observation.get('reward', 0.0)
+        return self.select_action(observation, reward)
+    
     def select_action(self, observation, reward: float = 0.0) -> int:
         """
-        Select next action using A* search
+        Enhanced A* action selection with professional improvements
         """
+        import time
+        start_time = time.time()
+        
         self.step_count += 1
         
-        # Extract current position from observation
+        # Enhanced position extraction from observation
         self.current_position = self.extract_position_from_observation(observation)
         
-        # Update tracking
-        self.last_positions.append(self.current_position)
-        self.visited_positions.add(self.current_position)
-        self.position_counts[self.current_position] = self.position_counts.get(self.current_position, 0) + 1
-        self.last_rewards.append(reward)
+        # Update tracking with better memory management
+        self._update_position_tracking(reward)
         
-        # Detect current scenario
-        self.scenario = self.detect_scenario(observation, reward)
+        # Enhanced scenario detection
+        self.scenario = self.detect_scenario_enhanced(observation, reward)
         
-        # Choose goal based on scenario
-        if self.scenario == GameScenario.STUCK:
-            # If stuck, try to move to an unvisited area
-            unvisited_goals = [(x, y) for x in range(20) for y in range(20) 
-                             if (x, y) not in self.visited_positions]
-            if unvisited_goals:
-                current_goal = min(unvisited_goals, 
-                                 key=lambda pos: self.manhattan_distance(self.current_position, pos))
-            else:
-                current_goal = self.goal_position
-        elif self.scenario == GameScenario.PROGRESSION:
-            # If making progress, continue toward main goal
-            current_goal = self.goal_position
-        else:
-            # Default goal selection
-            if self.step_count < 100:
-                # Early game: explore known objectives
-                current_goal = min(self.known_objectives,
-                                 key=lambda pos: self.manhattan_distance(self.current_position, pos))
-            else:
-                # Late game: focus on main goal
-                current_goal = self.goal_position
+        # Smart goal selection based on scenario and game state
+        current_goal = self._select_optimal_goal(observation)
         
-        # Perform A* search to find path
-        path = self.astar_search(self.current_position, current_goal, max_iterations=50)
+        # Enhanced A* search with adaptive parameters
+        path = self.astar_search_enhanced(self.current_position, current_goal)
         
-        if path:
-            selected_action = path[0]
-        else:
-            # Fallback: random action if no path found
-            selected_action = random.randint(0, 6)
+        # Action selection with fallback strategies
+        selected_action = self._select_action_from_path(path, observation)
         
-        # Update action history
+        # Update history with size management
         self.action_history.append(selected_action)
+        if len(self.action_history) > 100:
+            self.action_history.pop(0)
         
         return selected_action
+    
+    def _update_position_tracking(self, reward: float):
+        """Enhanced position tracking with memory optimization"""
+        self.last_positions.append(self.current_position)
+        if len(self.last_positions) > 15:
+            self.last_positions.popleft()
+        
+        self.visited_positions.add(self.current_position)
+        self.position_counts[self.current_position] = self.position_counts.get(self.current_position, 0) + 1
+        
+        self.last_rewards.append(reward)
+        if len(self.last_rewards) > 10:
+            self.last_rewards.popleft()
+    
+    def detect_scenario_enhanced(self, observation: Dict, reward: float) -> GameScenario:
+        """Enhanced scenario detection with multiple criteria"""
+        # Check for stuck behavior with multiple indicators
+        if self._is_stuck_comprehensive():
+            return GameScenario.STUCK
+        
+        # Check for progression with reward and game state analysis
+        if self._is_making_progress(observation, reward):
+            return GameScenario.PROGRESSION
+        
+        # Check if close to known objectives
+        if self._is_near_objective():
+            return GameScenario.NAVIGATION
+        
+        # Default to exploration
+        return GameScenario.EXPLORATION
+    
+    def _is_stuck_comprehensive(self) -> bool:
+        """Comprehensive stuck detection with multiple criteria"""
+        if len(self.last_positions) < 8:
+            return False
+        
+        # Position diversity check
+        unique_positions = len(set(self.last_positions))
+        position_diversity = unique_positions / len(self.last_positions)
+        
+        # Action pattern check
+        if len(self.action_history) >= 6:
+            recent_actions = list(self.action_history)[-6:]
+            action_diversity = len(set(recent_actions)) / len(recent_actions)
+        else:
+            action_diversity = 1.0
+        
+        # Check for oscillation (back-and-forth movement)
+        oscillation_detected = self._detect_oscillation()
+        
+        return (position_diversity < 0.4 or 
+                action_diversity < 0.4 or 
+                oscillation_detected)
+    
+    def _detect_oscillation(self) -> bool:
+        """Detect oscillatory movement patterns"""
+        if len(self.last_positions) < 6:
+            return False
+        
+        recent_pos = list(self.last_positions)[-6:]
+        # Check for A-B-A-B pattern
+        for i in range(0, len(recent_pos) - 3, 2):
+            if (recent_pos[i] == recent_pos[i+2] and 
+                recent_pos[i+1] == recent_pos[i+3] and
+                recent_pos[i] != recent_pos[i+1]):
+                return True
+        
+        return False
+    
+    def _is_making_progress(self, observation: Dict, reward: float) -> bool:
+        """Enhanced progress detection"""
+        # Reward-based progress
+        if reward > 0.1:
+            return True
+        
+        # Game state progress (if available)
+        if 'badges' in observation or 'events' in observation:
+            badges = np.sum(observation.get('badges', np.zeros(8)))
+            events = np.sum(observation.get('events', np.zeros(100)))
+            return badges > 0 or events > 5
+        
+        # Position-based progress (moving towards unexplored areas)
+        if len(self.last_positions) >= 5:
+            recent_positions = list(self.last_positions)[-5:]
+            if len(set(recent_positions)) >= 4:  # Good position diversity
+                return True
+        
+        return False
+    
+    def _is_near_objective(self) -> bool:
+        """Check if near any known objective"""
+        for objective in self.known_objectives:
+            if self.manhattan_distance(self.current_position, objective) <= 3:
+                return True
+        return False
+    
+    def _select_optimal_goal(self, observation: Dict) -> Tuple[int, int]:
+        """Smart goal selection based on current state and scenario"""
+        if self.scenario == GameScenario.STUCK:
+            # Find furthest unvisited position
+            return self._find_exploration_goal()
+        
+        elif self.scenario == GameScenario.PROGRESSION:
+            # Continue towards main progression goal
+            return self.goal_position
+        
+        elif self.scenario == GameScenario.NAVIGATION:
+            # Find nearest unvisited objective
+            unvisited_objectives = [obj for obj in self.known_objectives 
+                                  if self.position_counts.get(obj, 0) < 3]
+            if unvisited_objectives:
+                return min(unvisited_objectives,
+                          key=lambda pos: self.manhattan_distance(self.current_position, pos))
+        
+        # Default goal selection
+        return self._adaptive_goal_selection()
+    
+    def _find_exploration_goal(self) -> Tuple[int, int]:
+        """Find optimal exploration target"""
+        # Create exploration candidates
+        candidates = []
+        for x in range(max(0, self.current_position[0] - 8), 
+                      min(21, self.current_position[0] + 9)):
+            for y in range(max(0, self.current_position[1] - 8),
+                          min(21, self.current_position[1] + 9)):
+                if (x, y) not in self.visited_positions:
+                    candidates.append((x, y))
+        
+        if candidates:
+            # Choose candidate that balances distance and exploration value
+            def exploration_score(pos):
+                distance = self.manhattan_distance(self.current_position, pos)
+                visit_count = self.position_counts.get(pos, 0)
+                return -distance - visit_count * 2  # Prefer closer, less visited
+            
+            return max(candidates, key=exploration_score)
+        
+        return self.goal_position
+    
+    def _adaptive_goal_selection(self) -> Tuple[int, int]:
+        """Adaptive goal selection based on exploration progress"""
+        exploration_ratio = len(self.visited_positions) / max(self.step_count / 10, 1)
+        
+        if exploration_ratio < 0.3:  # Need more exploration
+            return self._find_exploration_goal()
+        else:  # Focus on main objective
+            return self.goal_position
+    
+    def astar_search_enhanced(self, start: Tuple[int, int], goal: Tuple[int, int]) -> List[int]:
+        """Enhanced A* search with adaptive parameters"""
+        # Adjust max iterations based on distance and scenario
+        base_iterations = 50
+        distance_factor = min(3, self.manhattan_distance(start, goal) / 5)
+        scenario_factor = 2 if self.scenario == GameScenario.STUCK else 1
+        max_iterations = int(base_iterations * distance_factor * scenario_factor)
+        
+        return self.astar_search(start, goal, max_iterations)
+    
+    def _select_action_from_path(self, path: List[int], observation: Dict) -> int:
+        """Select action from path with intelligent fallbacks"""
+        if path and len(path) > 0:
+            planned_action = path[0]
+            
+            # Validate action against recent history to avoid loops
+            if self._is_action_safe(planned_action):
+                return planned_action
+        
+        # Fallback strategies
+        return self._select_fallback_action(observation)
+    
+    def _is_action_safe(self, action: int) -> bool:
+        """Check if action is safe to avoid immediate cycles"""
+        if len(self.action_history) < 4:
+            return True
+        
+        # Check for immediate action repetition
+        recent_actions = list(self.action_history)[-4:]
+        if recent_actions.count(action) >= 3:
+            return False
+        
+        # Check for movement-based oscillation
+        if action in [0, 1, 2, 3]:  # Movement actions
+            opposite_actions = {0: 1, 1: 0, 2: 3, 3: 2}
+            opposite = opposite_actions.get(action)
+            if (len(self.action_history) >= 2 and 
+                list(self.action_history)[-1] == opposite and 
+                list(self.action_history)[-2] == action):
+                return False
+        
+        return True
+    
+    def _select_fallback_action(self, observation: Dict) -> int:
+        """Intelligent fallback action selection"""
+        # Strategy 1: Smart random movement avoiding recent actions
+        recent_actions = list(self.action_history)[-5:] if len(self.action_history) >= 5 else []
+        movement_actions = [0, 1, 2, 3]  # UP, DOWN, LEFT, RIGHT
+        
+        # Prefer movement actions not recently used
+        available_movements = [a for a in movement_actions if recent_actions.count(a) < 2]
+        
+        if available_movements:
+            return random.choice(available_movements)
+        
+        # Strategy 2: Interaction action if stuck
+        if self.scenario == GameScenario.STUCK:
+            return 4  # A button for interaction
+        
+        # Strategy 3: Completely random
+        return random.randint(0, 6)
     
     def get_agent_info(self) -> Dict:
         """Return information about the agent's current state"""

@@ -1,0 +1,18 @@
+{
+  "algorithm": "bfs",
+  "variant": "default",
+  "success": true,
+  "execution_time": 33.1210412979126,
+  "total_steps": 20,
+  "total_reward": 0.7000000000000001,
+  "final_state": {
+    "total_steps": 20,
+    "total_reward": 0.7000000000000001,
+    "execution_time_wall": 2.76008677482605,
+    "execution_time_reported": 33.1210412979126,
+    "success": true
+  },
+  "metrics_history": [],
+  "error_message": null,
+  "timestamp": 1758592927
+}
