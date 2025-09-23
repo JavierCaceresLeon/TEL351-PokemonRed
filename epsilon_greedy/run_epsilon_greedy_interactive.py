@@ -18,7 +18,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from epsilon_greedy.v2_agent import V2EpsilonGreedyAgent
 
 if __name__ == "__main__":
-    print(" Inicializando Interactive Epsilon Greedy Agent...")
+    print(" [EPSILON-VARIABLE-INTERACTIVO] Inicializando Interactive Epsilon Greedy Agent...")
     
     # Session and environment configuration
     sess_path = Path(f'session_{str(time.time_ns())[:8]}')
@@ -40,18 +40,56 @@ if __name__ == "__main__":
         'extra_buttons': False
     }
 
-    print("Configuración del entorno lista")
+    print(" [EPSILON-VARIABLE-INTERACTIVO] Configuración del entorno lista")
     
     # Initialize agent wrapper
     try:
-        print("Inicializando agente V2EpsilonGreedy...")
+        print(" [EPSILON-VARIABLE-INTERACTIVO] Inicializando agente V2EpsilonGreedy...")
         agent = V2EpsilonGreedyAgent(env_config, enable_logging=True)
-        print("Agente creado correctamente")
         
-        print("Reseteando entorno...")
+        # PERSONALIZAR VENTANA PYBOY PARA EPSILON VARIABLE - IDENTIFICACIÓN MEJORADA
+        window_title = "POKEMON RED ===>>> EPSILON VARIABLE INTERACTIVO <<<==== ADAPTATIVO"
+        if hasattr(agent.env, 'env') and hasattr(agent.env.env, 'pyboy'):
+            pyboy = agent.env.env.pyboy
+            
+            # Múltiples intentos para establecer título de ventana
+            try:
+                if hasattr(pyboy, 'set_window_title'):
+                    pyboy.set_window_title(window_title)
+                elif hasattr(pyboy, '_window_title'):
+                    pyboy._window_title = window_title
+                elif hasattr(pyboy, 'window'):
+                    if hasattr(pyboy.window, 'set_title'):
+                        pyboy.window.set_title(window_title)
+            except Exception as e:
+                print(f" [EPSILON-VARIABLE-INTERACTIVO] Advertencia: No se pudo establecer título de ventana: {e}")
+            
+            # Intentar posicionar ventana en esquina superior derecha
+            try:
+                if hasattr(pyboy, 'window'):
+                    if hasattr(pyboy.window, 'set_position'):
+                        pyboy.window.set_position(900, 100)  # Esquina superior derecha
+            except Exception as e:
+                print(f" [EPSILON-VARIABLE-INTERACTIVO] Advertencia: No se pudo posicionar ventana: {e}")
+        
+        # También personalizar los metadatos del stream
+        if hasattr(agent.env, 'stream_metadata'):
+            agent.env.stream_metadata.update({
+                "user": "EPSILON-VARIABLE-INTERACTIVO-DEMO",
+                "env_id": "EVAR",
+                "identifier": "INTERACTIVO",
+                "epsilon_value": "variable",
+                "behavior": "Adaptativo según escenario detectado",
+                "extra": "Demo Épsilon Variable - Comportamiento Dinámico",
+            })
+        
+        print(" [EPSILON-VARIABLE-INTERACTIVO] Agente creado correctamente")
+        
+        print(" [EPSILON-VARIABLE-INTERACTIVO] Reseteando entorno...")
         observation, info = agent.env.reset()
         agent.agent.reset()
-        print("Entorno reseteado correctamente")
+        print(" [EPSILON-VARIABLE-INTERACTIVO] Entorno reseteado correctamente")
+        print(" [EPSILON-VARIABLE-INTERACTIVO] Ventana identificada como: EPSILON VARIABLE (INTERACTIVO)")
         
     except Exception as e:
         print(f"Error inicializando agente: {e}")

@@ -65,15 +65,15 @@ class AutoEpsilonDemo03:
         steps_per_second = step / max(elapsed, 1)
         avg_memory = sum(self.detailed_stats["memory_usage_history"]) / max(len(self.detailed_stats["memory_usage_history"]), 1) if self.detailed_stats["memory_usage_history"] else 0
         
-        scenario_text = f"Demo Epsilon 0.3 - Exploración Moderada"
+        scenario_text = "Demo Epsilon 0.3 - Exploración Moderada"
         if reason:
             scenario_text += f" ({reason})"
         
         # MARKDOWN DETALLADO
-        metrics_path = results_dir / f"demo_epsilon_03_metrics_{timestamp}.md"
+        metrics_path = results_dir / f"epsilon_greedy_metrics_{timestamp}.md"
         markdown_report = f"""
 ---
-# Informe Demo: Epsilon 0.3 (Exploración Moderada)
+# Informe Completo: Epsilon Greedy Agent
 ## {scenario_text}
 
 ### **Rendimiento Principal**
@@ -82,7 +82,7 @@ class AutoEpsilonDemo03:
 - **Recompensa Mínima:** `{self.detailed_stats['min_reward']:.2f}`
 - **Recompensa Promedio/Paso:** `{avg_reward_per_step:.4f}`
 - **Pasos Totales:** `{step:,}`
-- **Epsilon Fijo:** `{self.target_epsilon}`
+- **Escenario:** {scenario_text}
 
 ### **Análisis Temporal**
 - **Tiempo Total:** `{elapsed:.2f}` segundos ({elapsed/60:.2f} minutos)
@@ -94,6 +94,14 @@ class AutoEpsilonDemo03:
 - **Combate:** {self.heuristic_usage['battle']:,} veces ({self.heuristic_usage['battle']/max(step,1)*100:.1f}%)
 - **Menús:** {self.heuristic_usage['menu']:,} veces ({self.heuristic_usage['menu']/max(step,1)*100:.1f}%)
 - **Mundo Abierto:** {self.heuristic_usage['overworld']:,} veces ({self.heuristic_usage['overworld']/max(step,1)*100:.1f}%)
+- **Inicio:** {self.heuristic_usage['start']:,} veces ({self.heuristic_usage['start']/max(step,1)*100:.1f}%)
+
+### **Detección de Escenarios**
+- **Exploración:** {self.scenario_detections['explore']:,} detecciones
+- **Combate:** {self.scenario_detections['battle']:,} detecciones
+- **Menús:** {self.scenario_detections['menu']:,} detecciones
+- **Mundo Abierto:** {self.scenario_detections['overworld']:,} detecciones
+- **Inicio:** {self.scenario_detections['start']:,} detecciones
 
 ### **Uso de Recursos del Sistema**
 - **Memoria Actual:** `{mem_info.rss / (1024*1024):.2f}` MB
@@ -103,19 +111,18 @@ class AutoEpsilonDemo03:
 
 ### **Estadísticas de Acciones**
 - **Total de Acciones:** {self.detailed_stats['total_actions']:,}
-- **Botón START Bloqueado:** (Evita menús problemáticos)
+- **Distribución de Acciones:** {dict(sorted([(k,v) for k,v in zip(['↑','↓','←','→','A','B','START'], [self.action_history.count(i) for i in range(7)])], key=lambda x: x[1], reverse=True))}
 
-### **Configuración del Demo**
-- **Epsilon Fijo:** {self.target_epsilon} (30% exploración, 70% explotación)
+### **Configuración del Agente**
 - **Algoritmo:** Epsilon Greedy con Heurísticas
+- **Epsilon Inicial:** {self.target_epsilon} (fijo)
+- **Tiempo de Entrenamiento:** 0s (sin entrenamiento previo)
 - **Versión del Entorno:** Pokemon Red v2
-- **Máximo Pasos:** {self.max_steps:,}
 
 ### **Notas Adicionales**
 - Generado automáticamente el {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 - Sesión ID: {timestamp}
-- Razón de finalización: {reason if reason else "Demo completada"}
-- Demo automático sin input del usuario
+- Razón de finalización: {reason if reason else "Detección automática"}
 
 ---
 """
@@ -124,11 +131,10 @@ class AutoEpsilonDemo03:
             f.write(markdown_report)
         
         # GUARDAR DATOS CRUDOS EN JSON
-        json_path = results_dir / f"demo_epsilon_03_raw_data_{timestamp}.json"
+        json_path = results_dir / f"epsilon_greedy_raw_data_{timestamp}.json"
         raw_data = {
             "timestamp": timestamp,
-            "demo_info": {
-                "epsilon": self.target_epsilon,
+            "session_info": {
                 "total_steps": step,
                 "total_reward": episode_reward,
                 "elapsed_time": elapsed,
@@ -158,18 +164,18 @@ class AutoEpsilonDemo03:
             json.dump(raw_data, f, indent=2)
         
         # GUARDAR CSV PARA ANÁLISIS
-        csv_path = results_dir / f"demo_epsilon_03_summary_{timestamp}.csv"
+        csv_path = results_dir / f"epsilon_greedy_summary_{timestamp}.csv"
         with open(csv_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["Métrica", "Valor"])
             writer.writerow(["Timestamp", timestamp])
-            writer.writerow(["Epsilon", self.target_epsilon])
             writer.writerow(["Pasos Totales", step])
             writer.writerow(["Recompensa Total", episode_reward])
             writer.writerow(["Tiempo (s)", elapsed])
             writer.writerow(["Pasos/Segundo", steps_per_second])
             writer.writerow(["Memoria (MB)", mem_info.rss / (1024*1024)])
             writer.writerow(["Razón", reason])
+            writer.writerow(["Escenario", scenario_text])
         
         print(f"\n MÉTRICAS GUARDADAS:")
         print(f" Markdown: {metrics_path.name}")
@@ -181,12 +187,12 @@ class AutoEpsilonDemo03:
         
     def run_demo(self):
         print("="*60)
-        print(" DEMO AUTOMÁTICO: EPSILON 0.3 (EXPLORACIÓN MODERADA)")
+        print(" [EPSILON-0.3-MODERADO] DEMO AUTOMÁTICO: EPSILON 0.3 (EXPLORACIÓN MODERADA)")
         print("="*60)
-        print(f"🔹 Epsilon fijo: {self.target_epsilon}")
-        print(f"🔹 Máximo pasos: {self.max_steps:,}")
-        print(f"🔹 PyBoy emulador se mostrará automáticamente")
-        print(f"🔹 La demo se ejecuta sola, sin input requerido")
+        print(f" [EPSILON-0.3-MODERADO] Epsilon fijo: {self.target_epsilon}")
+        print(f" [EPSILON-0.3-MODERADO] Máximo pasos: {self.max_steps:,}")
+        print(f" [EPSILON-0.3-MODERADO] PyBoy emulador se mostrará automáticamente")
+        print(f" [EPSILON-0.3-MODERADO] La demo se ejecuta sola, sin input requerido")
         print("="*60)
         
         # Session and environment configuration
@@ -208,7 +214,7 @@ class AutoEpsilonDemo03:
             'extra_buttons': False
         }
 
-        print("🔧 Configurando entorno PyBoy...")
+        print(" [EPSILON-0.3-MODERADO] Configurando entorno PyBoy...")
         
         # Configuración del agente con epsilon fijo
         agent_config = {
@@ -220,20 +226,58 @@ class AutoEpsilonDemo03:
         
         # Initialize agent wrapper
         try:
-            print(" Inicializando agente con epsilon fijo 0.3...")
+            print(" [EPSILON-0.3-MODERADO] Inicializando agente con epsilon fijo 0.3...")
             agent = V2EpsilonGreedyAgent(env_config, agent_config, enable_logging=True)
-            print(" Agente creado correctamente")
             
-            print(" Reseteando entorno...")
+            # PERSONALIZAR VENTANA PYBOY PARA EPSILON 0.3 - IDENTIFICACIÓN MEJORADA
+            window_title = "POKEMON RED ===>>> EPSILON 0.3 MODERADO <<<==== 30-EXPLORA 70-EXPLOTA"
+            if hasattr(agent.env, 'env') and hasattr(agent.env.env, 'pyboy'):
+                pyboy = agent.env.env.pyboy
+                
+                # Múltiples intentos para establecer título de ventana
+                try:
+                    if hasattr(pyboy, 'set_window_title'):
+                        pyboy.set_window_title(window_title)
+                    elif hasattr(pyboy, '_window_title'):
+                        pyboy._window_title = window_title
+                    elif hasattr(pyboy, 'window'):
+                        if hasattr(pyboy.window, 'set_title'):
+                            pyboy.window.set_title(window_title)
+                except Exception as e:
+                    print(f" [EPSILON-0.3-MODERADO] Advertencia: No se pudo establecer título de ventana: {e}")
+                
+                # Intentar posicionar ventana en esquina superior izquierda
+                try:
+                    if hasattr(pyboy, 'window'):
+                        if hasattr(pyboy.window, 'set_position'):
+                            pyboy.window.set_position(100, 100)  # Esquina superior izquierda
+                except Exception as e:
+                    print(f" [EPSILON-0.3-MODERADO] Advertencia: No se pudo posicionar ventana: {e}")
+            
+            # También personalizar los metadatos del stream
+            if hasattr(agent.env, 'stream_metadata'):
+                agent.env.stream_metadata.update({
+                    "user": "EPSILON-0.3-MODERADO-DEMO",
+                    "env_id": "E03",
+                    "identifier": "MODERADO",
+                    "epsilon_value": "0.3",
+                    "behavior": "30% Exploración - 70% Explotación",
+                    "extra": "Demo Épsilon 0.3 - Comportamiento Balanceado",
+                })
+            
+            print(" [EPSILON-0.3-MODERADO] Agente creado correctamente")
+            
+            print(" [EPSILON-0.3-MODERADO] Reseteando entorno...")
             observation, info = agent.env.reset()
             agent.agent.reset()
             
             # FORZAR epsilon a 0.3 para asegurar que sea fijo
             agent.agent.epsilon = self.target_epsilon
-            print(f" Epsilon configurado: {agent.agent.epsilon}")
+            print(f" [EPSILON-0.3-MODERADO] Epsilon configurado: {agent.agent.epsilon}")
+            print(f" [EPSILON-0.3-MODERADO] Ventana identificada como: EPSILON 0.3 (MODERADO)")
             
         except Exception as e:
-            print(f" Error inicializando agente: {e}")
+            print(f" [EPSILON-0.3-MODERADO] Error inicializando agente: {e}")
             import traceback
             traceback.print_exc()
             return
@@ -249,9 +293,9 @@ class AutoEpsilonDemo03:
         total_exploration = 0
         total_exploitation = 0
         
-        print(" ¡DEMO INICIADA! El emulador PyBoy debería aparecer ahora...")
-        print(" El agente explorará con epsilon=0.3 (30% exploración, 70% explotación)")
-        print(" Estadísticas se mostrarán automáticamente...")
+        print(" [EPSILON-0.3-MODERADO] DEMO INICIADA! El emulador PyBoy debería aparecer ahora...")
+        print(" [EPSILON-0.3-MODERADO] El agente explorará con epsilon=0.3 (30% exploración, 70% explotación)")
+        print(" [EPSILON-0.3-MODERADO] Estadísticas se mostrarán automáticamente...")
         print("-" * 60)
         
         try:

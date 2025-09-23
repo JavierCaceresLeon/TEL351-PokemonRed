@@ -71,15 +71,15 @@ class AutoEpsilonDemo09:
         steps_per_second = step / max(elapsed, 1)
         avg_memory = sum(self.detailed_stats["memory_usage_history"]) / max(len(self.detailed_stats["memory_usage_history"]), 1) if self.detailed_stats["memory_usage_history"] else 0
         
-        scenario_text = f"Demo Epsilon 0.9 - EXPLORACIÓN MUY ALTA (CAÓTICA)"
+        scenario_text = "Demo Epsilon 0.9 - Exploración Muy Alta"
         if reason:
             scenario_text += f" ({reason})"
         
         # MARKDOWN DETALLADO
-        metrics_path = results_dir / f"demo_epsilon_09_metrics_{timestamp}.md"
+        metrics_path = results_dir / f"epsilon_greedy_metrics_{timestamp}.md"
         markdown_report = f"""
 ---
-# Informe Demo: Epsilon 0.9 (EXPLORACIÓN MUY ALTA - CAÓTICA)
+# Informe Completo: Epsilon Greedy Agent
 ## {scenario_text}
 
 ### **Rendimiento Principal**
@@ -88,7 +88,7 @@ class AutoEpsilonDemo09:
 - **Recompensa Mínima:** `{self.detailed_stats['min_reward']:.2f}`
 - **Recompensa Promedio/Paso:** `{avg_reward_per_step:.4f}`
 - **Pasos Totales:** `{step:,}`
-- **Epsilon Fijo:** `{self.target_epsilon}` 🌪️ **CAÓTICO**
+- **Escenario:** {scenario_text}
 
 ### **Análisis Temporal**
 - **Tiempo Total:** `{elapsed:.2f}` segundos ({elapsed/60:.2f} minutos)
@@ -100,6 +100,14 @@ class AutoEpsilonDemo09:
 - **Combate:** {self.heuristic_usage['battle']:,} veces ({self.heuristic_usage['battle']/max(step,1)*100:.1f}%)
 - **Menús:** {self.heuristic_usage['menu']:,} veces ({self.heuristic_usage['menu']/max(step,1)*100:.1f}%)
 - **Mundo Abierto:** {self.heuristic_usage['overworld']:,} veces ({self.heuristic_usage['overworld']/max(step,1)*100:.1f}%)
+- **Inicio:** {self.heuristic_usage['start']:,} veces ({self.heuristic_usage['start']/max(step,1)*100:.1f}%)
+
+### **Detección de Escenarios**
+- **Exploración:** {self.scenario_detections['explore']:,} detecciones
+- **Combate:** {self.scenario_detections['battle']:,} detecciones
+- **Menús:** {self.scenario_detections['menu']:,} detecciones
+- **Mundo Abierto:** {self.scenario_detections['overworld']:,} detecciones
+- **Inicio:** {self.scenario_detections['start']:,} detecciones
 
 ### **Uso de Recursos del Sistema**
 - **Memoria Actual:** `{mem_info.rss / (1024*1024):.2f}` MB
@@ -109,22 +117,18 @@ class AutoEpsilonDemo09:
 
 ### **Estadísticas de Acciones**
 - **Total de Acciones:** {self.detailed_stats['total_actions']:,}
-- **Botón START Bloqueado:** ✅ (Evita menús problemáticos)
+- **Distribución de Acciones:** {dict(sorted([(k,v) for k,v in zip(['↑','↓','←','→','A','B','START'], [self.action_history.count(i) for i in range(7)])], key=lambda x: x[1], reverse=True))}
 
-### **Configuración del Demo CAÓTICO**
-- **Epsilon Fijo:** {self.target_epsilon} (90% exploración ALEATORIA, 10% explotación)
+### **Configuración del Agente**
 - **Algoritmo:** Epsilon Greedy con Heurísticas
+- **Epsilon Inicial:** {self.target_epsilon} (fijo)
+- **Tiempo de Entrenamiento:** 0s (sin entrenamiento previo)
 - **Versión del Entorno:** Pokemon Red v2
-- **Máximo Pasos:** {self.max_steps:,}
-- **Comportamiento:** 🌪️ **EXTREMADAMENTE CAÓTICO**
 
 ### **Notas Adicionales**
 - Generado automáticamente el {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 - Sesión ID: {timestamp}
-- Razón de finalización: {reason if reason else "Demo caótica completada"}
-- Demo automático sin input del usuario
--  Este epsilon produce comportamiento muy errático
--  Botón START bloqueado para evitar menús problemáticos
+- Razón de finalización: {reason if reason else "Detección automática"}
 
 ---
 """
@@ -133,18 +137,15 @@ class AutoEpsilonDemo09:
             f.write(markdown_report)
         
         # GUARDAR DATOS CRUDOS EN JSON
-        json_path = results_dir / f"demo_epsilon_09_raw_data_{timestamp}.json"
+        json_path = results_dir / f"epsilon_greedy_raw_data_{timestamp}.json"
         raw_data = {
             "timestamp": timestamp,
-            "demo_info": {
-                "epsilon": self.target_epsilon,
+            "session_info": {
                 "total_steps": step,
                 "total_reward": episode_reward,
                 "elapsed_time": elapsed,
                 "reason": reason,
-                "scenario": scenario_text,
-                "chaos_level": "VERY_HIGH",
-                "start_button_blocked": True
+                "scenario": scenario_text
             },
             "performance": {
                 "avg_reward_per_step": avg_reward_per_step,
@@ -169,22 +170,20 @@ class AutoEpsilonDemo09:
             json.dump(raw_data, f, indent=2)
         
         # GUARDAR CSV PARA ANÁLISIS
-        csv_path = results_dir / f"demo_epsilon_09_summary_{timestamp}.csv"
+        csv_path = results_dir / f"epsilon_greedy_summary_{timestamp}.csv"
         with open(csv_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["Métrica", "Valor"])
             writer.writerow(["Timestamp", timestamp])
-            writer.writerow(["Epsilon", self.target_epsilon])
-            writer.writerow(["Chaos_Level", "VERY_HIGH"])
-            writer.writerow(["START_Button_Blocked", "YES"])
             writer.writerow(["Pasos Totales", step])
             writer.writerow(["Recompensa Total", episode_reward])
             writer.writerow(["Tiempo (s)", elapsed])
             writer.writerow(["Pasos/Segundo", steps_per_second])
             writer.writerow(["Memoria (MB)", mem_info.rss / (1024*1024)])
             writer.writerow(["Razón", reason])
+            writer.writerow(["Escenario", scenario_text])
         
-        print(f"\n MÉTRICAS CAÓTICAS GUARDADAS:")
+        print(f"\n MÉTRICAS GUARDADAS:")
         print(f" Markdown: {metrics_path.name}")
         print(f" JSON: {json_path.name}")
         print(f" CSV: {csv_path.name}")
@@ -194,15 +193,15 @@ class AutoEpsilonDemo09:
         
     def run_demo(self):
         print("="*60)
-        print(" DEMO AUTOMÁTICO: EPSILON 0.9 (EXPLORACIÓN MUY ALTA)")
+        print(" [EPSILON-0.9-CAOTICO] DEMO AUTOMÁTICO: EPSILON 0.9 (EXPLORACIÓN MUY ALTA)")
         print("="*60)
-        print(f" Epsilon fijo: {self.target_epsilon}")
-        print(f" Máximo pasos: {self.max_steps:,}")
-        print(f" PyBoy emulador se mostrará automáticamente")
-        print(f" La demo se ejecuta sola, sin input requerido")
-        print(f" ¡COMPORTAMIENTO CAÓTICO! 90% exploración aleatoria")
-        print(f" Botón START bloqueado para evitar menús problemáticos")
-        print(f" Métricas se guardan automáticamente (también con Ctrl+C)")
+        print(f" [EPSILON-0.9-CAOTICO] Epsilon fijo: {self.target_epsilon}")
+        print(f" [EPSILON-0.9-CAOTICO] Máximo pasos: {self.max_steps:,}")
+        print(f" [EPSILON-0.9-CAOTICO] PyBoy emulador se mostrará automáticamente")
+        print(f" [EPSILON-0.9-CAOTICO] La demo se ejecuta sola, sin input requerido")
+        print(f" [EPSILON-0.9-CAOTICO] COMPORTAMIENTO CAÓTICO: 90% exploración aleatoria")
+        print(f" [EPSILON-0.9-CAOTICO] Botón START bloqueado para evitar menús problemáticos")
+        print(f" [EPSILON-0.9-CAOTICO] Métricas se guardan automáticamente (también con Ctrl+C)")
         print("="*60)
         
         # Session and environment configuration
@@ -224,7 +223,7 @@ class AutoEpsilonDemo09:
             'extra_buttons': False
         }
 
-        print(" Configurando entorno PyBoy...")
+        print(" [EPSILON-0.9-CAOTICO] Configurando entorno PyBoy...")
         
         # Configuración del agente con epsilon fijo
         agent_config = {
@@ -236,17 +235,55 @@ class AutoEpsilonDemo09:
         
         # Initialize agent wrapper
         try:
-            print(" Inicializando agente con epsilon fijo 0.9...")
+            print(" [EPSILON-0.9-CAOTICO] Inicializando agente con epsilon fijo 0.9...")
             agent = V2EpsilonGreedyAgent(env_config, agent_config, enable_logging=True)
-            print(" Agente creado correctamente")
             
-            print(" Reseteando entorno...")
+            # PERSONALIZAR VENTANA PYBOY PARA EPSILON 0.9 - IDENTIFICACIÓN MEJORADA
+            window_title = "POKEMON RED ===>>> EPSILON 0.9 CAOTICO <<<==== 90-EXPLORA 10-EXPLOTA"
+            if hasattr(agent.env, 'env') and hasattr(agent.env.env, 'pyboy'):
+                pyboy = agent.env.env.pyboy
+                
+                # Múltiples intentos para establecer título de ventana
+                try:
+                    if hasattr(pyboy, 'set_window_title'):
+                        pyboy.set_window_title(window_title)
+                    elif hasattr(pyboy, '_window_title'):
+                        pyboy._window_title = window_title
+                    elif hasattr(pyboy, 'window'):
+                        if hasattr(pyboy.window, 'set_title'):
+                            pyboy.window.set_title(window_title)
+                except Exception as e:
+                    print(f" [EPSILON-0.9-CAOTICO] Advertencia: No se pudo establecer título de ventana: {e}")
+                
+                # Intentar posicionar ventana en centro superior
+                try:
+                    if hasattr(pyboy, 'window'):
+                        if hasattr(pyboy.window, 'set_position'):
+                            pyboy.window.set_position(500, 100)  # Centro superior
+                except Exception as e:
+                    print(f" [EPSILON-0.9-CAOTICO] Advertencia: No se pudo posicionar ventana: {e}")
+            
+            # También personalizar los metadatos del stream
+            if hasattr(agent.env, 'stream_metadata'):
+                agent.env.stream_metadata.update({
+                    "user": "EPSILON-0.9-CAOTICO-DEMO",
+                    "env_id": "E09",
+                    "identifier": "CAOTICO",
+                    "epsilon_value": "0.9",
+                    "behavior": "90% Exploración - 10% Explotación",
+                    "extra": "Demo Épsilon 0.9 - Comportamiento Muy Aleatorio",
+                })
+            
+            print(" [EPSILON-0.9-CAOTICO] Agente creado correctamente")
+            
+            print(" [EPSILON-0.9-CAOTICO] Reseteando entorno...")
             observation, info = agent.env.reset()
             agent.agent.reset()
             
             # FORZAR epsilon a 0.9 para asegurar que sea fijo
             agent.agent.epsilon = self.target_epsilon
-            print(f" Epsilon configurado: {agent.agent.epsilon}")
+            print(f" [EPSILON-0.9-CAOTICO] Epsilon configurado: {agent.agent.epsilon}")
+            print(f" [EPSILON-0.9-CAOTICO] Ventana identificada como: EPSILON 0.9 (CAÓTICO)")
             
         except Exception as e:
             print(f" Error inicializando agente: {e}")
@@ -267,12 +304,12 @@ class AutoEpsilonDemo09:
         chaos_events = 0  # Contador de eventos caóticos
         start_blocks = 0  # Contador de veces que se bloqueó START
         
-        print(" ¡DEMO INICIADA! El emulador PyBoy debería aparecer ahora...")
-        print(" El agente será MUY CAÓTICO con epsilon=0.9 (90% exploración aleatoria)")
-        print(" ¡Prepárate para movimientos impredecibles!")
-        print(" El botón START está bloqueado para evitar menús problemáticos")
-        print(" Presiona Ctrl+C en cualquier momento para guardar métricas y salir")
-        print(" Estadísticas se mostrarán automáticamente...")
+        print(" [EPSILON-0.9-CAOTICO] DEMO INICIADA! El emulador PyBoy debería aparecer ahora...")
+        print(" [EPSILON-0.9-CAOTICO] El agente será MUY CAÓTICO con epsilon=0.9 (90% exploración aleatoria)")
+        print(" [EPSILON-0.9-CAOTICO] Prepárate para movimientos impredecibles!")
+        print(" [EPSILON-0.9-CAOTICO] El botón START está bloqueado para evitar menús problemáticos")
+        print(" [EPSILON-0.9-CAOTICO] Presiona Ctrl+C en cualquier momento para guardar métricas y salir")
+        print(" [EPSILON-0.9-CAOTICO] Estadísticas se mostrarán automáticamente...")
         print("-" * 60)
         
         try:

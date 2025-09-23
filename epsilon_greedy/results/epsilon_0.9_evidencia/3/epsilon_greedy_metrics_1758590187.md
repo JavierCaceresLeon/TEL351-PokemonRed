@@ -1,20 +1,20 @@
 
 ---
 # Informe Completo: Epsilon Greedy Agent
-## Primer Pokémon obtenido (Interrumpido por usuario)
+## Demo Epsilon 0.9 - Exploración Muy Alta (Demo finalizada normalmente)
 
 ### **Rendimiento Principal**
-- **Recompensa Total:** `60.56`
-- **Recompensa Máxima:** `60.56`
-- **Recompensa Mínima:** `-0.05`
-- **Recompensa Promedio/Paso:** `0.0034`
-- **Pasos Totales:** `18,071`
-- **Escenario:** Primer Pokémon obtenido (Interrumpido por usuario)
+- **Recompensa Total:** `39.70`
+- **Recompensa Máxima:** `39.70`
+- **Recompensa Mínima:** `0.00`
+- **Recompensa Promedio/Paso:** `0.0113`
+- **Pasos Totales:** `3,528`
+- **Escenario:** Demo Epsilon 0.9 - Exploración Muy Alta (Demo finalizada normalmente)
 
 ### **Análisis Temporal**
-- **Tiempo Total:** `1222.44` segundos (20.37 minutos)
-- **Pasos por Segundo:** `14.78`
-- **Tiempo Promedio/Paso:** `67.65` ms
+- **Tiempo Total:** `244.30` segundos (4.07 minutos)
+- **Pasos por Segundo:** `14.44`
+- **Tiempo Promedio/Paso:** `69.25` ms
 
 ### **Uso de Heurísticas**
 - **Exploración:** 0 veces (0.0%)
@@ -31,24 +31,24 @@
 - **Inicio:** 0 detecciones
 
 ### **Uso de Recursos del Sistema**
-- **Memoria Actual:** `191.68` MB
-- **Memoria Promedio:** `177.60` MB
+- **Memoria Actual:** `167.56` MB
+- **Memoria Promedio:** `163.91` MB
 - **CPU Actual:** `0.0%`
 - **Posiciones Únicas Visitadas:** 1
 
 ### **Estadísticas de Acciones**
-- **Total de Acciones:** 18,071
-- **Distribución de Acciones:** {'A': 9885, '→': 2053, '←': 2049, '↑': 1966, '↓': 1902, 'B': 216, 'START': 0}
+- **Total de Acciones:** 3,528
+- **Distribución de Acciones:** {'A': 748, '→': 613, '↓': 580, '←': 554, '↑': 546, 'B': 487, 'START': 0}
 
 ### **Configuración del Agente**
 - **Algoritmo:** Epsilon Greedy con Heurísticas
-- **Epsilon Inicial:** Variable según escenario
+- **Epsilon Inicial:** 0.9 (fijo)
 - **Tiempo de Entrenamiento:** 0s (sin entrenamiento previo)
 - **Versión del Entorno:** Pokemon Red v2
 
 ### **Notas Adicionales**
-- Generado automáticamente el 2025-09-22 01:16:16
-- Sesión ID: 1758514576
-- Razón de finalización: Interrumpido por usuario
+- Generado automáticamente el 2025-09-22 22:16:27
+- Sesión ID: 1758590187
+- Razón de finalización: Demo finalizada normalmente
 
 ---

@@ -1,0 +1,39 @@
+{
+  "timestamp": 1758589916,
+  "session_info": {
+    "total_steps": 9223,
+    "total_reward": 55.7,
+    "elapsed_time": 627.9113705158234,
+    "reason": "Demo finalizada normalmente",
+    "scenario": "Demo Epsilon 0.9 - Exploraci\u00f3n Muy Alta (Demo finalizada normalmente)"
+  },
+  "performance": {
+    "avg_reward_per_step": 0.006039249701832376,
+    "steps_per_second": 14.688378699725394,
+    "max_reward": 55.7,
+    "min_reward": 0.0
+  },
+  "heuristics": {
+    "explore": 0,
+    "battle": 0,
+    "menu": 0,
+    "overworld": 0,
+    "start": 0
+  },
+  "scenarios": {
+    "explore": 0,
+    "battle": 0,
+    "menu": 0,
+    "overworld": 0,
+    "start": 0
+  },
+  "system_resources": {
+    "memory_mb": 174.68359375,
+    "avg_memory_mb": 168.7053753396739,
+    "cpu_percent": 0.0,
+    "unique_positions": 1
+  },
+  "action_history": [
+    5,
+    1,
+    
