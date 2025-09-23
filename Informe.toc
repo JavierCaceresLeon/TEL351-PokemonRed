@@ -1,0 +1,27 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{\numberline {0.1}Introducción}{2}{section.0.1}%
+\contentsline {section}{\numberline {0.2}El Mundo de Pokémon Rojo: Un Contexto para la IA}{2}{section.0.2}%
+\contentsline {subsection}{\numberline {0.2.1}Mecánicas Fundamentales del Juego}{3}{subsection.0.2.1}%
+\contentsline {subsection}{\numberline {0.2.2}El Objetivo Inicial: La Primera Decisión Crítica}{3}{subsection.0.2.2}%
+\contentsline {section}{\numberline {0.3}Análisis del Entorno y Requisitos del Proyecto}{5}{section.0.3}%
+\contentsline {subsection}{\numberline {0.3.1}Complejidad del Entorno de Aprendizaje}{5}{subsection.0.3.1}%
+\contentsline {subsection}{\numberline {0.3.2}Instalación y Dependencias}{6}{subsection.0.3.2}%
+\contentsline {subsubsection}{Requisitos Previos}{6}{section*.3}%
+\contentsline {subsubsection}{Proceso de Instalación}{6}{section*.4}%
+\contentsline {section}{\numberline {0.4}Arquitectura del Agente y Estrategias Implementadas}{7}{section.0.4}%
+\contentsline {subsection}{\numberline {0.4.1}Separación Agente-Entorno}{7}{subsection.0.4.1}%
+\contentsline {subsection}{\numberline {0.4.2}Estrategia 1: Epsilon-Greedy (Alternativa Simple)}{8}{subsection.0.4.2}%
+\contentsline {subsubsection}{Funcionamiento}{8}{section*.5}%
+\contentsline {subsection}{\numberline {0.4.3}Estrategia 2: Algoritmos de Búsqueda Informada y No Informada}{8}{subsection.0.4.3}%
+\contentsline {subsubsection}{Problema Solucionado}{8}{section*.6}%
+\contentsline {subsubsection}{Algoritmos Implementados}{9}{section*.7}%
+\contentsline {section}{\numberline {0.5}Metodología Experimental y Métricas de Comparación}{9}{section.0.5}%
+\contentsline {subsection}{\numberline {0.5.1}Protocolo Experimental}{10}{subsection.0.5.1}%
+\contentsline {subsection}{\numberline {0.5.2}Métricas de Evaluación}{10}{subsection.0.5.2}%
+\contentsline {section}{\numberline {0.6}Resultados y Análisis Comparativo}{11}{section.0.6}%
+\contentsline {subsection}{\numberline {0.6.1}Análisis de la Comparación Epsilon-Greedy}{11}{subsection.0.6.1}%
+\contentsline {subsection}{\numberline {0.6.2}Análisis de los Algoritmos de Búsqueda}{13}{subsection.0.6.2}%
+\contentsline {subsection}{\numberline {0.6.3}Comparativa General: PPO vs. Epsilon-Greedy vs. Búsqueda}{15}{subsection.0.6.3}%
+\contentsline {subsection}{\numberline {0.6.4}Fortalezas y Debilidades por Familia de Algoritmos}{19}{subsection.0.6.4}%
+\contentsline {subsection}{\numberline {0.6.5}Recomendaciones Prácticas}{20}{subsection.0.6.5}%
+\contentsline {section}{\numberline {0.7}Conclusiones}{20}{section.0.7}%
