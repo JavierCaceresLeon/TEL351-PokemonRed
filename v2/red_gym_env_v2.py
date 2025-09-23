@@ -114,6 +114,43 @@ class RedGymEnv(Env):
             #disable_input=False,
             window=head,
         )
+        
+        # Set window title and visual identification
+        import os
+        window_title = os.environ.get('DEMO_WINDOW_TITLE')
+        window_color = os.environ.get('DEMO_WINDOW_COLOR', 'DEFAULT')
+        
+        # Configure window identification
+        self.demo_identifier = {
+            'title': window_title,
+            'color': window_color,
+            'overlay_enabled': False
+        }
+        
+        if window_title and not config["headless"]:
+            try:
+                # Use PyBoy's window_title property
+                self.pyboy.window_title = window_title
+                print(f"🏷️ Título de ventana configurado: {window_title}")
+                
+                # Configure color overlay based on demo type
+                color_configs = {
+                    'BLUE': {'name': 'Azul', 'rgb': (0, 100, 255), 'emoji': '🔵'},
+                    'RED': {'name': 'Rojo', 'rgb': (255, 0, 100), 'emoji': '🔴'},
+                    'GREEN': {'name': 'Verde', 'rgb': (0, 255, 100), 'emoji': '🟢'},
+                    'PURPLE': {'name': 'Morado', 'rgb': (150, 0, 255), 'emoji': '🟣'},
+                    'DEFAULT': {'name': 'Normal', 'rgb': (255, 255, 255), 'emoji': '⚪'}
+                }
+                
+                if window_color in color_configs:
+                    config_info = color_configs[window_color]
+                    self.demo_identifier['overlay_enabled'] = True
+                    self.demo_identifier['color_config'] = config_info
+                    print(f"🎨 Identificador visual: {config_info['emoji']} {config_info['name']}")
+                    
+            except Exception as e:
+                # If setting title fails, just print info
+                print(f"🏷️ Demo identificado como: {window_title} (configuración parcial: {e})")
 
         self.screen = self.pyboy.screen
 
@@ -167,12 +204,62 @@ class RedGymEnv(Env):
     def init_map_mem(self):
         self.seen_coords = {}
 
+    def add_visual_overlay(self, game_pixels):
+        """Agregar overlay visual para identificar la ventana del demo"""
+        if not self.demo_identifier.get('overlay_enabled', False):
+            return game_pixels
+            
+        try:
+            height, width = game_pixels.shape[:2]
+            
+            # Crear una copia para no modificar el original
+            overlay_pixels = game_pixels.copy()
+            
+            color_config = self.demo_identifier.get('color_config', {})
+            color_rgb = color_config.get('rgb', (255, 255, 255))
+            
+            # Normalizar color para el formato de píxeles del Game Boy (0-255)
+            color_value = max(0, min(255, int(sum(color_rgb) / 3)))  # Promedio RGB
+            
+            # Agregar una franja de color en la parte superior
+            stripe_height = max(2, height // 25)  # 2 píxeles mínimo
+            if len(overlay_pixels.shape) == 3:
+                overlay_pixels[0:stripe_height, :, :] = color_value
+            else:
+                overlay_pixels[0:stripe_height, :] = color_value
+            
+            # Agregar una franja en el lado izquierdo
+            stripe_width = max(1, width // 30)  # 1 píxel mínimo
+            if len(overlay_pixels.shape) == 3:
+                overlay_pixels[:, 0:stripe_width, :] = color_value
+            else:
+                overlay_pixels[:, 0:stripe_width] = color_value
+            
+            # Agregar indicador en esquina superior derecha (pequeño cuadrado)
+            corner_size = max(3, min(width, height) // 25)
+            if len(overlay_pixels.shape) == 3:
+                overlay_pixels[0:corner_size, -corner_size:, :] = color_value
+            else:
+                overlay_pixels[0:corner_size, -corner_size:] = color_value
+            
+            return overlay_pixels
+            
+        except Exception as e:
+            # En caso de cualquier error, devolver píxeles originales
+            print(f"⚠️ Error aplicando overlay visual: {e}")
+            return game_pixels
+
     def render(self, reduce_res=True):
         game_pixels_render = self.screen.ndarray[:,:,0:1]  # (144, 160, 3)
         if reduce_res:
             game_pixels_render = (
                 downscale_local_mean(game_pixels_render, (2,2,1))
             ).astype(np.uint8)
+            
+        # Aplicar overlay visual para identificación
+        if hasattr(self, 'demo_identifier'):
+            game_pixels_render = self.add_visual_overlay(game_pixels_render)
+            
         return game_pixels_render
     
     def _get_obs(self):
