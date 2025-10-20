@@ -152,9 +152,7 @@ class RedGymEnv(Env):
                 # If setting title fails, just print info
                 print(f"🏷️ Demo identificado como: {window_title} (configuración parcial: {e})")
 
-        # PyBoy API fix: use screen_buffer() instead of deprecated screen attribute
-        # self.screen = self.pyboy.screen  # DEPRECATED in newer PyBoy versions
-        # The screen will be accessed via self.pyboy.screen_buffer() when needed
+        self.screen = self.pyboy.screen
 
         if not config["headless"]:
             self.pyboy.set_emulation_speed(6)
@@ -252,15 +250,7 @@ class RedGymEnv(Env):
             return game_pixels
 
     def render(self, reduce_res=True):
-        # PyBoy API fix: use screen_buffer() instead of self.screen.ndarray
-        game_pixels_render = self.pyboy.screen_buffer()  # Returns ndarray (144, 160, 3)
-        
-        # Extract single channel if needed
-        if len(game_pixels_render.shape) == 3:
-            game_pixels_render = game_pixels_render[:,:,0:1]  # (144, 160, 1)
-        else:
-            game_pixels_render = game_pixels_render[:,:,np.newaxis]
-            
+        game_pixels_render = self.screen.ndarray[:,:,0:1]  # (144, 160, 3)
         if reduce_res:
             game_pixels_render = (
                 downscale_local_mean(game_pixels_render, (2,2,1))
