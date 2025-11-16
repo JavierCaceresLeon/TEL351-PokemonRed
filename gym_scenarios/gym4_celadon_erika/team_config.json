@@ -1,0 +1,135 @@
+{
+  "gym_name": "Celadon City Gym - Erika",
+  "gym_number": 4,
+  "gym_leader": "Erika",
+  "type": "Grass",
+  "map_id": 123,
+  "start_position": {"x": 4, "y": 17},
+  "description": "Cuarto gimnasio. Equipo débil contra tipo Planta (Bulbasaur inicial). Trainers intermedios.",
+  
+  "player_team": [
+    {
+      "slot": 1,
+      "species": "ivysaur",
+      "species_id": 9,
+      "nickname": "IVYSAUR",
+      "level": 30,
+      "current_hp": 92,
+      "max_hp": 92,
+      "attack": 34,
+      "defense": 36,
+      "speed": 33,
+      "special": 42,
+      "moves": [
+        {"name": "Tackle", "id": 33, "pp": 35},
+        {"name": "Vine Whip", "id": 22, "pp": 25},
+        {"name": "Poison Powder", "id": 77, "pp": 35},
+        {"name": "Razor Leaf", "id": 75, "pp": 25}
+      ]
+    },
+    {
+      "slot": 2,
+      "species": "pidgeotto",
+      "species_id": 150,
+      "nickname": "PIDGEOTTO",
+      "level": 29,
+      "current_hp": 78,
+      "max_hp": 78,
+      "attack": 35,
+      "defense": 31,
+      "speed": 40,
+      "special": 29,
+      "moves": [
+        {"name": "Gust", "id": 16, "pp": 35},
+        {"name": "Sand Attack", "id": 28, "pp": 15},
+        {"name": "Quick Attack", "id": 98, "pp": 30},
+        {"name": "Wing Attack", "id": 17, "pp": 35}
+      ]
+    },
+    {
+      "slot": 3,
+      "species": "growlithe",
+      "species_id": 33,
+      "nickname": "GROWLITHE",
+      "level": 28,
+      "current_hp": 78,
+      "max_hp": 78,
+      "attack": 38,
+      "defense": 27,
+      "speed": 34,
+      "special": 38,
+      "moves": [
+        {"name": "Bite", "id": 44, "pp": 25},
+        {"name": "Ember", "id": 52, "pp": 25},
+        {"name": "Leer", "id": 43, "pp": 30},
+        {"name": "Take Down", "id": 36, "pp": 20}
+      ]
+    },
+    {
+      "slot": 4,
+      "species": "kadabra",
+      "species_id": 38,
+      "nickname": "KADABRA",
+      "level": 28,
+      "current_hp": 68,
+      "max_hp": 68,
+      "attack": 22,
+      "defense": 24,
+      "speed": 58,
+      "special": 60,
+      "moves": [
+        {"name": "Confusion", "id": 93, "pp": 25},
+        {"name": "Disable", "id": 50, "pp": 20},
+        {"name": "Psybeam", "id": 60, "pp": 20},
+        {"name": "Recover", "id": 105, "pp": 10}
+      ]
+    },
+    {
+      "slot": 5,
+      "species": "sandslash",
+      "species_id": 97,
+      "nickname": "SANDSLASH",
+      "level": 27,
+      "current_hp": 80,
+      "max_hp": 80,
+      "attack": 50,
+      "defense": 55,
+      "speed": 35,
+      "special": 25,
+      "moves": [
+        {"name": "Scratch", "id": 10, "pp": 35},
+        {"name": "Sand Attack", "id": 28, "pp": 15},
+        {"name": "Slash", "id": 163, "pp": 20},
+        {"name": "Poison Sting", "id": 40, "pp": 35}
+      ]
+    }
+  ],
+  
+  "bag_items": [
+    {"item": "hyper_potion", "item_id": 22, "quantity": 5},
+    {"item": "super_potion", "id": 21, "quantity": 3},
+    {"item": "full_heal", "item_id": 30, "quantity": 3},
+    {"item": "antidote", "item_id": 24, "quantity": 2},
+    {"item": "great_ball", "item_id": 5, "quantity": 10},
+    {"item": "escape_rope", "item_id": 40, "quantity": 2}
+  ],
+  
+  "money": 12000,
+  "badges_before": ["boulder", "cascade", "thunder"],
+  "badge_bits": 7,
+  
+  "opponent_info": {
+    "leader": "Erika",
+    "team": [
+      {"species": "Victreebel", "level": 29},
+      {"species": "Tangela", "level": 24},
+      {"species": "Vileplume", "level": 29}
+    ]
+  },
+  
+  "puzzle_type": "none",
+  "difficulty": "medium",
+  "expected_level_range": [27, 32],
+  
+  "notes": "Equipo con starter planta (malo matchup). Growlithe y Pidgeotto son cruciales. Equipo balanceado con 5 Pokémon."
+}
