@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # 🏟️ Sistema de Evaluación de Gimnasios Pokémon para Agentes PPO
 
 Sistema completo para evaluar y comparar agentes PPO (base vs reentrenado) en los 8 gimnasios de Pokémon Red, midiendo desempeño en puzzles y combates.
@@ -533,3 +534,92 @@ Este proyecto es parte del repositorio TEL351-PokemonRed. Ver LICENSE en el dire
 ---
 
 **¡Listo para comparar tus agentes PPO en los 8 gimnasios de Pokémon Red! 🎮🔥**
+=======
+# Gym Scenario Harness
+
+This module adds structure to define and benchmark eight stress-test scenarios (one per Kanto gym) using the existing PPO environment. It does **not** ship proprietary `.state` snapshots; instead it provides the scaffolding, file names, and tooling you need to capture them locally and run side-by-side evaluations of two PPO checkpoints.
+
+## Repository Additions
+
+```
+gym_scenarios/
+├── evaluate_agents.py     # Batch runner that compares baseline vs improved PPO over every phase
+├── scenarios.json         # Metadata for each gym (teams, items, badge bit, state filenames, goals)
+├── state_files/           # Drop your captured .state files here (placeholders only)
+│   └── .gitkeep           # Keeps the directory under version control
+└── README.md              # This guide
+```
+
+## Scenario Metadata (`scenarios.json`)
+* `state_directory` – relative path where state files must live.
+* `default_max_steps` – fallback horizon for any phase that does not override `max_steps`.
+* `scenarios[]` – one entry per gym:
+  * `id`, `leader`, `city`, `badge_bit`, `map_id` – identifiers and RAM context.
+  * `starter`, `recommended_party`, `inventory` – documentation so you can rebuild realistic teams/items.
+  * `phases[]` – two phases per gym (`puzzle`, `battle`). Each phase lists the `.state` file name, goal configuration, and per-phase `max_steps`.
+  * `goal.type` can be `badge`, `coordinate`, `manual`, or `none`. Battle phases already watch the badge bit. Puzzle phases default to `manual` until you add coordinate windows once the states exist.
+
+## Required `.state` Files
+Capture the following 16 files (two per gym) and drop them under `gym_scenarios/state_files/`:
+
+| Gym | Puzzle State | Battle State | Notes |
+| --- | --- | --- | --- |
+| Pewter / Boulder | `pewter_puzzle.state` | `pewter_battle.state` | Entrance tile and pre-dialog vs Brock |
+| Cerulean / Cascade | `cerulean_puzzle.state` | `cerulean_battle.state` | After clearing bridge / before Misty |
+| Vermilion / Thunder | `vermilion_puzzle.state` | `vermilion_battle.state` | Trash-can puzzle solved vs Lt. Surge |
+| Celadon / Rainbow | `celadon_puzzle.state` | `celadon_battle.state` | Gym ring cleared |
+| Fuchsia / Soul | `fuchsia_puzzle.state` | `fuchsia_battle.state` | Invisible-wall maze |
+| Saffron / Marsh | `saffron_puzzle.state` | `saffron_battle.state` | Teleporter maze |
+| Cinnabar / Volcano | `cinnabar_puzzle.state` | `cinnabar_battle.state` | Quiz terminal path |
+| Viridian / Earth | `viridian_puzzle.state` | `viridian_battle.state` | Final conveyor + Giovanni dialog |
+
+### How to Record a State
+1. Launch an interactive PPO session (e.g. `python v2/run_pretrained_interactive.py`) but set `init_state` in the config to a recent checkpoint such as `has_pokedex.state` or the previous gym battle.
+2. Play manually until you reach the exact tile requested (entrance of puzzle or dialog box before the leader). Make sure the badge corresponding to that gym is still **unset** so the badge-goal check is meaningful.
+3. Pause the game and press `Shift+F1` inside PyBoy to save the emulator snapshot, or call `pyboy.save_state` from the debugger. Save the file using the names listed above and move it into `gym_scenarios/state_files/`.
+4. (Optional) Update the `goal` section for the puzzle phase with coordinate bounds once you know the `map_id`, `x`, and `y` values from RAM (see table below). That enables automatic success detection.
+
+## RAM Reference Cheat-Sheet
+The most common addresses you need when crafting or validating states are already exposed by `RedGymEnv.read_m`. The table below consolidates the ones used for teams, inventory, and goals; all values are hexadecimal offsets inside WRAM bank 0.
+
+| Purpose | Address | Description |
+| --- | --- | --- |
+| Party size | `0xD163` | Number of active Pokémon in party |
+| Party species list | `0xD164`–`0xD169` | Species IDs for each slot (0xFF terminator) |
+| Party levels | `0xD18C`, `0xD1B8`, `0xD1E4`, `0xD210`, `0xD23C`, `0xD268` | Level byte per party slot (already used by the env) |
+| Party current HP | `0xD16C`, `0xD198`, `0xD1C4`, `0xD1F0`, `0xD21C`, `0xD248` | Two bytes per slot (hi, lo) |
+| Party max HP | `0xD18D`, `0xD1B9`, `0xD1E5`, `0xD211`, `0xD23D`, `0xD269` | Two bytes per slot |
+| Bag items | `0xD31C` onward | Each entry is `[item_id, quantity]` until `0xFF` terminator |
+| Money | `0xD347`–`0xD349` | BCD encoded ¥ amount |
+| Badge flags | `0xD356` | Each bit corresponds to a badge (0=Boulder,…,7=Earth) |
+| Player X/Y | `0xD362` / `0xD361` | Local tile coordinates |
+| Map ID | `0xD35E` | Matches `map_id` field inside `scenarios.json` |
+| Encounter/battle flag | `0xD057` | Non-zero when in battle (useful when validating puzzle end conditions) |
+
+You can patch data inside a state before saving it permanently by assigning to `env.pyboy.memory[address]`. For better reproducibility, prefer editing `scenarios.json` and keeping a short note in the `inventory.notes` or `starter.disadvantage` fields so that collaborators know the intended composition when they reproduce the `.state` file.
+
+## Running Evaluations
+1. Train or collect two PPO checkpoints (the “baseline” and “improved” models). Both must be `.zip` files compatible with `stable_baselines3.PPO.load`.
+2. Drop your sixteen `.state` files into `gym_scenarios/state_files/`.
+3. Run the batch script:
+
+```bash
+python gym_scenarios/evaluate_agents.py \
+  --baseline v2/runs/poke_baseline.zip \
+  --improved v2/runs/poke_improved.zip \
+  --episodes 5 \
+  --deterministic \
+  --gb-path PokemonRed.gb
+```
+
+* Use `--windowed` if you want to watch the rollouts instead of running headless.
+* Results land under `gym_scenarios/results/<timestamp>/<scenario>/<phase>/<agent>.json`. Each JSON records per-episode metrics (steps, reward, wall-clock duration, success flag, final coordinates) plus an averaged summary.
+* A top-level `summary.json` aggregates everything so you can feed it into your reporting or visualization pipeline.
+
+## What Still Requires Manual Work
+* The repository cannot ship the actual `.state` files for legal reasons and because they depend on your ROM hash. Use the instructions above to capture them locally.
+* Puzzle-phase goals are marked as `manual` by default. After you capture each state, update the `goal` object with the observed `(map_id, x_range, y_range)` so success detection no longer needs human review.
+* If you change the recommended party or inventory for a scenario, regenerate the `.state` file (or patch the relevant RAM addresses) so that both PPO checkpoints see the same initial conditions.
+
+With these pieces in place you can now stress-test any PPO iteration by running the evaluation script and comparing steps-to-success, reward accumulation, and badge acquisition across the eight canonical gyms.
+>>>>>>> Stashed changes

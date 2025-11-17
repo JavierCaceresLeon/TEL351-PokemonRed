@@ -90,6 +90,23 @@ TEL351-PokemonRed/
 - **`baseline_fast_v2.py`**: ENTRENAMIENTO V2 - Script principal de entrenamiento de la versión 2
 - **`run_pretrained_interactive.py`**: Ejecutor del modelo preentrenado para V2
 
+## Agentes Avanzados para Comparativas Científicas
+
+Para comparar contra el PPO original, el proyecto incorpora el paquete `advanced_agents/` con tres modelos especializados:
+
+- **CombatApexAgent**: Maximiza la ventaja en batalla con recompensas basadas en diferencial de daño y un modelo GRU auxiliar que predice derrotas inminentes. Ejecuta `train_combat_apex()`.
+- **PuzzleSpeedAgent**: Minimiza pasos y combates secundarios mediante un planificador tipo value-iteration aplicado a la grilla explorada. Ejecuta `train_puzzle_speed()`.
+- **HybridSageAgent**: Balancea ambos objetivos con una recompensa Pareto y un planificador latente que decide cuándo usar ítems. Ejecuta `train_hybrid_sage()`.
+
+Todos los agentes redefinen funciones de recompensa, observación y transición a través de wrappers dedicados. Consulta `advanced_agents/README.md` para las fórmulas completas e instrucciones. Ejemplo rápido:
+
+```python
+from advanced_agents import train_combat_apex
+train_combat_apex(total_timesteps=5_000_000)
+```
+
+Los checkpoints y métricas se guardan en `advanced_agents/runs/<agent_name>/` para facilitar comparativas.
+
 ## Análisis Técnico Detallado para Agentes Inteligentes
 
 ### Paradigma de Aprendizaje por Refuerzo vs Búsqueda Tradicional
