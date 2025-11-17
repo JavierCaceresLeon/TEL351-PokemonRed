@@ -97,6 +97,8 @@ class GymMetricsTracker:
         # Resultado final
         self.success = False
         self.failure_reason = ""
+        self.badge_start = 0
+        self.badge_end = 0
         
         # Metadata
         self.metadata = {
@@ -209,6 +211,13 @@ class GymMetricsTracker:
         if is_final:
             self.final_team_hp = team_hp.copy()
     
+    def record_badges(self, badge_count: int, is_final: bool = False):
+        """Guarda el estado de medallas al inicio/fin."""
+        if self.badge_start == 0:
+            self.badge_start = badge_count
+        if is_final:
+            self.badge_end = badge_count
+
     def end(self, success=False, failure_reason=""):
         """
         Finaliza el tracking de métricas
@@ -275,6 +284,9 @@ class GymMetricsTracker:
             
             # Equipo
             'final_avg_hp': round(final_hp_avg, 2),
+            'badge_start': self.badge_start,
+            'badge_end': self.badge_end,
+            'badge_delta': self.badge_end - self.badge_start,
         }
     
     def save_metrics(self, output_dir=None):

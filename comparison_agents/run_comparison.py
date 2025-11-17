@@ -9,14 +9,25 @@ in the Pokemon Red v2 environment.
 import sys
 import argparse
 from pathlib import Path
+from typing import Dict, Optional, List
 import json
 import numpy as np
+
+sys.path.append('..')
 
 # Add paths
 sys.path.append('../v2')
 sys.path.append('.')
 
-from agent_comparison import AgentComparator
+from advanced_agents import (
+    CombatApexAgent,
+    CombatAgentConfig,
+    HybridSageAgent,
+    HybridAgentConfig,
+    PuzzleSpeedAgent,
+    PuzzleAgentConfig,
+)
+from agent_comparison import AgentComparator, AgentSpec
 from metrics_analyzer import MetricsAnalyzer
 from epsilon_greedy_agent import EpsilonGreedyAgent
 from v2_agent import V2EpsilonGreedyAgent
@@ -80,6 +91,79 @@ def setup_epsilon_config(epsilon_start: float = 0.5,
     }
 
 
+def build_checkpoint_loader(checkpoint_path: Path):
+    checkpoint_path = Path(checkpoint_path)
+    if not checkpoint_path.exists():
+        raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
+
+    cache: Dict[str, Optional[PPO]] = {"model": None}
+
+    def _loader(env):
+        model = cache["model"]
+        if model is None:
+            model = PPO.load(str(checkpoint_path))
+            cache["model"] = model
+        if hasattr(env, "num_envs"):
+            try:
+                model.set_env(env)
+            except Exception:
+                pass
+        return model
+
+    return _loader
+
+
+def make_basic_env_builder(stream_label: str):
+    def _builder(env_config):
+        return StreamWrapper(
+            RedGymEnv(env_config),
+            stream_metadata={
+                "user": stream_label,
+                "env_id": 0,
+                "color": "#005cc5",
+                "extra": "Gym Scenario Comparator",
+            },
+        )
+
+    return _builder
+
+
+def make_advanced_env_builder(agent_cls, config_cls, agent_kwargs=None):
+    agent_kwargs = agent_kwargs or {}
+
+    def _builder(env_config):
+        config = config_cls(env_config=env_config, total_timesteps=0, **agent_kwargs)
+        agent = agent_cls(config)
+        return agent.make_env()
+
+    return _builder
+
+
+def make_scenario_spec(
+    *,
+    agent_name: str,
+    scenario_path: Path,
+    env_builder,
+    checkpoint_path: Path,
+    headless: bool,
+    episodes: int,
+    deterministic: bool = True,
+):
+    loader = build_checkpoint_loader(checkpoint_path)
+    return AgentSpec(
+        name=agent_name,
+        runner=lambda comparator, spec: comparator.run_agent_on_gym_scenarios(
+            agent_name=agent_name,
+            scenario_path=scenario_path,
+            env_builder=env_builder,
+            model_loader=loader,
+            headless=headless,
+            episodes=episodes,
+            deterministic=deterministic,
+        ),
+    )
+
+
 def run_standalone_epsilon_greedy(env_config: dict, 
                                  agent_config: dict,
                                  num_episodes: int = 3) -> dict:
@@ -124,7 +208,8 @@ def run_standalone_epsilon_greedy(env_config: dict,
 def run_comprehensive_comparison(env_config: dict,
                                comparison_config: dict,
                                epsilon_config: dict,
-                               ppo_model_path: str = None) -> dict:
+                               ppo_model_path: str = None,
+                               agent_specs: Optional[List[AgentSpec]] = None) -> dict:
     """
     Run comprehensive comparison between agents
     """
@@ -141,7 +226,8 @@ def run_comprehensive_comparison(env_config: dict,
         # Run comparison
         results = comparator.run_comparison(
             ppo_model_path=ppo_model_path,
-            epsilon_config=epsilon_config
+            epsilon_config=epsilon_config,
+            agent_specs=agent_specs,
         )
         
         return {
@@ -216,8 +302,20 @@ def main():
     parser.add_argument('--episodes', type=int, default=5,
                        help='Number of episodes to run')
     
-    parser.add_argument('--headless', action='store_true', default=True,
-                       help='Run in headless mode')
+    headless_group = parser.add_mutually_exclusive_group()
+    headless_group.add_argument(
+        '--headless',
+        dest='headless',
+        action='store_true',
+        default=True,
+        help='Run the emulator without opening the SDL2 window'
+    )
+    headless_group.add_argument(
+        '--no-headless',
+        dest='headless',
+        action='store_false',
+        help='Keep the SDL2 window visible (useful for classroom demos)'
+    )
     
     parser.add_argument('--max-steps', type=int, default=40960,
                        help='Maximum steps per episode')
@@ -236,6 +334,20 @@ def main():
     
     parser.add_argument('--no-viz', action='store_true', default=False,
                        help='Skip visualizations')
+
+    parser.add_argument('--gym-scenarios', action='store_true',
+                        help='Evaluate agents across the predefined gym scenarios')
+    parser.add_argument('--scenario-config', type=Path,
+                        default=Path('../gym_scenarios/scenarios.json'),
+                        help='Path to the gym scenario definition JSON')
+    parser.add_argument('--scenario-episodes', type=int, default=1,
+                        help='Episodes per scenario phase when --gym-scenarios is enabled')
+    parser.add_argument('--combat-model', type=Path,
+                        help='Checkpoint (.zip) for the Combat Apex agent')
+    parser.add_argument('--puzzle-model', type=Path,
+                        help='Checkpoint (.zip) for the Puzzle Speed agent')
+    parser.add_argument('--hybrid-model', type=Path,
+                        help='Checkpoint (.zip) for the Hybrid Sage agent')
     
     args = parser.parse_args()
     
@@ -265,6 +377,69 @@ def main():
     print(f"Epsilon Decay: {args.epsilon_decay}")
     print("")
     
+    scenario_specs: Optional[List[AgentSpec]] = None
+    enable_scenarios = (
+        args.gym_scenarios
+        or args.combat_model is not None
+        or args.puzzle_model is not None
+        or args.hybrid_model is not None
+    )
+
+    if enable_scenarios:
+        scenario_specs = []
+        scenario_path = args.scenario_config
+        baseline_env_builder = make_basic_env_builder("ppo-gym")
+        if args.ppo_model:
+            scenario_specs.append(
+                make_scenario_spec(
+                    agent_name="PPO_GymSuite",
+                    scenario_path=scenario_path,
+                    env_builder=baseline_env_builder,
+                    checkpoint_path=Path(args.ppo_model),
+                    headless=args.headless,
+                    episodes=args.scenario_episodes,
+                )
+            )
+        else:
+            print("⚠️  Gym scenario evaluation for PPO skipped (no --ppo-model supplied)")
+
+        if args.combat_model:
+            scenario_specs.append(
+                make_scenario_spec(
+                    agent_name="CombatApex",
+                    scenario_path=scenario_path,
+                    env_builder=make_advanced_env_builder(CombatApexAgent, CombatAgentConfig),
+                    checkpoint_path=args.combat_model,
+                    headless=args.headless,
+                    episodes=args.scenario_episodes,
+                )
+            )
+        if args.puzzle_model:
+            scenario_specs.append(
+                make_scenario_spec(
+                    agent_name="PuzzleSpeed",
+                    scenario_path=scenario_path,
+                    env_builder=make_advanced_env_builder(PuzzleSpeedAgent, PuzzleAgentConfig),
+                    checkpoint_path=args.puzzle_model,
+                    headless=args.headless,
+                    episodes=args.scenario_episodes,
+                )
+            )
+        if args.hybrid_model:
+            scenario_specs.append(
+                make_scenario_spec(
+                    agent_name="HybridSage",
+                    scenario_path=scenario_path,
+                    env_builder=make_advanced_env_builder(HybridSageAgent, HybridAgentConfig),
+                    checkpoint_path=args.hybrid_model,
+                    headless=args.headless,
+                    episodes=args.scenario_episodes,
+                )
+            )
+
+        if not scenario_specs:
+            scenario_specs = None
+
     # Execute based on mode
     if args.mode == 'standalone':
         # Run only Epsilon Greedy agent
@@ -286,7 +461,8 @@ def main():
             env_config=env_config,
             comparison_config=comparison_config,
             epsilon_config=epsilon_config,
-            ppo_model_path=args.ppo_model
+            ppo_model_path=args.ppo_model,
+            agent_specs=scenario_specs,
         )
         
         if result['success']:
@@ -309,7 +485,8 @@ def main():
             env_config=env_config,
             comparison_config=comparison_config,
             epsilon_config=epsilon_config,
-            ppo_model_path=args.ppo_model
+            ppo_model_path=args.ppo_model,
+            agent_specs=scenario_specs,
         )
         
         if comparison_result['success']:

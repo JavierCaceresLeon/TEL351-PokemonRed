@@ -23,6 +23,14 @@ sys.path.append('../v2')
 from red_gym_env_v2 import RedGymEnv
 from stream_agent_wrapper import StreamWrapper
 
+sys.path.append('../gym_scenarios')
+from gym_memory_addresses import (
+    BADGE_COUNT_ADDRESS,
+    BAG_ITEM_COUNT,
+    BAG_ITEMS_START,
+    HP_ADDRESSES,
+)
+
 # Import the Tabu Search agent
 from search_algorithms.tabu_agent import TabuSearchAgent, GameScenario
 
@@ -35,6 +43,60 @@ class InterruptHandler:
     def handle_interrupt(self, signum, frame):
         print("\n🛑 Interrupción detectada. Guardando métricas...")
         self.interrupted = True
+
+
+def unwrap_core_env(env):
+    target = getattr(env, 'env', env)
+    visited = set()
+    while hasattr(target, 'env') and id(target) not in visited:
+        visited.add(id(target))
+        target = target.env
+    return target
+
+
+def read_badges_from_env(env) -> int:
+    try:
+        return int(env.read_m(BADGE_COUNT_ADDRESS))
+    except Exception:
+        return 0
+
+
+def read_bag_inventory(env) -> dict:
+    inventory = {}
+    try:
+        count = int(env.read_m(BAG_ITEM_COUNT))
+        cursor = BAG_ITEMS_START
+        for _ in range(count):
+            item_id = int(env.read_m(cursor))
+            qty = int(env.read_m(cursor + 1))
+            if item_id == 0:
+                break
+            inventory[item_id] = qty
+            cursor += 2
+    except Exception:
+        pass
+    return inventory
+
+
+def read_team_hp_values(env) -> list:
+    team_hp = []
+    try:
+        for addr in HP_ADDRESSES:
+            hp_value = int(env.read_hp(addr))
+            if hp_value > 0:
+                team_hp.append(hp_value)
+    except Exception:
+        pass
+    return team_hp
+
+
+def summarize_item_usage(start_inv: dict, end_inv: dict) -> dict:
+    usage = {}
+    for item_id, start_qty in start_inv.items():
+        diff = start_qty - end_inv.get(item_id, 0)
+        if diff > 0:
+            usage[item_id] = diff
+    return usage
 
 def extract_game_state(observation) -> dict:
     """Extract game state from v2 environment observation"""
@@ -89,15 +151,20 @@ def save_metrics(agent, env, step, episode_reward, start_time, process, action_h
     # Obtener métricas específicas del agente Tabu Search
     exploration_metrics = agent.get_exploration_metrics()
     
-    # Obtener información del juego (usando función auxiliar)
-    try:
-        # En lugar de llamar env.get_game_state(), usaremos la información que ya tenemos
-        game_state = {
-            "hp": 100, "max_hp": 100, "level": 1, "badges": 0, 
-            "pcount": 0, "x": 0, "y": 0
-        }
-    except:
-        game_state = {"error": "Could not retrieve game state"}
+    core_env = unwrap_core_env(env)
+    badge_start = detailed_stats.get("badge_start", read_badges_from_env(core_env))
+    badge_end = detailed_stats.get("badge_end", read_badges_from_env(core_env))
+    bag_start = detailed_stats.get("bag_start", read_bag_inventory(core_env))
+    bag_end = detailed_stats.get("bag_end", read_bag_inventory(core_env))
+    items_used_detail = summarize_item_usage(bag_start, bag_end)
+    team_hp_end = detailed_stats.get("team_hp_end", read_team_hp_values(core_env))
+    pokemon_lost = sum(1 for hp in team_hp_end if hp <= 0)
+
+    game_state = {
+        "hp": team_hp_end,
+        "badges": badge_end,
+        "items_used": items_used_detail,
+    }
     
     # === 1. DATOS CRUDOS (JSON) ===
     raw_data = {
@@ -115,7 +182,10 @@ def save_metrics(agent, env, step, episode_reward, start_time, process, action_h
             "max_reward": detailed_stats["max_reward"],
             "min_reward": detailed_stats["min_reward"],
             "steps_per_second": steps_per_second,
-            "final_game_state": game_state
+            "final_game_state": game_state,
+            "badge_start": badge_start,
+            "badge_end": badge_end,
+            "pokemon_lost": pokemon_lost
         },
         "tabu_search_metrics": {
             "tabu_list_size": len(agent.tabu_list),
@@ -186,15 +256,19 @@ def save_metrics(agent, env, step, episode_reward, start_time, process, action_h
         'total_reward': episode_reward,
         'avg_reward_per_step': avg_reward_per_step,
         'steps_per_second': steps_per_second,
-        'final_badges': game_state.get('badges', 0),
+        'badge_start': badge_start,
+        'badge_end': badge_end,
+        'badge_delta': badge_end - badge_start,
         'final_pcount': game_state.get('pcount', 0),
         'final_level': game_state.get('level', 1),
-        'final_hp': game_state.get('hp', 0),
+        'pokemon_lost': pokemon_lost,
+        'remaining_team_hp': '|'.join(str(hp) for hp in team_hp_end) if team_hp_end else 'n/a',
         'tabu_list_size': len(agent.tabu_list),
         'best_solution_quality': agent.best_solution_quality,
         'unique_positions': exploration_metrics.get('unique_positions_visited', 0),
         'exploration_efficiency': exploration_metrics.get('exploration_efficiency', 0),
         'stuck_episodes': agent.stuck_counter,
+        'items_used_summary': json.dumps(items_used_detail),
         'most_used_action': max(range(7), key=lambda x: action_history.count(x)) if action_history else 0,
         'action_diversity': len(set(action_history)) if action_history else 0,
         'exploration_scenario_pct': scenario_detections.get('exploration', 0) / max(sum(scenario_detections.values()), 1) * 100,
@@ -212,6 +286,9 @@ def save_metrics(agent, env, step, episode_reward, start_time, process, action_h
         writer.writerow(csv_data)
     
     # === 3. REPORTE LEGIBLE (MARKDOWN) ===
+    team_hp_str = ", ".join(str(hp) for hp in team_hp_end) if team_hp_end else "n/a"
+    item_usage_str = ", ".join(f"{item_id}: -{count}" for item_id, count in items_used_detail.items()) if items_used_detail else "sin consumo"
+
     markdown_content = f"""# Reporte de Métricas - Tabu Search Agent
 
 ## 📊 Información de la Sesión
@@ -268,10 +345,12 @@ def save_metrics(agent, env, step, episode_reward, start_time, process, action_h
     
     markdown_content += f"""
 ## 🎯 Estado Final del Juego
-- **Medallas**: {game_state.get('badges', 0)}
+- **Medallas**: {badge_start} → {badge_end} (Δ {badge_end - badge_start})
 - **Pokémon Capturados**: {game_state.get('pcount', 0)}
 - **Nivel**: {game_state.get('level', 1)}
-- **HP Actual**: {game_state.get('hp', 0)}/{game_state.get('max_hp', 0)}
+- **Pokémon Debilitados**: {pokemon_lost}
+- **HP del Equipo**: {team_hp_str}
+- **Objetos Consumidos**: {item_usage_str}
 - **Posición**: ({game_state.get('x', 0)}, {game_state.get('y', 0)})
 
 ## 💻 Rendimiento del Sistema

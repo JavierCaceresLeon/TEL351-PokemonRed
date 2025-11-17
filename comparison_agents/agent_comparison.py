@@ -9,18 +9,21 @@ This module provides a comprehensive comparison framework between the PPO agent
 import sys
 import time
 import json
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass
+from collections import defaultdict
+from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import concurrent.futures
 import threading
 
 # Add paths for imports
 sys.path.append('../v2')
+sys.path.append('../gym_scenarios')
 
 try:
     from red_gym_env_v2 import RedGymEnv
@@ -31,11 +34,20 @@ except ImportError as e:
     print("Make sure you have the v2 environment and stable-baselines3 installed")
 
 from epsilon_greedy_agent import EpsilonGreedyAgent, GameScenario
+from gym_metrics import GymMetricsTracker
+from gym_memory_addresses import (
+    BADGE_COUNT_ADDRESS,
+    BAG_ITEM_COUNT,
+    BAG_ITEMS_START,
+    HP_ADDRESSES,
+    MAX_HP_ADDRESSES,
+)
 
 
 @dataclass
 class ComparisonMetrics:
     """Structure to hold comparison metrics"""
+
     agent_name: str
     episode_rewards: List[float]
     episode_lengths: List[int]
@@ -47,6 +59,20 @@ class ComparisonMetrics:
     action_distribution: Dict[str, float]
     performance_stability: float
     learning_rate: float
+    pokemon_lost: float = 0.0
+    badge_delta: float = 0.0
+    avg_remaining_hp: float = 0.0
+    avg_items_used: float = 0.0
+    avg_episode_time: float = 0.0
+
+
+@dataclass
+class AgentSpec:
+    """Declarative description for a comparable agent."""
+
+    name: str
+    runner: Callable[["AgentComparator", "AgentSpec"], ComparisonMetrics]
+    params: Dict[str, object] = field(default_factory=dict)
 
 
 class AgentComparator:
@@ -281,40 +307,391 @@ class AgentComparator:
             learning_rate=learning_rate
         )
     
-    def run_comparison(self, 
-                      ppo_model_path: Optional[str] = None,
-                      epsilon_config: Dict = None) -> Dict[str, ComparisonMetrics]:
-        """
-        Run complete comparison between agents
-        """
+    def run_comparison(
+        self,
+        ppo_model_path: Optional[str] = None,
+        epsilon_config: Optional[Dict] = None,
+        agent_specs: Optional[List[AgentSpec]] = None,
+    ) -> Dict[str, ComparisonMetrics]:
+        """Run the registered agents and collect metrics."""
+
         print("Starting Agent Comparison...")
         print(f"Configuration: {self.config}")
-        
-        results = {}
-        
-        if self.config['parallel_execution']:
-            # Run agents in parallel
-            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-                future_ppo = executor.submit(self.run_ppo_agent, ppo_model_path)
-                future_epsilon = executor.submit(self.run_epsilon_greedy_agent, epsilon_config)
-                
-                results['PPO'] = future_ppo.result()
-                results['Epsilon_Greedy'] = future_epsilon.result()
+
+        specs = agent_specs or self._build_default_agent_specs(ppo_model_path, epsilon_config)
+        if not specs:
+            raise ValueError("No agent specifications were provided to AgentComparator")
+
+        results: Dict[str, ComparisonMetrics] = {}
+
+        if self.config['parallel_execution'] and len(specs) > 1:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=len(specs)) as executor:
+                future_map = {
+                    executor.submit(spec.runner, self, spec): spec for spec in specs
+                }
+                for future in concurrent.futures.as_completed(future_map):
+                    spec = future_map[future]
+                    results[spec.name] = future.result()
         else:
-            # Run agents sequentially
-            results['PPO'] = self.run_ppo_agent(ppo_model_path)
-            results['Epsilon_Greedy'] = self.run_epsilon_greedy_agent(epsilon_config)
-        
+            for spec in specs:
+                print(f"\n▶️  Running agent: {spec.name}")
+                results[spec.name] = spec.runner(self, spec)
+
         self.results = results
-        
-        # Generate comparison report
+
         self.generate_comparison_report()
-        
-        # Create visualizations
         if self.config['create_visualizations']:
             self.create_visualizations()
-        
+
         return results
+
+    def _build_default_agent_specs(
+        self,
+        ppo_model_path: Optional[str],
+        epsilon_config: Optional[Dict],
+    ) -> List[AgentSpec]:
+        """Fallback specs when the caller does not provide custom agents."""
+
+        specs: List[AgentSpec] = []
+        specs.append(
+            AgentSpec(
+                name="PPO",
+                runner=lambda comp, spec: comp.run_ppo_agent(ppo_model_path),
+            )
+        )
+        specs.append(
+            AgentSpec(
+                name="Epsilon_Greedy",
+                runner=lambda comp, spec: comp.run_epsilon_greedy_agent(epsilon_config),
+            )
+        )
+        return specs
+
+    # ------------------------------------------------------------------
+    # Gym scenario evaluation helpers
+    # ------------------------------------------------------------------
+    def run_agent_on_gym_scenarios(
+        self,
+        *,
+        agent_name: str,
+        scenario_path: Path,
+        env_builder: Callable[[Dict[str, Any]], object],
+        model_loader: Callable[[object], object],
+        headless: bool = True,
+        episodes: int = 1,
+        deterministic: bool = True,
+        metrics_subdir: Optional[Path] = None,
+    ) -> ComparisonMetrics:
+        """Evaluate an agent across the eight gym scenarios."""
+
+        scenario_path = Path(scenario_path)
+        scenarios = self._load_gym_scenarios(scenario_path)
+        if not scenarios:
+            raise ValueError(f"No scenarios found in {scenario_path}")
+
+        metrics_subdir = metrics_subdir or self.save_dir / "gym_metrics" / agent_name
+        metrics_subdir = self._ensure_dir(metrics_subdir)
+
+        per_episode_records: List[Dict[str, float]] = []
+        action_counter: Dict[str, int] = defaultdict(int)
+        scenario_counter: Dict[str, int] = defaultdict(int)
+
+        for scenario in scenarios:
+            for phase in scenario.get("phases", []):
+                state_file: Path = phase.get("_state_file")
+                if state_file is None:
+                    continue
+                if not state_file.exists():
+                    print(f"⚠️  Missing state file for {scenario['id']}::{phase['name']} -> {state_file}")
+                    continue
+
+                phase_key = f"{scenario['id']}::{phase['name']}"
+                scenario_counter[phase_key] += 1
+
+                session_dir = self._ensure_dir(
+                    self.save_dir / "gym_sessions" / agent_name / scenario['id'] / phase['name']
+                )
+                env_config = self._phase_env_config(
+                    init_state=state_file,
+                    session_dir=session_dir,
+                    max_steps=phase.get("_max_steps", self.env_config.get("max_steps", 2000)),
+                    headless=headless,
+                )
+
+                vec_env = env_builder(env_config)
+                model = model_loader(vec_env)
+
+                phase_metrics = self._rollout_scenario_phase(
+                    vec_env=vec_env,
+                    model=model,
+                    scenario=scenario,
+                    phase=phase,
+                    agent_name=agent_name,
+                    deterministic=deterministic,
+                    episodes=episodes,
+                    metrics_dir=self._ensure_dir(metrics_subdir / scenario['id'] / phase['name']),
+                )
+
+                vec_env.close() if hasattr(vec_env, "close") else None
+
+                per_episode_records.extend(phase_metrics["episodes"])
+                for action_id, count in phase_metrics["action_counts"].items():
+                    action_counter[str(action_id)] += count
+
+        if not per_episode_records:
+            raise RuntimeError("Gym scenario evaluation did not produce any episodes")
+
+        episode_rewards = [record["reward"] for record in per_episode_records]
+        episode_lengths = [record["length"] for record in per_episode_records]
+        total_steps = int(sum(episode_lengths))
+        total_time = float(sum(record["duration"] for record in per_episode_records))
+
+        pokemon_lost = float(np.mean([record["pokemon_lost"] for record in per_episode_records]))
+        badge_delta = float(np.mean([record["badge_delta"] for record in per_episode_records]))
+        avg_hp = float(np.mean([record["avg_hp"] for record in per_episode_records]))
+        avg_items = float(np.mean([record["items_used"] for record in per_episode_records]))
+        avg_episode_time = float(np.mean([record["duration"] for record in per_episode_records]))
+
+        total_unique_tiles = [record.get("unique_tiles", 0) for record in per_episode_records]
+        exploration_eff = float(np.mean([
+            tiles / max(length, 1)
+            for tiles, length in zip(total_unique_tiles, episode_lengths)
+        ]))
+
+        convergence = self._calculate_convergence(episode_rewards)
+        stability = (
+            np.std(episode_rewards) / np.mean(episode_rewards)
+            if np.mean(episode_rewards) > 0 else float('inf')
+        )
+        learning_rate = self._calculate_learning_rate(episode_rewards)
+
+        scenario_distribution = self._normalize_dict(
+            scenario_counter,
+            max(sum(scenario_counter.values()), 1)
+        )
+        action_distribution = self._normalize_dict(action_counter, max(total_steps, 1))
+
+        return ComparisonMetrics(
+            agent_name=agent_name,
+            episode_rewards=episode_rewards,
+            episode_lengths=episode_lengths,
+            total_steps=total_steps,
+            total_time=total_time,
+            convergence_episodes=convergence,
+            exploration_efficiency=exploration_eff,
+            scenario_distribution=scenario_distribution,
+            action_distribution=action_distribution,
+            performance_stability=stability,
+            learning_rate=learning_rate,
+            pokemon_lost=pokemon_lost,
+            badge_delta=badge_delta,
+            avg_remaining_hp=avg_hp,
+            avg_items_used=avg_items,
+            avg_episode_time=avg_episode_time,
+        )
+
+    def _load_gym_scenarios(self, scenario_path: Path) -> List[Dict[str, Any]]:
+        with scenario_path.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        default_steps = payload.get("default_max_steps", self.env_config.get("max_steps", 2000))
+        scenarios = payload.get("scenarios", [])
+        for scenario in scenarios:
+            for phase in scenario.get("phases", []):
+                state_file = Path(phase.get("state_file", ""))
+                if not state_file.is_absolute():
+                    state_file = scenario_path.parent / state_file
+                phase["_state_file"] = state_file
+                phase["_max_steps"] = phase.get("max_steps", default_steps)
+        return scenarios
+
+    def _phase_env_config(self, init_state: Path, session_dir: Path, max_steps: int, headless: bool) -> Dict[str, Any]:
+        cfg = dict(self.env_config)
+        cfg["init_state"] = str(init_state)
+        cfg["session_path"] = session_dir
+        cfg["max_steps"] = max_steps
+        cfg["headless"] = headless
+        cfg.setdefault("save_final_state", False)
+        cfg.setdefault("print_rewards", False)
+        return cfg
+
+    def _ensure_dir(self, path: Path) -> Path:
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def _rollout_scenario_phase(
+        self,
+        *,
+        vec_env,
+        model,
+        scenario: Dict[str, Any],
+        phase: Dict[str, Any],
+        agent_name: str,
+        deterministic: bool,
+        episodes: int,
+        metrics_dir: Path,
+    ) -> Dict[str, Any]:
+        phase_key = f"{scenario['id']}::{phase['name']}"
+        episode_summaries: List[Dict[str, float]] = []
+        action_counts: Dict[int, int] = defaultdict(int)
+
+        for episode in range(episodes):
+            tracker = GymMetricsTracker(
+                gym_number=scenario.get("badge_bit", episode + 1),
+                agent_name=agent_name,
+                gym_name=scenario.get("leader", f"Scenario {scenario['id']}")
+            )
+            tracker.metadata["scenario_id"] = scenario["id"]
+            tracker.metadata["phase"] = phase["name"]
+            tracker.start()
+
+            obs = vec_env.reset()
+            done = np.array([False])
+            steps = 0
+            start_time = time.time()
+
+            core_env = self._extract_core_env(vec_env)
+            start_badges = self._read_badges(core_env)
+            start_inventory = self._read_bag_inventory(core_env)
+            tracker.metadata["badge_start"] = start_badges
+            tracker.record_badges(start_badges)
+
+            tracker.record_team_state(self._read_team_hp(core_env))
+
+            max_steps = phase.get("_max_steps", self.env_config.get("max_steps", 2000))
+
+            while steps < max_steps and not bool(done[0]):
+                action, _states = model.predict(obs, deterministic=deterministic)
+                obs, reward, done, info = vec_env.step(action)
+                core_env = self._extract_core_env(vec_env)
+                game_state = self._capture_game_state(core_env)
+                scalar_action = self._scalar_action(action)
+                tracker.record_step(scalar_action, float(self._scalar_value(reward)), game_state)
+                action_counts[scalar_action] += 1
+                steps += 1
+
+            duration = time.time() - start_time
+            end_badges = self._read_badges(core_env)
+            tracker.metadata["badge_end"] = end_badges
+            tracker.record_team_state(self._read_team_hp(core_env), is_final=True)
+            tracker.record_badges(end_badges, is_final=True)
+            tracker.end(success=self._phase_goal_met(phase, start_badges, end_badges))
+
+            bag_usage = self._compute_items_used(start_inventory, self._read_bag_inventory(core_env))
+            tracker.items_used.extend(
+                {"item": str(item_id), "used": amount} for item_id, amount in bag_usage.items()
+            )
+
+            if metrics_dir:
+                tracker.save_metrics(output_dir=metrics_dir)
+
+            summary = tracker.get_summary_stats()
+            summary["badge_delta"] = end_badges - start_badges
+            summary["items_used"] = sum(bag_usage.values())
+            summary["duration"] = duration
+            summary["unique_tiles"] = summary.get("unique_tiles_explored", 0)
+
+            episode_summaries.append(
+                {
+                    "reward": summary["total_reward"],
+                    "length": summary["total_steps"],
+                    "duration": summary["total_duration_seconds"],
+                    "pokemon_lost": summary["pokemon_fainted_player"],
+                    "badge_delta": summary["badge_delta"],
+                    "avg_hp": summary["final_avg_hp"],
+                    "items_used": summary["items_used"],
+                    "unique_tiles": summary["unique_tiles"],
+                }
+            )
+
+        return {
+            "phase_key": phase_key,
+            "episodes": episode_summaries,
+            "action_counts": action_counts,
+        }
+
+    def _extract_core_env(self, env):
+        if hasattr(env, "envs"):
+            candidate = env.envs[0]
+        else:
+            candidate = env
+        visited = set()
+        while hasattr(candidate, "env") and id(candidate) not in visited:
+            visited.add(id(candidate))
+            candidate = candidate.env
+        return candidate
+
+    def _capture_game_state(self, env) -> Dict[str, Any]:
+        return {
+            "x": int(env.read_m(0xD362)),
+            "y": int(env.read_m(0xD361)),
+            "map": int(env.read_m(0xD35E)),
+            "hp": self._read_team_hp(env),
+            "in_battle": bool(env.read_m(0xD057)),
+            "badges": self._read_badges(env),
+        }
+
+    def _read_team_hp(self, env) -> List[int]:
+        values: List[int] = []
+        for addr in HP_ADDRESSES:
+            hp_value = env.read_hp(addr)
+            if hp_value > 0:
+                values.append(hp_value)
+        if not values:
+            # fallback to aggregate fraction
+            values.append(int(env.read_hp_fraction() * 100))
+        return values
+
+    def _read_badges(self, env) -> int:
+        return int(env.read_m(BADGE_COUNT_ADDRESS))
+
+    def _read_bag_inventory(self, env) -> Dict[int, int]:
+        count = env.read_m(BAG_ITEM_COUNT)
+        inventory: Dict[int, int] = {}
+        cursor = BAG_ITEMS_START
+        for _ in range(count):
+            item_id = env.read_m(cursor)
+            quantity = env.read_m(cursor + 1)
+            if item_id == 0:
+                break
+            inventory[item_id] = quantity
+            cursor += 2
+        return inventory
+
+    def _compute_items_used(self, start_inv: Dict[int, int], end_inv: Dict[int, int]) -> Dict[int, int]:
+        usage: Dict[int, int] = {}
+        for item_id, start_qty in start_inv.items():
+            end_qty = end_inv.get(item_id, 0)
+            diff = start_qty - end_qty
+            if diff > 0:
+                usage[item_id] = diff
+        return usage
+
+    def _phase_goal_met(self, phase: Dict[str, Any], start_badges: int, end_badges: int) -> bool:
+        goal = phase.get("goal", {})
+        if goal.get("type") == "badge":
+            badge_bit = goal.get("badge_bit")
+            if badge_bit is None:
+                return False
+            mask = 1 << badge_bit
+            return bool(end_badges & mask) or (end_badges != start_badges)
+        # Manual phases cannot be auto-evaluated; assume completion if we survived full episode
+        return True
+
+    def _scalar_action(self, action) -> int:
+        if isinstance(action, np.ndarray):
+            if action.ndim == 0:
+                return int(action)
+            if action.size == 1:
+                return int(action.flatten()[0])
+        return int(action)
+
+    def _scalar_value(self, value) -> float:
+        if isinstance(value, np.ndarray):
+            if value.ndim == 0:
+                return float(value)
+            if value.size == 1:
+                return float(value.flatten()[0])
+        return float(value)
     
     def _calculate_convergence(self, rewards: List[float], window_size: int = 5) -> int:
         """
@@ -397,7 +774,12 @@ class AgentComparator:
                 'convergence_episodes': metrics.convergence_episodes,
                 'exploration_efficiency': metrics.exploration_efficiency,
                 'performance_stability': metrics.performance_stability,
-                'learning_rate': metrics.learning_rate
+                'learning_rate': metrics.learning_rate,
+                'pokemon_lost': metrics.pokemon_lost,
+                'badge_delta': metrics.badge_delta,
+                'avg_remaining_hp': metrics.avg_remaining_hp,
+                'avg_items_used': metrics.avg_items_used,
+                'avg_episode_time': metrics.avg_episode_time,
             }
         
         # Detailed comparison
@@ -460,6 +842,12 @@ class AgentComparator:
             print(f"  Exploration Efficiency: {stats['exploration_efficiency']:.3f}")
             print(f"  Performance Stability: {stats['performance_stability']:.3f}")
             print(f"  Learning Rate: {stats['learning_rate']:.4f}")
+            if 'pokemon_lost' in stats:
+                print(f"  Avg Pokémon Lost: {stats['pokemon_lost']:.2f}")
+                print(f"  Avg Badge Delta: {stats['badge_delta']:.2f}")
+                print(f"  Avg Remaining HP: {stats['avg_remaining_hp']:.2f}")
+                print(f"  Avg Items Used: {stats['avg_items_used']:.2f}")
+                print(f"  Avg Episode Time (s): {stats['avg_episode_time']:.2f}")
         
         if 'detailed_comparison' in report:
             print(f"\nCOMPARISON WINNERS:")

@@ -380,11 +380,19 @@ def main():
         help='Path al modelo PPO reentrenado'
     )
     
-    parser.add_argument(
+    headless_group = parser.add_mutually_exclusive_group()
+    headless_group.add_argument(
         '--headless',
+        dest='headless',
         action='store_true',
         default=True,
-        help='Ejecutar sin interfaz gráfica'
+        help='Ejecutar sin interfaz gráfica (por defecto)'
+    )
+    headless_group.add_argument(
+        '--no-headless',
+        dest='headless',
+        action='store_false',
+        help='Mostrar la ventana de Game Boy (SDL2) durante la evaluación'
     )
     
     parser.add_argument(
