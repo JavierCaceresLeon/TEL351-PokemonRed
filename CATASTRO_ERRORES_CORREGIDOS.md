@@ -2,11 +2,12 @@
 
 **Fecha:** 18 de noviembre de 2025  
 **Entorno:** `pokeenv` (Conda)  
-**Sistema:** Windows
+**Sistema:** Windows  
+**Última actualización:** 18/11/2025 - Problema 4 agregado
 
 ---
 
-## Problema 1: ModuleNotFoundError: No module named 'websockets'
+## 🔴 Problema 1: ModuleNotFoundError: No module named 'websockets'
 
 ### Descripción del Error
 ```
@@ -227,8 +228,9 @@ run_pretrained_interactive.py` ahora funciona con cualquier versión de PyBoy
 | 1 | `ModuleNotFoundError: websockets` | N/A | `pip install websockets==13.1` |
 | 2 | `AttributeError: screen_buffer` | `v2/red_gym_env_v2.py` | Wrapper `_setup_pyboy_compat()` |
 | 3 | `AttributeError: memory` | `v2/red_gym_env_v2.py` | Wrapper `_get_mem()` |
-| 4 | Compatibilidad estado generador | `gym_scenarios/generate_gym_states.py` | Try/except múltiples APIs |
-| 5 | Compatibilidad test helper | `gym_scenarios/test_single_gym.py` | Función `read_mem()` |
+| 4 | `ERROR: nvidia-nccl-cu12==2.21.5` | `v2/requirements.txt`, `v2/install_dependencies.py`, `v2/INSTALLATION.md` | Marcadores de entorno `; sys_platform == 'linux'` |
+| 5 | Compatibilidad estado generador | `gym_scenarios/generate_gym_states.py` | Try/except múltiples APIs |
+| 6 | Compatibilidad test helper | `gym_scenarios/test_single_gym.py` | Función `read_mem()` |
 
 ---
 
@@ -286,3 +288,151 @@ python run_pretrained_interactive.py
 cd ../baselines
 python run_pretrained_interactive.py
 ```
+
+---
+
+## 🔴 Problema 4: ERROR: No matching distribution found for nvidia-nccl-cu12==2.21.5
+
+### ❗ Error Original
+Al seguir las instrucciones del README en una instalación nueva en Windows:
+```bash
+pip install -r requirements.txt
+```
+
+Error:
+```
+ERROR: Could not find a version that satisfies the requirement nvidia-nccl-cu12==2.21.5 (from versions: none)
+ERROR: No matching distribution found for nvidia-nccl-cu12==2.21.5
+```
+
+### 🔍 Diagnóstico
+El archivo `v2/requirements.txt` incluía 12 paquetes NVIDIA CUDA que **NO están disponibles en Windows**:
+
+```
+nvidia-cublas-cu12==12.4.5.8
+nvidia-cuda-cupti-cu12==12.4.127
+nvidia-cuda-nvrtc-cu12==12.4.127
+nvidia-cuda-runtime-cu12==12.4.127
+nvidia-cudnn-cu12==9.1.0.70
+nvidia-cufft-cu12==11.2.1.3
+nvidia-curand-cu12==10.3.5.147
+nvidia-cusolver-cu12==11.6.1.9
+nvidia-cusparse-cu12==12.3.1.170
+nvidia-nccl-cu12==2.21.5        # ← PAQUETE PROBLEMÁTICO
+nvidia-nvjitlink-cu12==12.4.127
+nvidia-nvtx-cu12==12.4.127
+```
+
+Además, `triton==3.1.0` tampoco está disponible en Windows (solo Linux).
+
+**Razón:** Estos paquetes son para entrenamiento multi-GPU con CUDA en Linux. Windows no tiene soporte nativo para NVIDIA NCCL (NVIDIA Collective Communications Library).
+
+### ✅ Solución
+
+#### Solución Final: Requirements.txt Agnóstico (Recomendado)
+
+El archivo `v2/requirements.txt` ahora usa **marcadores de entorno de pip** para instalar automáticamente solo los paquetes compatibles con cada sistema operativo:
+
+```python
+# Paquetes NVIDIA solo se instalan en Linux
+nvidia-cublas-cu12==12.4.5.8; sys_platform == 'linux'
+nvidia-cuda-cupti-cu12==12.4.127; sys_platform == 'linux'
+nvidia-cuda-nvrtc-cu12==12.4.127; sys_platform == 'linux'
+nvidia-cuda-runtime-cu12==12.4.127; sys_platform == 'linux'
+nvidia-cudnn-cu12==9.1.0.70; sys_platform == 'linux'
+nvidia-cufft-cu12==11.2.1.3; sys_platform == 'linux'
+nvidia-curand-cu12==10.3.5.147; sys_platform == 'linux'
+nvidia-cusolver-cu12==11.6.1.9; sys_platform == 'linux'
+nvidia-cusparse-cu12==12.3.1.170; sys_platform == 'linux'
+nvidia-nccl-cu12==2.21.5; sys_platform == 'linux'
+nvidia-nvjitlink-cu12==12.4.127; sys_platform == 'linux'
+nvidia-nvtx-cu12==12.4.127; sys_platform == 'linux'
+
+# Triton solo en Linux
+triton==3.1.0; sys_platform == 'linux'
+```
+
+**Ahora funciona en cualquier sistema operativo:**
+```bash
+# Windows, Linux, macOS - mismo comando
+pip install -r requirements.txt
+```
+
+#### Opción 1: Script Automático `install_dependencies.py`
+
+Creado script Python que detecta el OS automáticamente:
+
+```bash
+# Instalación básica (detecta OS automáticamente)
+python install_dependencies.py
+
+# Linux con GPU
+python install_dependencies.py --gpu
+
+# Ver qué se instalará
+python install_dependencies.py --dry-run
+```
+
+**Características:**
+- ✅ Detecta Windows/Linux/macOS automáticamente
+- ✅ Instala solo paquetes compatibles
+- ✅ Valida la instalación
+- ✅ Soporte para GPU en Linux
+
+#### Opción 2: Usar `requirements.txt` con marcadores
+
+```bash
+pip install -r requirements.txt
+```
+
+**Comportamiento automático:**
+- **Windows**: Omite nvidia-* y triton
+- **Linux**: Instala nvidia-* y triton
+- **macOS**: Omite nvidia-* y triton
+
+### 📄 Archivos Modificados
+
+1. **`v2/requirements.txt`**: 
+   - Líneas 29-44: NVIDIA packages con marcador `; sys_platform == 'linux'`
+   - Línea 71: triton con marcador `; sys_platform == 'linux'`
+   - **Agnóstico**: Funciona en Windows, Linux y macOS sin modificaciones
+
+2. **`v2/install_dependencies.py`** (nuevo):
+   - Script automático de instalación
+   - Detecta OS y arquitectura
+   - Instala dependencias correctas automáticamente
+   - Incluye validación post-instalación
+
+3. **`v2/requirements-windows.txt`**:
+   - Mantenido para compatibilidad retroactiva
+   - Ya no necesario (usar requirements.txt directamente)
+
+4. **`v2/INSTALLATION.md`** (nuevo):
+   - Guía completa de instalación
+   - Instrucciones para Windows, Linux, macOS
+   - Troubleshooting común
+
+### 🧪 Validación
+```bash
+# Instalación agnóstica (funciona en cualquier OS)
+pip install -r requirements.txt
+
+# O usar script automático
+python install_dependencies.py
+
+# Verificar que PyTorch se instaló correctamente
+python -c "import torch; print(f'PyTorch {torch.__version__}, CUDA: {torch.cuda.is_available()}')"
+# Windows/macOS: PyTorch 2.5.0, CUDA: False
+# Linux sin GPU: PyTorch 2.5.0, CUDA: False
+# Linux con GPU: PyTorch 2.5.0, CUDA: True
+```
+
+### 📝 Notas Importantes
+- **Agnóstico al OS**: Un solo `requirements.txt` funciona en Windows, Linux y macOS
+- **Marcadores de entorno**: `; sys_platform == 'linux'` instala paquetes solo en Linux
+- **Windows**: Automáticamente omite nvidia-* y triton (sin errores)
+- **Linux con GPU**: Automáticamente instala nvidia-* y triton
+- **Linux sin GPU**: Instala PyTorch CPU (igual que Windows)
+- **macOS**: Instala PyTorch CPU (MPS/Metal no soportado aún)
+- **requirements-windows.txt**: Ya no necesario, mantenido para compatibilidad retroactiva
+
