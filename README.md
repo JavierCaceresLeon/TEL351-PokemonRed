@@ -11,15 +11,19 @@ El proyecto utiliza PyBoy (un emulador de Game Boy) junto con Stable Baselines3 
 
 > **IMPORTANTE**: Esta guía está diseñada para ejecutar la **versión V2** del proyecto, que es la versión mejorada y recomendada. V2 incluye optimizaciones significativas y es mucho más fácil de instalar gracias a su compatibilidad cross-platform automática.
 
+> **¿Tienes Python 3.13?** PyBoy NO funciona con Python 3.13. **[Consulta la guía de instalación de Python 3.12](PYTHON_VERSION_FIX.md)**
+
 Esta instalación es **agnóstica al sistema operativo** y funciona en Windows, Linux y macOS sin modificaciones manuales.
 
 ### Requisitos Previos
 
-- **Python 3.10+** (recomendado para máxima compatibilidad)
+- **Python 3.10, 3.11 o 3.12** **Python 3.13+ NO es compatible con PyBoy**
 - **pip 21.0+** (para soporte de marcadores de entorno)
 - **ROM de Pokémon Red** legalmente obtenida (1MB, sha1: `ea9bcae617fdf159b045185467ae58b2e4a48b9a`)
 - **Sistema Operativo:** Windows 10+, Linux (Ubuntu 20.04+), o macOS 11+
 - **RAM:** Mínimo 4GB (recomendado 8GB para entrenamiento)
+
+> **IMPORTANTE - Versión de Python**: PyBoy no funciona con Python 3.13 o superior debido a incompatibilidades con Cython. Usa Python 3.10, 3.11 o 3.12.
 
 ---
 
@@ -32,15 +36,18 @@ El script detecta automáticamente tu sistema operativo e instala las dependenci
 git clone https://github.com/JavierCaceresLeon/TEL351-PokemonRed.git
 cd TEL351-PokemonRed
 
-# 2. Copiar ROM de Pokémon Red al directorio raíz
-# Renombrar como PokemonRed.gb exactamente
+# 2. Crear entorno conda con Python 3.10 (recomendado)
+conda create -n pokeenv python=3.10.19
+
+# Activar entorno:
+conda activate pokeenv
 
 # 3. Navegar a v2 y ejecutar instalador
 cd v2
 python install_dependencies.py
 
 # 4. Verificar instalación
-python -c "import torch; import pyboy; import gymnasium; print('✅ Instalación exitosa')"
+python -c "import torch; import pyboy; import gymnasium; print('Instalación exitosa')"
 
 # 5. Ejecutar modelo preentrenado
 python run_pretrained_interactive.py
@@ -57,44 +64,6 @@ python run_pretrained_interactive.py
 python install_dependencies.py              # Instalación CPU (todas las plataformas)
 python install_dependencies.py --gpu        # Linux con soporte CUDA GPU
 python install_dependencies.py --dry-run    # Ver qué se instalará sin instalar
-```
-
----
-
-### Instalación Rápida - Opción 2: Manual con pip
-
-Si prefieres control manual, usa directamente `requirements.txt` que es **agnóstico al sistema operativo**:
-
-```bash
-# 1. Clonar repositorio
-git clone https://github.com/JavierCaceresLeon/TEL351-PokemonRed.git
-cd TEL351-PokemonRed
-
-# 2. Crear entorno virtual (recomendado)
-python -m venv venv
-
-# Activar entorno:
-# Windows:
-venv\Scripts\activate
-# Linux/macOS:
-source venv/bin/activate
-
-# 3. Actualizar pip
-python -m pip install --upgrade pip
-
-# 4. Copiar ROM de Pokémon Red al directorio raíz
-# Renombrar como PokemonRed.gb
-
-# 5. Instalar dependencias V2
-cd v2
-pip install -r requirements.txt
-# El archivo usa marcadores de entorno para compatibilidad automática
-
-# 6. Verificar instalación
-python -c "import torch; print(f'PyTorch {torch.__version__}, CUDA: {torch.cuda.is_available()}')"
-
-# 7. Ejecutar modelo preentrenado
-python run_pretrained_interactive.py
 ```
 
 ---
@@ -178,6 +147,46 @@ pip install pyboy==2.4.0 --force-reinstall
 </details>
 
 <details>
+<summary><b>Error: PyBoy compilation error (Cython) en Python 3.13</b></summary>
+
+**Causa:** Python 3.13 no es compatible con PyBoy 2.4.0.
+
+**Error típico:**
+```
+Cython.Compiler.Errors.CompileError: pyboy\core\cartridge\cartridge.py
+Unicode objects only support coercion to Py_UNICODE*
+```
+
+**Solución:** Instalar Python 3.10, 3.11 o 3.12:
+
+**Windows:**
+```bash
+# Descargar Python 3.12 desde python.org
+# O usar chocolatey:
+choco install python --version=3.12.0
+```
+
+**Linux:**
+```bash
+# Opción 1: pyenv
+pyenv install 3.12.0
+pyenv local 3.12.0
+
+# Opción 2: deadsnakes PPA (Ubuntu)
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install python3.12 python3.12-venv
+```
+
+**Conda (todas las plataformas):**
+```bash
+conda create -n pokeenv python=3.12
+conda activate pokeenv
+```
+
+</details>
+
+<details>
 <summary><b>Windows: SDL2 DLL no encontrado</b></summary>
 
 **Solución:**
@@ -186,15 +195,6 @@ pip install pysdl2-dll==2.30.2 --force-reinstall
 ```
 
 </details>
-
----
-
-### Recursos Adicionales de Instalación
-
-- **Guía Detallada:** `v2/INSTALLATION.md` (instrucciones completas por OS)
-- **Troubleshooting Completo:** `CATASTRO_ERRORES_CORREGIDOS.md`
-- **Solución Cross-Platform:** `v2/CROSS_PLATFORM_SOLUTION.md`
-- **PyTorch con GPU:** https://pytorch.org/get-started/locally/
 
 ---
 

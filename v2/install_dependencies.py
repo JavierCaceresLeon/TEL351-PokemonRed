@@ -137,7 +137,7 @@ def get_pytorch_requirements(platform_info, gpu=False):
 
 def install_packages(packages, description="paquetes"):
     """Instala una lista de paquetes usando pip"""
-    print(f"\n📦 Instalando {description}...")
+    print(f"\n Instalando {description}...")
     print(f"   Total: {len(packages)} paquetes")
     
     # Crear comando pip install
@@ -145,10 +145,10 @@ def install_packages(packages, description="paquetes"):
     
     try:
         subprocess.check_call(cmd)
-        print(f"✅ {description} instalados correctamente")
+        print(f" {description} instalados correctamente")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error instalando {description}: {e}")
+        print(f" Error instalando {description}: {e}")
         return False
 
 
@@ -169,19 +169,37 @@ def main():
     
     args = parser.parse_args()
     
+    # Validar versión de Python
+    python_version = sys.version_info
+    if python_version < (3, 10) or python_version >= (3, 13):
+        print("\n" + "=" * 70)
+        print("❌ ERROR: Versión de Python incompatible")
+        print("=" * 70)
+        print(f"\nPython actual: {python_version.major}.{python_version.minor}.{python_version.micro}")
+        print("\n⚠️  PyBoy requiere Python 3.10, 3.11 o 3.12")
+        print("   Python 3.13+ NO es compatible debido a cambios en Cython")
+        print("\n📥 Soluciones:")
+        print("   1. Instalar Python 3.12: https://www.python.org/downloads/")
+        print("   2. Usar pyenv (Linux/macOS): pyenv install 3.12")
+        print("   3. Crear entorno conda: conda create -n pokeenv python=3.12")
+        print("\nDespués de instalar Python 3.10-3.12, ejecuta:")
+        print("   python3.12 install_dependencies.py")
+        print("\n" + "=" * 70)
+        sys.exit(1)
+    
     # Detectar plataforma
     platform_info = get_platform_info()
     
     print("=" * 70)
-    print("🚀 Instalador de Dependencias - Pokemon Red RL Environment")
+    print(" Instalador de Dependencias - Pokemon Red RL Environment")
     print("=" * 70)
-    print(f"\n🖥️  Sistema Operativo: {platform_info['system']}")
-    print(f"⚙️  Arquitectura: {platform_info['machine']}")
-    print(f"🐍 Python: {sys.version.split()[0]}")
+    print(f"\n  Sistema Operativo: {platform_info['system']}")
+    print(f"  Arquitectura: {platform_info['machine']}")
+    print(f" Python: {sys.version.split()[0]}")
     
     # Validar GPU en Windows
     if args.gpu and platform_info['is_windows']:
-        print("\n⚠️  ADVERTENCIA: Soporte GPU en Windows requiere instalación manual.")
+        print("\n  ADVERTENCIA: Soporte GPU en Windows requiere instalación manual.")
         print("   Se instalará versión CPU. Para GPU, sigue las instrucciones en:")
         print("   https://pytorch.org/get-started/locally/")
         args.gpu = False
@@ -193,7 +211,7 @@ def main():
     
     # Modo dry-run
     if args.dry_run:
-        print(f"\n📋 Paquetes a instalar ({len(all_reqs)} total):")
+        print(f"\n Paquetes a instalar ({len(all_reqs)} total):")
         print("\n--- Dependencias base ---")
         for pkg in base_reqs:
             print(f"  • {pkg}")
@@ -203,7 +221,7 @@ def main():
         return
     
     # Instalación
-    print(f"\n🔧 Modo de instalación:")
+    print(f"\n Modo de instalación:")
     if platform_info['is_windows']:
         print("   • Windows: PyTorch CPU")
     elif platform_info['is_linux']:
@@ -217,64 +235,64 @@ def main():
     # Confirmar instalación
     response = input("\n¿Continuar con la instalación? [S/n]: ").strip().lower()
     if response and response not in ['s', 'y', 'yes', 'si', 'sí']:
-        print("❌ Instalación cancelada")
+        print(" Instalación cancelada")
         return
     
     # Instalar dependencias base
     success = install_packages(base_reqs, "dependencias base")
     if not success:
-        print("\n❌ Fallo en instalación de dependencias base")
+        print("\n Fallo en instalación de dependencias base")
         sys.exit(1)
     
     # Instalar PyTorch y dependencias
     success = install_packages(pytorch_reqs, "PyTorch y dependencias")
     if not success:
-        print("\n⚠️  Advertencia: Algunas dependencias de PyTorch fallaron")
+        print("\n  Advertencia: Algunas dependencias de PyTorch fallaron")
         print("   El entorno puede funcionar parcialmente")
     
     # Verificar instalación
     print("\n" + "=" * 70)
-    print("🧪 Verificando instalación...")
+    print(" Verificando instalación...")
     print("=" * 70)
     
     try:
         import torch
-        print(f"\n✅ PyTorch {torch.__version__} instalado")
+        print(f"\n PyTorch {torch.__version__} instalado")
         print(f"   CUDA disponible: {torch.cuda.is_available()}")
         if torch.cuda.is_available():
             print(f"   GPU: {torch.cuda.get_device_name(0)}")
     except ImportError:
-        print("\n❌ PyTorch no se pudo importar")
+        print("\nPyTorch no se pudo importar")
         sys.exit(1)
     
     try:
         import gymnasium
-        print(f"✅ Gymnasium {gymnasium.__version__} instalado")
+        print(f" Gymnasium {gymnasium.__version__} instalado")
     except ImportError:
-        print("❌ Gymnasium no se pudo importar")
+        print(" Gymnasium no se pudo importar")
         sys.exit(1)
     
     try:
         import pyboy
-        print(f"✅ PyBoy instalado")
+        print(f" PyBoy instalado")
     except ImportError:
-        print("❌ PyBoy no se pudo importar")
+        print(" PyBoy no se pudo importar")
         sys.exit(1)
     
     try:
         import stable_baselines3
-        print(f"✅ Stable-Baselines3 {stable_baselines3.__version__} instalado")
+        print(f" Stable-Baselines3 {stable_baselines3.__version__} instalado")
     except ImportError:
-        print("❌ Stable-Baselines3 no se pudo importar")
+        print(" Stable-Baselines3 no se pudo importar")
         sys.exit(1)
     
     print("\n" + "=" * 70)
-    print("✅ ¡Instalación completada exitosamente!")
+    print(" ¡Instalación completada exitosamente!")
     print("=" * 70)
-    print("\n📚 Próximos pasos:")
+    print("\n Próximos pasos:")
     print("   1. Ejecutar: python run_pretrained_interactive.py")
     print("   2. O: python baseline_fast_v2.py")
-    print("\n💡 Para más información, consulta el README.md")
+    print("\n Para más información, consulta el README.md")
 
 
 if __name__ == '__main__':

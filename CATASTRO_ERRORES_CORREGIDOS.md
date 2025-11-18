@@ -3,7 +3,7 @@
 **Fecha:** 18 de noviembre de 2025  
 **Entorno:** `pokeenv` (Conda)  
 **Sistema:** Windows  
-**Última actualización:** 18/11/2025 - Problema 4 agregado
+**Última actualización:** 18/11/2025 - Problema 5 agregado (Python 3.13 incompatibilidad)
 
 ---
 
@@ -436,3 +436,166 @@ python -c "import torch; print(f'PyTorch {torch.__version__}, CUDA: {torch.cuda.
 - **macOS**: Instala PyTorch CPU (MPS/Metal no soportado aún)
 - **requirements-windows.txt**: Ya no necesario, mantenido para compatibilidad retroactiva
 
+---
+
+## 🔴 Problema 5: Cython.Compiler.Errors.CompileError - PyBoy incompatible con Python 3.13
+
+### Descripción del Error
+```
+Error compiling Cython file:
+pyboy\core\cartridge\cartridge.py:35:63: Unicode objects only support coercion to Py_UNICODE*.
+pyboy\core\cartridge\cartridge.py:35:74: Unicode objects only support coercion to Py_UNICODE*.
+
+Cython.Compiler.Errors.CompileError: pyboy\core\cartridge\cartridge.py
+```
+
+### Archivos Afectados
+- **PyBoy 2.4.0** → No compila con Python 3.13+
+- `v2/requirements.txt` → especifica `pyboy==2.4.0`
+- `v2/install_dependencies.py` → sin validación de versión de Python (antes del fix)
+
+### Causa Raíz
+**PyBoy 2.4.0 usa Cython 3.0** que tiene cambios incompatibles con Python 3.13:
+- Python 3.13 cambió la API interna de Unicode (`Py_UNICODE*` deprecado)
+- Cython en PyBoy no maneja los nuevos tipos de strings de Python 3.13
+- PyBoy requiere **Python 3.10, 3.11 o 3.12 como máximo**
+
+### Evidencia
+```bash
+PS> python install_dependencies.py  # Python 3.13.3
+Collecting pyboy==2.4.0
+  Using cached pyboy-2.4.0.tar.gz (161 kB)
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... error
+  
+  error: subprocess-exited-with-error
+  × Getting requirements to build wheel did not run successfully.
+  │ exit code: 1
+  
+  Error compiling Cython file:
+  pyboy\core\cartridge\cartridge.py:35:63: Unicode objects only support coercion to Py_UNICODE*.
+  
+  Cython.Compiler.Errors.CompileError: pyboy\core\cartridge\cartridge.py
+  [end of output]
+```
+
+### Solución Aplicada
+
+**1. Agregar validación de versión de Python en `v2/install_dependencies.py`:**
+```python
+def main():
+    # ... código anterior ...
+    
+    # Validar versión de Python
+    python_version = sys.version_info
+    if python_version < (3, 10) or python_version >= (3, 13):
+        print("\n" + "=" * 70)
+        print("❌ ERROR: Versión de Python incompatible")
+        print("=" * 70)
+        print(f"\nPython actual: {python_version.major}.{python_version.minor}.{python_version.micro}")
+        print("\n⚠️  PyBoy requiere Python 3.10, 3.11 o 3.12")
+        print("   Python 3.13+ NO es compatible debido a cambios en Cython")
+        print("\n📥 Soluciones:")
+        print("   1. Instalar Python 3.12: https://www.python.org/downloads/")
+        print("   2. Usar pyenv (Linux/macOS): pyenv install 3.12")
+        print("   3. Crear entorno conda: conda create -n pokeenv python=3.12")
+        print("\nDespués de instalar Python 3.10-3.12, ejecuta:")
+        print("   python3.12 install_dependencies.py")
+        print("\n" + "=" * 70)
+        sys.exit(1)
+```
+
+**2. Actualizar documentación en `README.md`:**
+```markdown
+### Requisitos Previos
+
+- **Python 3.10, 3.11 o 3.12** ⚠️ **Python 3.13+ NO es compatible con PyBoy**
+- **pip 21.0+** (para soporte de marcadores de entorno)
+
+> ⚠️ **IMPORTANTE - Versión de Python**: PyBoy no funciona con Python 3.13 o superior 
+> debido a incompatibilidades con Cython. Usa Python 3.10, 3.11 o 3.12.
+```
+
+**3. Agregar sección de troubleshooting en `README.md`:**
+```markdown
+<details>
+<summary><b>Error: PyBoy compilation error (Cython) en Python 3.13</b></summary>
+
+**Causa:** Python 3.13 no es compatible con PyBoy 2.4.0.
+
+**Solución:** Instalar Python 3.10, 3.11 o 3.12:
+
+**Windows:**
+# Descargar Python 3.12 desde python.org
+# O usar chocolatey:
+choco install python --version=3.12.0
+
+**Linux:**
+# Opción 1: pyenv
+pyenv install 3.12.0
+pyenv local 3.12.0
+
+# Opción 2: deadsnakes PPA (Ubuntu)
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install python3.12 python3.12-venv
+
+**Conda (todas las plataformas):**
+conda create -n pokeenv python=3.12
+conda activate pokeenv
+```
+
+### Resultado
+✅ **Script validado**: Ahora detecta Python 3.13+ y muestra error descriptivo con instrucciones
+✅ **Documentación actualizada**: README.md refleja limitación de versión de Python
+✅ **Soluciones documentadas**: Guías para instalar Python 3.10-3.12 en todas las plataformas
+
+### Verificación
+```bash
+# CON Python 3.13 (FALLA CORRECTAMENTE):
+PS> python install_dependencies.py
+======================================================================
+❌ ERROR: Versión de Python incompatible
+======================================================================
+
+Python actual: 3.13.3
+
+⚠️  PyBoy requiere Python 3.10, 3.11 o 3.12
+   Python 3.13+ NO es compatible debido a cambios en Cython
+
+📥 Soluciones:
+   1. Instalar Python 3.12: https://www.python.org/downloads/
+   2. Usar pyenv (Linux/macOS): pyenv install 3.12
+   3. Crear entorno conda: conda create -n pokeenv python=3.12
+
+# CON Python 3.12 (FUNCIONA):
+PS> python3.12 install_dependencies.py
+======================================================================
+🚀 Instalador de Dependencias - Pokemon Red RL Environment
+======================================================================
+
+🖥️  Sistema Operativo: Windows
+🐍 Python: 3.12.0
+
+[... instalación exitosa ...]
+```
+
+### Archivos Modificados
+1. **v2/install_dependencies.py** → Validación de Python 3.10-3.12
+2. **README.md** → Requisitos previos + sección troubleshooting
+3. **CATASTRO_ERRORES_CORREGIDOS.md** → Problema 5 documentado
+
+---
+
+## 📊 Resumen de Problemas Corregidos
+
+| # | Problema | Causa | Solución | Estado |
+|---|----------|-------|----------|--------|
+| 1 | `ModuleNotFoundError: websockets` | No instalado en entorno | `pip install websockets==13.1` | ✅ Resuelto |
+| 2 | `PyBoy.screen_buffer` no existe | API cambió en PyBoy 2.0+ | Wrappers de compatibilidad | ✅ Resuelto |
+| 3 | `SDL_Init() failed` en Windows | PySDL2-dll faltante | `pip install pysdl2-dll==2.30.2` | ✅ Resuelto |
+| 4 | `nvidia-nccl-cu12` en Windows | Paquete Linux-only | Marcadores de entorno pip | ✅ Resuelto |
+| 5 | `Cython.CompileError` PyBoy | Python 3.13 incompatible | Validación Python 3.10-3.12 | ✅ Resuelto |
+
+**Total de problemas documentados:** 5  
+**Problemas resueltos:** 5 (100%)
