@@ -18,6 +18,7 @@ Esta instalación es **agnóstica al sistema operativo**.
 ### Requisitos Previos
 
 - **Python 3.10, 3.11 o 3.12** **Python 3.13+ NO es compatible con PyBoy**
+- **Python 3.10, 3.11 o 3.12** **Python 3.13+ NO es compatible con PyBoy**
 - **pip 21.0+** (para soporte de marcadores de entorno)
 - **ROM de Pokémon Red** legalmente obtenida (1MB, sha1: `ea9bcae617fdf159b045185467ae58b2e4a48b9a`)
 
@@ -35,12 +36,18 @@ conda create -n pokeenv python=3.10.19
 
 # Activar entorno:
 conda activate pokeenv
+# 2. Crear entorno conda con Python 3.10 (recomendado)
+conda create -n pokeenv python=3.10.19
+
+# Activar entorno:
+conda activate pokeenv
 
 # 3. Navegar a v2 y ejecutar instalador
 cd v2
 python install_dependencies.py
 
 # 4. Verificar instalación
+python -c "import torch; import pyboy; import gymnasium; print('Instalación exitosa')"
 python -c "import torch; import pyboy; import gymnasium; print('Instalación exitosa')"
 
 # 5. Ejecutar modelo preentrenado
@@ -130,6 +137,46 @@ Los wrappers ya están implementados. Si persiste:
 
 ```bash
 pip install pyboy==2.4.0 --force-reinstall
+```
+
+</details>
+
+<details>
+<summary><b>Error: PyBoy compilation error (Cython) en Python 3.13</b></summary>
+
+**Causa:** Python 3.13 no es compatible con PyBoy 2.4.0.
+
+**Error típico:**
+```
+Cython.Compiler.Errors.CompileError: pyboy\core\cartridge\cartridge.py
+Unicode objects only support coercion to Py_UNICODE*
+```
+
+**Solución:** Instalar Python 3.10, 3.11 o 3.12:
+
+**Windows:**
+```bash
+# Descargar Python 3.12 desde python.org
+# O usar chocolatey:
+choco install python --version=3.12.0
+```
+
+**Linux:**
+```bash
+# Opción 1: pyenv
+pyenv install 3.12.0
+pyenv local 3.12.0
+
+# Opción 2: deadsnakes PPA (Ubuntu)
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install python3.12 python3.12-venv
+```
+
+**Conda (todas las plataformas):**
+```bash
+conda create -n pokeenv python=3.12
+conda activate pokeenv
 ```
 
 </details>
