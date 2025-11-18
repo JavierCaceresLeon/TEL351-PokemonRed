@@ -2,75 +2,79 @@
 
 ## Resumen Ejecutivo
 
-Este reporte presenta un análisis técnico formal del modelado de variables de estado, incertidumbre y funciones de transición para sistemas de agentes inteligentes en el contexto de combates de Pokémon Red. Se examina la estructura actual del proyecto, se identifican las variables de estado críticas, se propone un marco teórico para manejar la incertidumbre inherente al sistema, y se desarrolla un modelo probabilístico para estimación de probabilidad de éxito en combates.
+Este reporte presenta un análisis técnico y modelado formal para un agente de Aprendizaje por Refuerzo (RL) en el entorno de Pokémon Red. El objetivo central es la toma de decisiones estratégicas durante los combates, un problema que se caracteriza por su alta incertidumbre y complejidad. Se establece que el sistema de combate no puede ser modelado como un Proceso de Decisión Markoviano (MDP) simple debido a la información oculta sobre el oponente. En su lugar, se justifica y formaliza el uso de un Proceso de Decisión Markoviano Parcialmente Observable (POMDP), que maneja explícitamente la incertidumbre a través de un sistema de creencias.
+
+Se definen formalmente los espacios de estado, acción y observación, y se detallan las funciones de transición estocásticas basadas en las mecánicas probabilísticas inherentes al juego (ej. variación de daño, golpes críticos). Finalmente, se propone un marco para la toma de decisiones que incluye políticas estocásticas condicionales y un sistema para estimar la probabilidad de éxito en tiempo real, transformando el problema de "¿qué acción tomar?" en "¿qué acción maximiza la probabilidad de victoria futura?". Este enfoque sienta las bases para un agente más robusto e inteligente, capaz de razonar bajo la "niebla de guerra" que define a los combates Pokémon.
 
 ---
 
-## 1. Introducción y Contexto del Proyecto
+## 1. Introducción
 
-### 1.1 Descripción General
+### 1.1 Contexto del Proyecto
 
-El proyecto TEL351-PokemonRed implementa un entorno de aprendizaje por refuerzo para entrenar agentes de IA que jueguen Pokémon Red automáticamente. Utiliza PyBoy (emulador de Game Boy) junto con Stable Baselines3 para crear un entorno de gimnasio donde los agentes interactúan con el juego mediante observación de pantallas y ejecución de acciones.
+El proyecto `TEL351-PokemonRed` se enmarca en el campo del Aprendizaje por Refuerzo (RL), aplicando técnicas de inteligencia artificial para entrenar un agente autónomo que juegue Pokémon Red. El sistema utiliza el emulador de Game Boy `PyBoy` como entorno de base y la librería `Stable Baselines3` para la implementación del algoritmo de aprendizaje. El objetivo general del agente es progresar en el juego, lo que implica navegar el mapa, ganar combates, capturar Pokémon y obtener medallas de gimnasio.
 
-### 1.2 Arquitectura Técnica Actual
+### 1.2 Objetivo y Enfoque del Análisis
 
-El sistema está implementado usando:
-- **Algoritmo Principal**: PPO (Proximal Policy Optimization) 
-- **Entorno**: PyBoy emulando Game Boy con Pokémon Red
-- **Observaciones**: Multi-modales (pantallas, estado del juego, memoria del emulador)
-- **Acciones**: Conjunto discreto de botones del Game Boy
+Este documento se enfoca exclusivamente en el subproblema más crítico y complejo: el **combate Pokémon**. El objetivo es modelar formalmente las variables y dinámicas que gobiernan un combate para permitir que el agente tome decisiones estratégicas bajo condiciones de incertidumbre significativa.
 
-### 1.3 Enfoque del Análisis
+El análisis aborda los siguientes puntos clave:
+- **Justificación del Modelo**: Se argumenta por qué un Proceso de Decisión Markoviano Parcialmente Observable (POMDP) es el marco teórico correcto, en contraposición a modelos más simples como los MDP o los juegos de suma cero.
+- **Definición de Espacios**: Se formalizan los espacios de estado, acción y observación.
+- **Modelado de la Incertidumbre**: Se identifican y clasifican las fuentes de incertidumbre (aleatoria y epistémica) y se proponen estrategias para su manejo.
+- **Funciones de Transición**: Se modelan las transiciones de estado estocásticas, fundamentadas en las mecánicas probabilísticas documentadas de Pokémon Red (1ª Generación).
+- **Estimación de Éxito**: Se propone un sistema para cuantificar la probabilidad de victoria en un combate, permitiendo una toma de decisiones más informada.
 
-Este análisis se centra específicamente en el **modelado de combates Pokémon** como un problema de:
-- **Procesos de decisión Markovianos parcialmente observables (POMDP)**: fundamentado en la observabilidad parcial del estado del oponente
-- **Estimación de probabilidad de éxito bajo incertidumbre**: tanto aleatoria (daño variable, críticos) como epistémica (estrategia de IA desconocida)
-- **Modelado de funciones de transición estocásticas**: basado en las mecánicas probabilísticas inherentes a Pokémon Red Generation 1
+### 1.3 Arquitectura Técnica de Referencia
+
+El agente de referencia sobre el cual se construye este análisis utiliza la siguiente arquitectura:
+
+- **Algoritmo de Aprendizaje**: Proximal Policy Optimization (PPO).
+- **Entorno**: `PyBoy` emulando Pokémon Red.
+- **Espacio de Observación**: Multi-modal, combinando datos de la pantalla, estado del equipo extraído de la memoria del emulador y otros indicadores de progreso.
+- **Espacio de Acción**: Discreto, correspondiente a las entradas de botones de la consola Game Boy.
 
 ### 1.4 Respuestas a la Guía de Trabajo
 
-Este reporte responde sistemáticamente a las siguientes preguntas guía:
 
 **1. ¿Qué agente eligió? ¿Cuál es su objetivo?**
-- **Agente**: Sistema de aprendizaje por refuerzo basado en PPO (Proximal Policy Optimization) implementado con Stable Baselines3
-- **Objetivo**: Maximizar el progreso en Pokémon Red mediante exploración efectiva, victoria en combates, captura de Pokémon y obtención de medallas
-- **Objetivo específico de combate**: Ganar combates maximizando la probabilidad de éxito mientras minimiza pérdidas de HP y recursos
+
+- **Agente**: Utilizamos un programa de IA (un "agente") basado en una técnica de aprendizaje llamada PPO. El objetivo de este agente es aprender a jugar Pokémon Rojo por sí mismo.
+- **Objetivo General**: El agente busca ganar el juego. Esto implica explorar el mapa, ganar combates, capturar nuevos Pokémon y conseguir las 8 medallas de gimnasio.
+- **Objetivo en Combate**: Dentro de un combate, el objetivo es más específico: ganar, pero de forma eficiente. Esto significa maximizar el daño al oponente mientras se minimiza el daño recibido y el gasto de objetos.
 
 **2. ¿Cuál es el estado del ambiente y el agente?**
-- **Estado completo**: S = S_protagonist × S_opponent × S_environment × S_hidden (detallado en Sección 3.1)
-- **Estado observable**: Definido por `observation_space` en el código (Sección 2.1)
-- **Estado parcialmente observable**: Movimientos del oponente, estadísticas exactas, estrategia de IA (ver Sección 5.1)
+- **Estado Completo (La Verdad Absoluta)**: Es toda la información del juego en un instante. Incluye los datos de nuestro equipo, los datos del oponente (incluso los que no vemos, como sus movimientos) y el estado del entorno (por ejemplo, si estamos en una cueva).
+- **Estado Observable (Lo que el Agente Ve)**: Es la porción del estado que nuestro agente puede "ver" directamente. En nuestro sistema, esto incluye la pantalla del juego, la vida de nuestros Pokémon, nuestras medallas y nuestra posición en el mapa. Crucialmente, **no incluye** los movimientos o estadísticas exactas del oponente.
+- **Estado Parcialmente Observable (Lo que se Adivina)**: Hay cosas que el agente no ve directamente pero puede inferir. Por ejemplo, puede ver el *sprite* de un Pokémon y adivinar su tipo, o ver su nivel durante el combate, pero no antes.
 
 **3. ¿Dónde se identifica incertidumbre?**
-- **Incertidumbre aleatoria**: Daño variable (85-100%), hits críticos (1/24), encuentros aleatorios
-- **Incertidumbre epistémica**: Movimientos del oponente, tipos Pokémon antes de encuentro, estrategia de IA
-- **Análisis completo**: Sección 5.3
+- **Incertidumbre Aleatoria (Azar del Juego)**:
+  - La cantidad de daño de un ataque varía (entre un 85% y 100% de su valor base).
+  - La posibilidad de un "golpe crítico" que hace el doble de daño.
+  - La probabilidad de encontrarse con un Pokémon salvaje en la hierba alta.
+- **Incertidumbre Epistémica (Falta de Conocimiento)**:
+  - ¿Qué movimiento elegirá el oponente en su turno? Es imposible saberlo con certeza.
+  - ¿Qué Pokémon salvaje aparecerá en la hierba? No se sabe hasta que aparece.
+  - ¿Cuál es la estrategia de la IA del oponente? Es una caja negra.
 
 **4. ¿Cómo se relacionan las variables con la incertidumbre?**
-- Variables **completamente observables**: HP propio, niveles propios, posición, medallas
-- Variables **parcialmente observables**: Nivel oponente (solo en combate), tipo oponente (inferible)
-- Variables **no observables**: Movimientos específicos oponente, PP oponente, estrategia IA
-- **Relación funcional**: Descrita en Sección 5.3.2 mediante estimación Bayesiana
+- **Variables sin Incertidumbre (Observables)**: La vida de nuestro Pokémon, sus niveles, nuestra posición. El agente las conoce con total certeza.
+- **Variables con Incertidumbre (Parcial o No Observables)**: El nivel del oponente (solo se conoce al empezar el combate), su tipo (se infiere por la imagen), y sus movimientos (totalmente desconocidos). La estrategia de la IA es completamente inobservable.
 
 **5. ¿Qué acciones hace el agente?**
-- **Acciones de combate**: Attack(move_id), Switch(pokemon_id), Item(item_id), Run()
-- **Acciones de navegación**: Move(↑,↓,←,→), Interact()
-- **Acciones de menú**: MenuSelect(), MenuBack(), MenuStart()
-- **Implementación**: Sección 3.2, basado en botones Game Boy
+- **En Combate**: Atacar (eligiendo uno de los cuatro movimientos), Cambiar (eligiendo uno de los Pokémon del equipo), Usar Objeto, o Huir.
+- **Fuera de Combate**: Moverse por el mapa (arriba, abajo, etc.) e interactuar con el entorno (hablar con gente, recoger objetos).
 
 **6. ¿Qué supuestos ha hecho usted?**
-- Mecánicas de Pokémon Gen 1 conocidas y modelables
-- Acceso a direcciones de memoria del emulador (PyBoy)
-- IA del oponente sigue patrones conocidos de Gen 1
-- Daño sigue fórmula estándar con variación aleatoria
-- Estados discretizables para modelado
+- **Conocimiento del Juego**: Suponemos que conocemos las reglas de Pokémon de la 1ª Generación (fórmulas de daño, efectividad de tipos, etc.).
+- **Acceso a la Memoria**: Suponemos que podemos leer la memoria del emulador para obtener datos del juego de forma fiable, en lugar de solo "mirar la pantalla".
+- **IA predecible**: Suponemos que la IA del oponente, aunque no es totalmente conocida, sigue patrones que se pueden aprender.
 
 **7. ¿Qué supuestos puede hacer para simplificar el problema?**
-- **Abstracción de tipos**: Agrupar 150 Pokémon en categorías de tipos (15 tipos)
-- **Movimientos limitados**: Considerar solo movimientos más comunes por tipo
-- **Simplificación de IA**: Modelar como política estocástica en lugar de adversario óptimo
-- **Discretización de HP**: Usar rangos (0-25%, 25-50%, 50-75%, 75-100%)
-- **Justificación detallada**: Sección 4.2
+- **Abstracción de Pokémon**: En lugar de tratar con 150 Pokémon únicos, podemos agruparlos en 15 categorías de "tipos" (Fuego, Agua, etc.). Esto reduce enormemente la complejidad.
+- **Abstracción de Movimientos**: En lugar de considerar cientos de movimientos, podemos centrarnos en los más comunes y efectivos para cada tipo.
+- **Discretización de la Vida (HP)**: En lugar de un número exacto de HP (ej: 78/90), podemos simplificarlo a rangos (ej: "salud alta", "salud media", "salud baja"). Esto hace que el estado sea más manejable.
 
 ---
 
@@ -78,37 +82,42 @@ Este reporte responde sistemáticamente a las siguientes preguntas guía:
 
 ### 2.1 Arquitectura de Observaciones
 
-El sistema actual utiliza un espacio de observación multi-modal definido en `/v2/red_gym_env_v2.py` (líneas 95-106):
+
+El "espacio de observación" define todo lo que nuestro agente puede "ver" en un momento dado. En lugar de procesar la imagen pixel por pixel como un humano, le damos al agente una ficha de datos simplificada del estado actual del juego.
+
+Nuestro sistema actual le proporciona al agente la siguiente información:
 
 ```python
 # Código fuente verificado en v2/red_gym_env_v2.py
 self.observation_space = spaces.Dict(
     {
-        "screens": spaces.Box(low=0, high=255, shape=(72, 80, frame_stacks), dtype=np.uint8),
-        "health": spaces.Box(low=0, high=1),                    # HP fraccional del equipo
-        "level": spaces.Box(low=-1, high=1, shape=(enc_freqs,)), # Niveles codificados
-        "badges": spaces.MultiBinary(8),                        # Vector de 8 medallas
-        "events": spaces.MultiBinary((event_flags_end - event_flags_start) * 8),
-        "map": spaces.Box(low=0, high=255, shape=(coords_pad*4, coords_pad*4, 1), dtype=np.uint8),
-        "recent_actions": spaces.MultiDiscrete([len(valid_actions)] * frame_stacks)
+        "screens": ..., # Una versión simplificada de la pantalla del juego.
+        "health": ...,  # La salud FRACCIONAL de todo nuestro equipo (un número entre 0 y 1).
+        "level": ...,   # La suma de los niveles de nuestro equipo.
+        "badges": ...,  # Un vector binario que indica qué medallas tenemos.
+        "events": ...,  # Indicadores de eventos importantes que han ocurrido en el juego.
+        "map": ...,     # Una pequeña imagen del área del mapa alrededor del jugador.
     }
 )
 ```
 
-**OBSERVACIÓN CRÍTICA**: Note que este espacio de observación **NO incluye**:
-- Movimientos específicos del oponente
-- Tipos exactos del oponente (solo inferibles visualmente)
-- Puntos de poder (PP) del oponente
-- Estadísticas detalladas (Attack, Defense, Speed) del oponente
-- Estrategia o "intención" de la IA
+**OBSERVACIÓN IMPORTANTE:**
 
-Esta **observabilidad parcial** es la razón fundamental por la que el sistema se modela como POMDP en lugar de MDP.
+Miren atentamente lo que **NO** está en esa lista. El agente **NO TIENE ACCESO DIRECTO** a la información crítica del oponente:
+
+- Sus movimientos específicos.
+- Sus estadísticas (Ataque, Defensa).
+- Su tipo exacto (solo puede inferirlo de la imagen).
+- La estrategia que su IA va a seguir.
+
+El agente está en una pelea a ciegas. Conoce su propia fuerza, pero debe **deducir** la fuerza y las intenciones de su oponente basándose en información incompleta. Esta **"observabilidad parcial"** es el problema central que debemos modelar. Es la razón por la que este no es un simple problema de ajedrez, sino un **Proceso de Decisión Markoviano Parcialmente Observable (POMDP)**.
 
 ### 2.2 Variables de Estado Identificadas
 
 Del análisis del código fuente (específicamente `memory_addresses.py` y archivos de entorno), se identifican las siguientes categorías de variables:
 
 #### 2.2.1 Variables de Estado del Protagonista
+
 ```python
 # Posición y contexto
 X_POS_ADDRESS = 0xD362          # Coordenada X del jugador
@@ -123,11 +132,13 @@ MAX_HP_ADDRESSES = [0xD18D, 0xD1B9, 0xD1E5, 0xD211, 0xD23D, 0xD269]
 ```
 
 #### 2.2.2 Variables de Estado del Oponente
+
 ```python
 OPPONENT_LEVELS_ADDRESSES = [0xD8C5, 0xD8F1, 0xD91D, 0xD949, 0xD975, 0xD9A1]
 ```
 
 #### 2.2.3 Variables de Progreso del Juego
+
 ```python
 BADGE_COUNT_ADDRESS = 0xD356    # Medallas obtenidas
 EVENT_FLAGS_START_ADDRESS = 0xD747  # Inicio de flags de eventos
@@ -140,54 +151,57 @@ EVENT_FLAGS_END_ADDRESS = 0xD886    # Fin de flags de eventos
 
 ### 3.1 Definición del Espacio de Estados
 
-Para el modelado específico de combates, definimos el espacio de estados S como:
+Para el modelado específico de combates, definimos el espacio de estados $S$ como el producto cartesiano de los siguientes componentes:
 
-**S = S_protagonist × S_opponent × S_environment × S_hidden**
+$S = S_{protagonist} \times S_{opponent} \times S_{environment} \times S_{hidden}$
 
-Donde:
+Donde cada componente se define como:
 
-#### 3.1.1 Estado del Protagonista (S_protagonist)
-- **HP_p = [hp₁, hp₂, ..., hp₆]**: Vector de puntos de vida del equipo
-- **Levels_p = [lvl₁, lvl₂, ..., lvl₆]**: Vector de niveles del equipo  
-- **Types_p = [type₁, type₂, ..., type₆]**: Vector de tipos Pokémon
-- **Status_p = [status₁, status₂, ..., status₆]**: Vector de estados alterados
-- **PP_p = [pp₁, pp₂, ..., pp₆]**: Puntos de poder de movimientos
+- **$S_{protagonist}$ (Estado del Protagonista):**
+  - $HP_p$: Vector de puntos de vida del equipo.
+  - $Levels_p$: Vector de niveles del equipo.
+  - $Types_p$: Vector de tipos de los Pokémon del equipo.
+  - $Status_p$: Vector de estados alterados (envenenado, paralizado, etc.).
+  - $PP_p$: Matriz de puntos de poder (PP) para cada movimiento de cada Pokémon.
 
-#### 3.1.2 Estado del Oponente (S_opponent)  
-- **HP_o**: Puntos de vida del oponente
-- **Level_o**: Nivel del oponente
-- **Type_o**: Tipo(s) del Pokémon oponente
-- **Status_o**: Estado alterado del oponente
-- **Move_set_o**: Conjunto de movimientos conocidos (parcialmente observable)
+- **$S_{opponent}$ (Estado del Oponente):**
+  - $HP_o$: Puntos de vida del Pokémon oponente activo.
+  - $Level_o$: Nivel del oponente.
+  - $Type_o$: Tipo(s) del oponente (parcialmente observable).
+  - $Status_o$: Estado alterado del oponente.
+  - $Move\_set_o$: Conjunto de movimientos del oponente (parcialmente observable, se infiere con el tiempo).
 
-#### 3.1.3 Estado del Entorno (S_environment)
-- **Weather**: Condiciones climáticas del combate
-- **Terrain**: Efectos del terreno
-- **Turn_count**: Número de turno actual
-- **Field_effects**: Efectos de campo activos
+- **$S_{environment}$ (Estado del Entorno de Combate):**
+  - $Weather$: Condiciones climáticas activas.
+  - $Terrain$: Efectos de terreno activos.
+  - $Turn\_count$: Contador de turnos en el combate.
+  - $Field\_effects$: Otros efectos de campo (ej. barreras como Reflejo).
 
-#### 3.1.4 Estados Ocultos (S_hidden)
-- **AI_strategy**: Estrategia de la IA oponente (no observable)
-- **Random_seeds**: Semillas de números aleatorios del sistema
-- **Critical_rates**: Tasas de crítico específicas (parcialmente observable)
+- **$S_{hidden}$ (Estados Ocultos):**
+  - $AI\_strategy$: La estrategia interna o el árbol de decisiones de la IA oponente (no observable).
+  - $Random\_seeds$: Las semillas internas del generador de números aleatorios del juego.
+  - $Stat\_modifiers$: Modificadores de estadísticas temporales (ej. por movimientos como Danza Espada).
 
 ### 3.2 Espacio de Acciones
 
 El espacio de acciones A se define como:
 
-**A = A_battle ∪ A_navigation ∪ A_menu**
+#### A = A_battle ∪ A_navigation ∪ A_menu
 
 #### 3.2.1 Acciones de Combate (A_battle)
+
 - **Attack(move_id)**: Seleccionar movimiento específico
 - **Switch(pokemon_id)**: Cambiar Pokémon activo
 - **Item(item_id, target)**: Usar objeto en Pokémon específico
 - **Run()**: Intentar huir del combate
 
 #### 3.2.2 Acciones de Navegación (A_navigation)
+
 - **Move(direction)**: Movimiento direccional (↑,↓,←,→)
 - **Interact()**: Botón A para interactuar
 
 #### 3.2.3 Acciones de Menú (A_menu)
+
 - **MenuSelect()**: Botón A para seleccionar
 - **MenuBack()**: Botón B para retroceder
 - **MenuStart()**: Botón Start para menú principal
@@ -198,183 +212,150 @@ El espacio de acciones A se define como:
 
 ### 4.1 Variables de Estado Críticas para Combates
 
-#### 4.1.1 **Variables de Alta Prioridad** (Impacto directo en probabilidad de éxito)
+#### 4.1.1 Variables de Alta Prioridad (Impacto directo en probabilidad de éxito)
 
 1. **HP Fraccional del Equipo**
-   ```python
-   def read_hp_fraction(self):
-       hp_sum = sum([self.read_hp(add) for add in HP_ADDRESSES])
-       max_hp_sum = sum([self.read_hp(add) for add in MAX_HP_ADDRESSES])
-       return hp_sum / max_hp_sum
-   ```
-   - **Justificación**: Determina directamente la capacidad de supervivencia
-   - **Observabilidad**: Completamente observable
-   - **Variabilidad**: Alta durante combates
+
+    ```python
+    def read_hp_fraction(self):
+        hp_sum = sum([self.read_hp(add) for add in HP_ADDRESSES])
+        max_hp_sum = sum([self.read_hp(add) for add in MAX_HP_ADDRESSES])
+        return hp_sum / max_hp_sum
+    ```
+
+    - **Justificación**: Determina directamente la capacidad de supervivencia.
+    - **Observabilidad**: Completamente observable.
+    - **Variabilidad**: Alta durante combates.
 
 2. **Niveles del Equipo**
-   ```python
-   def get_levels_sum(self):
-       return sum([self.read_m(a) for a in LEVELS_ADDRESSES])
-   ```
-   - **Justificación**: Correlación directa con estadísticas de combate
-   - **Observabilidad**: Completamente observable
-   - **Impacto**: Fundamental para cálculos de daño
+
+    ```python
+    def get_levels_sum(self):
+        return sum([self.read_m(a) for a in LEVELS_ADDRESSES])
+    ```
+
+    - **Justificación**: Correlación directa con estadísticas de combate.
+    - **Observabilidad**: Completamente observable.
+    - **Impacto**: Fundamental para cálculos de daño.
 
 3. **Nivel del Oponente**
-   ```python
-   def update_max_op_level(self):
-       opponent_level = max([self.read_m(a) for a in OPPONENT_LEVELS_ADDRESSES])
-       return opponent_level
-   ```
-   - **Justificación**: Esencial para estimación de dificultad
-   - **Observabilidad**: Observable durante combate
-   - **Incertidumbre**: Desconocido antes del encuentro
 
-#### 4.1.2 **Variables de Prioridad Media** (Influencia indirecta significativa)
+    ```python
+    def update_max_op_level(self):
+        opponent_level = max([self.read_m(a) for a in OPPONENT_LEVELS_ADDRESSES])
+        return opponent_level
+    ```
 
-4. **Posición en el Mapa**
-   - **Justificación**: Determina tipos de encuentros probabilísticos
-   - **Incertidumbre**: Encuentros aleatorios en grass patches
-   - **Modelado**: Distribución probabilística por zona
+    - **Justificación**: Esencial para estimación de dificultad.
+    - **Observabilidad**: Observable durante combate.
+    - **Incertidumbre**: Desconocido antes del encuentro.
 
-5. **Flags de Eventos del Juego**
-   ```python
-   def get_all_events_reward(self):
-       return sum([self.bit_count(self.read_m(i)) 
-                  for i in range(event_flags_start, event_flags_end)])
-   ```
-   - **Justificación**: Indica progreso y disponibilidad de recursos
-   - **Observabilidad**: Parcialmente observable
+#### 4.1.2 Variables de Prioridad Media (Influencia indirecta significativa)
+
+1. **Posición en el Mapa**
+    - **Justificación**: Determina tipos de encuentros probabilísticos.
+    - **Incertidumbre**: Encuentros aleatorios en zonas de hierba.
+    - **Modelado**: Distribución probabilística por zona.
+
+2. **Flags de Eventos del Juego**
+
+    ```python
+    def get_all_events_reward(self):
+        return sum([self.bit_count(self.read_m(i))
+                   for i in range(event_flags_start, event_flags_end)])
+    ```
+
+    - **Justificación**: Indica progreso y disponibilidad de recursos.
+    - **Observabilidad**: Parcialmente observable.
 
 ### 4.2 Variables a Ignorar o Abstraer
 
-#### 4.2.1 **Variables de Baja Prioridad para Combates**
+#### 4.2.1 Variables de Baja Prioridad para Combates
 
 1. **Detalles Visuales de Sprites**
-   - **Razón**: Alto costo computacional, baja relevancia estratégica
-   - **Alternativa**: Uso de memoria del emulador para tipos Pokémon
+    - **Razón**: Alto costo computacional, baja relevancia estratégica.
+    - **Alternativa**: Uso de memoria del emulador para tipos Pokémon.
 
 2. **Animaciones Específicas**
-   - **Razón**: Información redundante con estado de memoria
-   - **Alternativa**: Estados discretos (attacking, defending, switching)
+    - **Razón**: Información redundante con estado de memoria.
+    - **Alternativa**: Estados discretos (atacando, defendiendo, cambiando).
 
 3. **Coordenadas Exactas de Píxeles**
-   - **Razón**: Información excesivamente granular
-   - **Alternativa**: Regiones discretas del mapa
+    - **Razón**: Información excesivamente granular.
+    - **Alternativa**: Regiones discretas del mapa.
 
-#### 4.2.2 **Variables con Incertidumbre Manejable**
+#### 4.2.2 Variables con Incertidumbre Manejable
 
 1. **Movimientos Específicos del Oponente**
-   - **Estrategia**: Modelado probabilístico basado en patrones de IA
-   - **Implementación**: Distribución sobre conjunto de movimientos conocidos
+    - **Estrategia**: Modelado probabilístico basado en patrones de IA.
+    - **Implementación**: Distribución sobre conjunto de movimientos conocidos.
 
 2. **Cálculos de Daño Exacto**
-   - **Estrategia**: Estimación basada en rangos probabilísticos
-   - **Implementación**: Distribuciones normales con varianza por tipo de movimiento
+    - **Estrategia**: Estimación basada en rangos probabilísticos.
+    - **Implementación**: Distribuciones normales con varianza por tipo de movimiento.
 
 ---
 
 ## 5. Justificación del Modelo POMDP y Funciones de Transición
 
-### 5.1 ¿Por Qué POMDP y NO Otros Modelos?
+### 5.1 ¿Por Qué POMDP y no Otros Modelos?
 
-#### 5.1.1 POMDP vs MDP Completamente Observable
+La elección del marco teórico es fundamental para modelar correctamente el problema. Un error en esta etapa llevaría a un agente subóptimo que ignora la naturaleza intrínseca del entorno.
 
-**Definición de MDP**: Un proceso de decisión Markoviano **requiere observabilidad completa del estado**. Es decir, en cada tiempo t, el agente puede observar directamente s_t.
+#### 5.1.1 Inviabilidad de un MDP Completamente Observable
 
-**Por qué Pokémon Red NO es un MDP completo**:
+Un Proceso de Decisión de Markov (MDP) asume que el agente tiene acceso completo al estado del sistema en cada instante. En Pokémon Red, esto es demostrablemente falso.
 
-1. **Variables de Estado NO Observables (Evidencia del Código)**:
+1. **Variables de Estado Ocultas al Agente:**
+   El entorno, tal como está implementado en `red_gym_env_v2.py`, solo expone una fracción del estado real del oponente. El agente **no puede observar directamente**:
+    - El conjunto de movimientos del oponente.
+    - Las estadísticas base (Ataque, Defensa, etc.).
+    - Los Puntos de Poder (PP) restantes de sus movimientos.
 
-   Del análisis de `memory_addresses.py` y `red_gym_env_v2.py`, el agente **NO tiene acceso** a:
+    El siguiente fragmento de `red_gym_env_v2.py` evidencia que solo se extrae el nivel del oponente, no su estado completo:
+    ```python
+    # El entorno solo lee el nivel, no los movimientos, tipos o estadísticas.
+    opponent_level = max([self.read_m(a) for a in OPPONENT_LEVELS_ADDRESSES])
+    ```
 
-   ```python
-   # Variables del oponente NO leídas por el entorno:
-   # - Movimientos específicos (direcciones de memoria existen pero no se leen)
-   # - PP (Puntos de Poder) del oponente
-   # - Tipos exactos antes del encuentro
-   # - Estadísticas base (Attack, Defense, Special, Speed)
-   
-   # Lo Único observable del oponente:
-   OPPONENT_LEVELS_ADDRESSES = [0xD8C5, 0xD8F1, 0xD91D, 0xD949, 0xD975, 0xD9A1]
-   # Esto solo proporciona el NIVEL, no el estado completo
-   ```
+2. **Incertidumbre Epistémica (de Conocimiento):**
+   Antes de un combate (ej. al caminar por la hierba) o al inicio de una batalla contra un nuevo entrenador, el agente se enfrenta a una incertidumbre fundamental:
+    - ¿Qué Pokémon aparecerá?
+    - ¿Qué estrategia seguirá la IA del oponente?
 
-   El código en `v2/red_gym_env_v2.py` (líneas 629-637) confirma:
-   ```python
-   opponent_level = (
-       max(
-           [self.read_m(a) for a in [0xD8C5, 0xD8F1, 0xD91D, 0xD949, 0xD975, 0xD9A1]]
-       )
-       - 5
-   )  # Solo lee nivel, NO movimientos ni tipos
-   ```
+3. **La Observación no es el Estado:**
+   Lo que el agente recibe como "observación" ($o_t$) es un subconjunto del "estado" real ($s_t$). Por ejemplo, la observación puede incluir el sprite del oponente, pero no sus cuatro movimientos.
 
-2. **Incertidumbre Antes del Combate**:
-   
-   Cuando el agente camina por grass tiles, **NO sabe**:
-   - ¿Qué Pokémon salvaje encontrará?
-   - ¿Qué nivel tendrá?
-   - ¿Qué movimientos tendrá?
-   
-   Esta información solo se revela **parcialmente** después del encuentro.
+Dado que $o_t \neq s_t$, se viola el supuesto fundamental de un MDP. Un POMDP, en cambio, formaliza esta discrepancia mediante:
 
-3. **Estrategia de IA No Observable**:
+- Un **espacio de observaciones** $\Omega$.
+- Una **función de observación** $O(o|s)$, que define la probabilidad de ver $o$ si el estado real es $s$.
+- Un **estado de creencia (belief state)** $b(s)$, que es una distribución de probabilidad sobre todos los posibles estados reales, actualizada tras cada acción y observación.
 
-   La IA de Pokémon Red Gen 1 tiene patrones conocidos pero **no observables directamente**:
-   - ¿Usará un movimiento de daño o de estado?
-   - ¿Cambiará de Pokémon?
-   - ¿Usará ítems?
-   
-   El agente debe **inferir** la estrategia basado en observaciones previas.
+#### 5.1.2 Inaplicabilidad de un Modelo de Juego de Suma Cero (Minimax)
 
-**Conclusión**: El estado verdadero s_t es **mayor** que la observación o_t. Por lo tanto, necesitamos:
-- **Función de observación**: O(o|s) que mapea estados a observaciones
-- **Belief state**: b(s) = P(s|o_1, a_1, ..., o_t), distribución de probabilidad sobre estados
+Un modelo de juego de suma cero (como el usado en ajedrez) asume un adversario racional que juega óptimamente para minimizar la recompensa del agente. La IA de Pokémon Red (1ª Gen) no cumple esta condición.
 
-Esto es **exactamente la definición de un POMDP**.
+1. **Oponente Subóptimo y Predecible:**
+   La IA del juego no es un agente minimax. Sigue un conjunto de heurísticas simples y, en la 1ª Generación, contiene errores de programación conocidos (ej. usar movimientos de tipo Psíquico contra Pokémon de tipo Psíquico, creyendo que son súper efectivos). No se adapta ni contrarresta la estrategia del jugador de forma óptima.
 
-#### 5.1.2 POMDP vs Juego de Suma Cero (Minimax)
+2. **Fuentes de Aleatoriedad no Adversariales:**
+   El resultado de una acción no solo depende de la decisión del oponente, sino de múltiples fuentes de aleatoriedad del propio juego que no son controladas por ningún agente:
+    - **Variación de daño:** El daño final de un ataque varía en un rango de [85%, 100%].
+    - **Golpes críticos:** Ocurren con una probabilidad basada en la velocidad del Pokémon.
+    - **Efectos de estado:** Movimientos como `Rayo` tienen una probabilidad fija (10%) de paralizar.
 
-**Definición de Juego de Suma Cero**: Dos agentes con objetivos opuestos donde U_1(s) = -U_2(s), y ambos juegan óptimamente (minimax).
+   Esta aleatoriedad es parte de la función de transición del entorno, $T(s'|s, a)$, no de la estrategia de un oponente.
 
-**Por qué Pokémon Red NO es un juego de suma cero**:
+3. **Función de Recompensa Compleja:**
+   El objetivo del agente no es simplemente "derrotar al oponente". La función de recompensa en el código (`get_game_state_reward`) es una combinación de múltiples objetivos:
+    - Maximizar la exploración.
+    - Ganar medallas.
+    - Minimizar la pérdida de HP.
+    - Conservar PP.
 
-1. **Oponente NO es un Agente Racional Óptimo**:
+   Esto lo aleja de un simple conflicto de suma cero.
 
-   La IA de Pokémon Red Gen 1 **NO juega óptimamente**. Tiene patrones conocidos y limitaciones:
-   
-   - En Gen 1, la IA tiene bugs conocidos (ej: usa movimientos psíquicos contra Pokémon tipo Psychic pensando que son súper efectivos)
-   - No calcula el minimax, sino que sigue heurísticas simples
-   - Tiene elementos aleatorios en la selección de movimientos
-
-2. **Incertidumbre Estocástica Externa**:
-
-   Hay fuentes de aleatoridad **independientes** de las acciones del oponente:
-   ```python
-   # Daño variable (Gen 1 formula):
-   damage_range = base_damage * random_factor  # donde random_factor ∈ [0.85, 1.00]
-   
-   # Probabilidad de crítico:
-   critical_hit = (random() < base_speed / 512)  # Aproximadamente 1/24 en promedio
-   
-   # Efectos de estado con probabilidades:
-   # - Paralysis: 25% fallo en turno
-   # - Sleep: 1-7 turnos aleatorios
-   # - Confusion: 50% daño a sí mismo
-   ```
-
-   Esta aleatoriedad **no es adversarial**, es una característica del entorno.
-
-3. **Objetivo NO Estrictamente Opuesto**:
-
-   El objetivo del agente no es solo "derrotar al oponente", sino:
-   - Ganar con mínima pérdida de HP
-   - Conservar PP
-   - Obtener experiencia
-   - Progresar en la exploración
-   
-   La función de recompensa del código (`get_game_state_reward()`) incluye múltiples componentes:
    ```python
    state_scores = {
        'event': self.reward_scale * self.update_max_event_rew(),
@@ -597,7 +578,6 @@ def exploration_transition_probability(current_position, action, map_data):
 
 **¿Por qué usar política estocástica en lugar de determinista?**
 
-Según los requisitos del profesor: *"Se pueden usar una política estocástica condicional, que depende del estado del protagonista."*
 
 **Justificación Teórica y Práctica**:
 
@@ -615,71 +595,56 @@ Según los requisitos del profesor: *"Se pueden usar una política estocástica 
    - Si HP < 25% → política conservadora (50% item/heal, 30% run, 20% ataque)
    - Esto se modela como π(a|s_protagonist) diferente según estado
 
-**Implementación Conceptual**:
+**Implementación Conceptual de una Política Adaptativa**:
 
 ```python
 class ConditionalStochasticPolicy:
     """
-    Política estocástica que adapta probabilidades de acción
+    Política estocástica que adapta las probabilidades de acción
     basándose en el estado observable del protagonista.
     
     Fundamentación:
-    - En POMDP, política óptima es π*(a|b) donde b es belief state
-    - Belief depende fuertemente del estado del protagonista (observable)
-    - Condicionamos en variables observables para aproximar π*
+    - En un POMDP, la política óptima es π*(a|b), donde b es el estado de creencia (belief state).
+    - El estado de creencia depende fuertemente del estado observable del protagonista.
+    - Condicionamos la política en variables observables para aproximar π*.
     """
-    
-    def __init__(self):
-        self.policies = {
-            'protagonist_advantage': self.aggressive_policy,
-            'protagonist_disadvantage': self.conservative_policy,
-            'uncertain_state': self.exploratory_policy
-        }
     
     def select_action(self, belief_state):
         """
-        Selección de acción usando política estocástica condicional
+        Selecciona una acción usando una política estocástica condicional.
         
         Args:
-            belief_state: Distribución de probabilidad sobre estados posibles
+            belief_state: Una distribución de probabilidad sobre los posibles estados reales.
         
         Returns:
-            action: Acción muestreada de π(a|b), donde b depende de estado protagonista
+            action: La acción muestreada de π(a|b).
         """
-        # Estimar ventaja basada en estado observable del protagonista
+        # 1. Estimar la ventaja del protagonista a partir del estado de creencia.
         advantage = self.estimate_advantage(belief_state)
         
-        # CONDICIONAL: Seleccionar distribución según ventaja
-        if advantage > 0.7:  # Gran ventaja del protagonista
-            # Política agresiva: π_aggressive(a|s)
-            return self.policies['protagonist_advantage'](belief_state)
-            # Ejemplo: P(Attack|s) = 0.7, P(Switch|s) = 0.2, P(Item|s) = 0.1
-            
-        elif advantage < 0.3:  # Desventaja del protagonista
-            # Política conservadora: π_conservative(a|s)
-            return self.policies['protagonist_disadvantage'](belief_state)
-            # Ejemplo: P(Item|s) = 0.5, P(Run|s) = 0.3, P(Attack|s) = 0.2
-            
-        else:  # Ventaja incierta
-            # Política exploratoria: π_exploratory(a|s)
-            return self.policies['uncertain_state'](belief_state)
-            # Ejemplo: P(Attack|s) = 0.4, P(Switch|s) = 0.3, P(Item|s) = 0.3
+        # 2. Seleccionar una distribución de política basada en la ventaja.
+        if advantage > 0.7:  # Gran ventaja
+            # Usar política agresiva: π_aggressive(a|s)
+            return self.aggressive_policy(belief_state)
+        elif advantage < 0.3:  # Desventaja clara
+            # Usar política conservadora: π_conservative(a|s)
+            return self.conservative_policy(belief_state)
+        else:  # Situación incierta
+            # Usar política exploratoria balanceada: π_exploratory(a|s)
+            return self.exploratory_policy(belief_state)
     
     def estimate_advantage(self, belief_state):
         """
-        Heurística para estimar ventaja del protagonista
-        
-        Basada en variables OBSERVABLES del estado:
-        - HP fraccional del equipo (de observation_space["health"])
-        - Niveles del equipo (de observation_space["level"])
-        - Nivel del oponente (de memory address 0xD8C5-0xD9A1)
+        Heurística para estimar la ventaja del protagonista
+        basada en variables OBSERVABLES del estado.
         """
+        # Extraer ratios de nivel, HP y ventaja de tipo del estado de creencia.
         level_ratio = belief_state['protagonist_level'] / belief_state['opponent_level']
         hp_ratio = belief_state['protagonist_hp'] / belief_state['opponent_hp']
-        type_effectiveness = belief_state['type_advantage']  # Inferido de observación
+        type_advantage = belief_state['type_advantage']  # Inferido de la observación.
         
-        # Combinación ponderada (pesos justificados empíricamente)
-        return (level_ratio * 0.4 + hp_ratio * 0.4 + type_effectiveness * 0.2)
+        # Combinación ponderada para calcular la ventaja.
+        return (level_ratio * 0.4 + hp_ratio * 0.4 + type_advantage * 0.2)
 ```
 
 **Conexión con PPO del Proyecto**:
@@ -705,35 +670,59 @@ Esta política ES **condicional** porque depende del observation que incluye est
 ```python
 class BayesianStateEstimator:
     def __init__(self):
-        self.prior_beliefs = self.initialize_priors()
-        self.observation_models = self.initialize_observation_models()
+        self.prior_beliefs = self.initialize_priors() # Creencias iniciales sobre los oponentes.
+        self.observation_models = self.initialize_observation_models() # P(o|s').
     
     def update_belief(self, previous_belief, action, observation):
-        # Predicción usando modelo de transición
+        # 1. Paso de Predicción: ¿Qué creemos que pasará?
         predicted_belief = self.predict_step(previous_belief, action)
         
-        # Corrección usando observación
+        # 2. Paso de Corrección: ¿Qué tan bien explica nuestra creencia lo que vimos?
         likelihood = self.compute_likelihood(observation, predicted_belief)
         posterior_belief = self.bayesian_update(predicted_belief, likelihood)
         
         return posterior_belief
     
     def predict_step(self, belief, action):
-        # Implementar predicción basada en función de transición estocástica
+        # Aplica el modelo de transición a cada partícula en el estado de creencia.
         return convolution(belief, self.transition_model[action])
     
     def compute_likelihood(self, observation, belief):
-        # Calcular verosimilitud de observación dado belief
+        # Calcula la probabilidad de la observación para cada partícula.
         return self.observation_models[observation.type](observation, belief)
 ```
 
 ---
+## 6. Modelado de la Incertidumbre y Políticas de Decisión
 
-## 6. Estimación de Probabilidad de Éxito en Combates Episódicos
+### 6.1 Fuentes de Incertidumbre Identificadas
 
-**Enfoque Episódico**: Según requisitos del profesor: *"Aquí es episódico, aquí se tiene que modelar la función de transición y observación con un conjunto de estado y hacer transiciones."*
+1.  **Incertidumbre Aleatoria (Intrínseca al Juego)**:
+    -   Daño variable en combates (variación del 15%).
+    -   Golpes críticos (probabilidad base de ~4%).
+    -   Efectos de estado alterado (ej. 10% de probabilidad de parálisis con `Rayo`).
+    -   Encuentros aleatorios con Pokémon salvajes.
 
-### 6.0 Naturaleza Episódica de los Combates
+2.  **Incertidumbre Epistémica (Falta de Conocimiento del Agente)**:
+    -   El conjunto de movimientos del oponente.
+    -   Las estadísticas exactas del oponente (Ataque, Defensa, etc.).
+    -   La estrategia específica de la IA en una situación dada.
+    -   La composición del equipo de entrenadores no encontrados previamente.
+
+### 6.2 Estrategias de Manejo de Incertidumbre
+
+#### 6.2.1 Políticas Estocásticas Condicionales
+
+Una política determinista, que siempre elige la misma acción en un estado dado, es subóptima en un POMDP. Puede ser fácilmente explotada por el oponente y no permite la exploración. Por ello, se requiere una **política estocástica** $\pi(a|o)$, que define una distribución de probabilidad sobre las acciones a partir de una observación.
+
+El algoritmo PPO, utilizado en este proyecto, implementa de forma nativa esta política. La red neuronal del agente no produce una única acción, sino los *logits* que, tras una función `softmax`, generan una distribución de probabilidad. La acción se selecciona mediante muestreo de esta distribución.
+
+
+## 7. Estimación de Probabilidad de Éxito en Combates Episódicos
+
+**Enfoque Episódico**:
+
+### 7.0 Naturaleza Episódica de los Combates
 
 **¿Por qué los combates son episódicos?**
 
@@ -742,7 +731,8 @@ Un **episodio** es una secuencia de interacciones que comienza en un estado inic
 **En Pokémon Red, los combates son claramente episódicos**:
 
 1. **Estado Inicial del Episodio**:
-   ```python
+
+    ```python
    s_0 = {
        'protagonist_hp': HP_current,     # HP al inicio del combate
        'protagonist_level': Level_current,
@@ -759,7 +749,8 @@ Un **episodio** es una secuencia de interacciones que comienza en un estado inic
    - **Captura**: Pokémon capturado, reward = +150
 
 3. **Reset Entre Episodios**:
-   ```python
+
+    ```python
    # Después del combate (terminal), el siguiente combate es INDEPENDIENTE
    # El episodio N+1 NO depende de decisiones en episodio N
    # (excepto por HP residual, que es parte del estado inicial del nuevo episodio)
@@ -772,7 +763,8 @@ Un **episodio** es una secuencia de interacciones que comienza en un estado inic
 **Implicaciones para el Modelado**:
 
 1. **Función de Valor Episódica**:
-   ```python
+   
+    ```python
    V_π(s) = E_π[R_0 + γR_1 + γ²R_2 + ... + γ^T R_T | s_0 = s]
    
    # Donde T es el paso terminal (variable aleatoria)
@@ -787,24 +779,25 @@ Un **episodio** es una secuencia de interacciones que comienza en un estado inic
    - Durante combate: actualizar creencias con observaciones
    - Después del combate: resetear creencias para próximo episodio
 
-### 6.1 Marco de Evaluación
+### 7.1 Marco de Evaluación
 
-**Objetivo**: Según el profesor: *"El objetivo: Es la probabilidad de éxito que vaya calculando, con un agente que actúe con una política que se estime conveniente ¿Va a ganar o no? Primero se hace un cálculo previo de combate, luego de hacer una acción ver si esa probabilidad sube o baja."*
+**Objetivo**: Estimar la probabilidad de éxito de la política del agente, con un cálculo previo al combate y una actualización tras cada acción para ver si dicha probabilidad sube o baja.
 
-#### 6.1.1 Definición de Éxito
+#### 7.1.1 Definición de Éxito
 
 Para combates específicos, definimos éxito como:
 
-**Success = {Victoria_sin_desmayos, Victoria_con_desmayos_limitados, Huida_exitosa}**
+#### Success = {Victoria_sin_desmayos, Victoria_con_desmayos_limitados, Huida_exitosa}
 
 Donde:
+
 - **Victoria_sin_desmayos**: Ganar sin perder ningún Pokémon (P_success = 1.0)
 - **Victoria_con_desmayos_limitados**: Ganar perdiendo ≤2 Pokémon (P_success = 0.7)
 - **Huida_exitosa**: Escapar exitosamente del combate (P_success = 0.3)
 
 #### 6.1.2 Protocolo de Estimación (Alineado con Requisitos)
 
-**Paso 1: Cálculo Previo (Antes del Primer Movimiento)**
+#### Paso 1: Cálculo Previo (Antes del Primer Movimiento)
 
 Antes de tomar cualquier acción en el combate, estimamos probabilidad inicial:
 
@@ -839,7 +832,7 @@ def calcular_probabilidad_previa_combate(estado_inicial):
     return P_success_0  # Probabilidad inicial entre 0 y 1
 ```
 
-**Paso 2: Actualización Dinámica (Después de Cada Acción)**
+#### Paso 2: Actualización Dinámica (Después de Cada Acción)
 
 Después de ejecutar cada acción, actualizamos la probabilidad:
 
@@ -847,9 +840,6 @@ Después de ejecutar cada acción, actualizamos la probabilidad:
 def actualizar_probabilidad_post_accion(P_prev, accion, resultado_observado):
     """
     Actualización de probabilidad DESPUÉS de ver resultado de acción
-    
-    Requisito del profesor: "luego de hacer una acción ver si esa 
-    probabilidad sube o baja"
     
     Args:
         P_prev: Probabilidad antes de la acción
@@ -896,7 +886,7 @@ def actualizar_probabilidad_post_accion(P_prev, accion, resultado_observado):
 
 ```
 
-**Paso 3: Ejemplo de Flujo Completo de un Combate**
+#### Paso 3: Ejemplo de Flujo Completo de un Combate
 
 ```python
 # ===== INICIO DE EPISODIO: COMBATE =====
@@ -956,7 +946,7 @@ print(f"¡VICTORIA! Probabilidad final: {P_final:.2%}")
 # El siguiente combate será un NUEVO episodio con probabilidad inicial recalculada
 ```
 
-#### 6.1.2 Función de Utilidad
+#### 7.1.2 Función de Utilidad
 
 ```python
 def combat_utility_function(combat_outcome, resources_spent):
@@ -973,9 +963,9 @@ def combat_utility_function(combat_outcome, resources_spent):
     return base_utilities[combat_outcome] - resource_penalty
 ```
 
-### 6.2 Modelo de Predicción de Éxito
+### 7.2 Modelo de Predicción de Éxito
 
-#### 6.2.1 Monte Carlo para Simulación de Combates
+#### 7.2.1 Monte Carlo para Simulación de Combates
 
 ```python
 class CombatSuccessPredictor:
@@ -1057,9 +1047,9 @@ class HeuristicSuccessEstimator:
         return max(0.0, min(1.0, success_probability))
 ```
 
-### 6.3 Actualización en Tiempo Real
+### 7.3 Actualización en Tiempo Real
 
-#### 6.3.1 Filtro de Partículas para Seguimiento de Estado
+#### 7.3.1 Filtro de Partículas para Seguimiento de Estado
 
 ```python
 class ParticleFilterPredictor:
@@ -1092,13 +1082,11 @@ class ParticleFilterPredictor:
 
 ---
 
-## 7. Implementación Práctica del Modelo
+## 8. Implementación Práctica del Modelo
 
-### 7.1 Función de Recompensa con Optimización de Recursos
+### 8.1 Función de Recompensa con Optimización de Recursos
 
-**Requisito del Profesor**: *"Dar la función de recompensa donde se optimice recursos. La función de recompensa debe ser numérica."*
-
-#### 7.1.1 Función de Recompensa Implementada en el Código
+#### 8.1.1 Función de Recompensa Implementada en el Código
 
 El sistema actual implementa una función de recompensa multi-objetivo que optimiza recursos y progreso simultáneamente. Del análisis de `v2/red_gym_env_v2.py` (líneas 619-631):
 
@@ -1125,9 +1113,9 @@ def get_game_state_reward(self, print_stats=False):
     return state_scores
 ```
 
-#### 7.1.2 Optimización de Recursos: Análisis Numérico Detallado
+#### 8.1.2 Optimización de Recursos: Análisis Numérico Detallado
 
-**A. Componente de Curación (Optimización de HP)**
+#### A. Componente de Curación (Optimización de HP)
 
 ```python
 def update_heal_reward(self):
@@ -1164,7 +1152,7 @@ def update_heal_reward(self):
 
 **Interpretación**: Curar de 25% a 95% HP (0.70) da recompensa 4.90, mientras que curar de 80% a 95% (0.15) solo da 0.225. Esto **optimiza el uso de pociones**, incentivando curar cuando realmente se necesita.
 
-**B. Componente de Exploración (Optimización de Tiempo y Movimiento)**
+#### B. Componente de Exploración (Optimización de Tiempo y Movimiento)
 
 ```python
 def get_explore_reward(self):
@@ -1196,7 +1184,7 @@ def get_explore_reward(self):
 | 100 | 4.0 × 2.0 × 100 × 0.1 = **80.0** |
 | 200 | 4.0 × 2.0 × 200 × 0.1 = **160.0** |
 
-**C. Penalización por Quedarse Atascado (Optimización Anti-Loops)**
+#### C. Penalización por Quedarse Atascado (Optimización Anti-Loops)
 
 ```python
 def get_current_coord_count_reward(self):
@@ -1222,10 +1210,11 @@ def get_current_coord_count_reward(self):
 ```
 
 Con reward_scale=4.0:
+
 - **Sin penalización** (< 600 visitas): 4.0 × 0 × -0.05 = **0.0**
 - **Penalización activada** (≥ 600 visitas): 4.0 × 1 × -0.05 = **-0.2**
 
-#### 7.1.3 Función de Recompensa Total: Formulación Matemática Completa
+#### 8.1.3 Función de Recompensa Total: Formulación Matemática Completa
 
 La recompensa total en cada step es:
 
@@ -1234,6 +1223,7 @@ R_t = R_{scale} \times \left( 4 \cdot E_t + 10 \cdot H_t + 10 \cdot B_t + 0.1 \c
 $$
 
 Donde:
+
 - $R_{scale}$: Factor de escala global (típicamente 4.0)
 - $E_t$: Contador de eventos completados (0 - ~150)
 - $H_t$: Recompensa acumulada de curación $\sum (heal_{amount}^2)$
@@ -1245,6 +1235,7 @@ Donde:
 **Ejemplo Numérico Completo**:
 
 Estado en el step $t = 1000$:
+
 - Eventos completados: $E_t = 25$
 - Curación acumulada: $H_t = 2.5$ (equivalente a ~3 curaciones grandes)
 - Medallas: $B_t = 2$ (Boulder Badge y Cascade Badge)
@@ -1261,7 +1252,7 @@ R_t &= 4.0 \times (4 \cdot 25 + 10 \cdot 2.5 + 10 \cdot 2 + 0.1 \cdot 2.0 \cdot 
 \end{align}
 $$
 
-#### 7.1.4 Optimización Multi-Objetivo: Análisis de Pareto
+#### 8.1.4 Optimización Multi-Objetivo: Análisis de Pareto
 
 La función de recompensa optimiza múltiples objetivos simultáneamente:
 
@@ -1282,6 +1273,7 @@ La función de recompensa optimiza múltiples objetivos simultáneamente:
 3. **Exploración vs Eficiencia**: Explorar todas las coordenadas da recompensa, pero explorar sin objetivo (sin buscar eventos/medallas) es subóptimo.
 
 **Frontera de Pareto Óptima**:
+
 - Explorar hasta encontrar eventos clave
 - Obtener medallas tan pronto como sea posible
 - Curar solo cuando HP < 40%
@@ -1289,11 +1281,9 @@ La función de recompensa optimiza múltiples objetivos simultáneamente:
 
 ---
 
-### 7.2 Redes Bayesianas para Modelado de Incertidumbre
+### 8.2 Redes Bayesianas para Modelado de Incertidumbre
 
-**Requisito del Profesor**: *"Explicar qué es una red bayesiana."*
-
-#### 7.2.1 Definición Formal de Red Bayesiana
+#### 8.2.1 Definición Formal de Red Bayesiana
 
 Una **Red Bayesiana** (también llamada Red de Creencia Bayesiana o Grafo Dirigido Acíclico Probabilístico) es un modelo gráfico que representa un conjunto de variables aleatorias y sus dependencias condicionales mediante un grafo dirigido acíclico (DAG).
 
@@ -1305,7 +1295,7 @@ Una Red Bayesiana sobre variables $X_1, X_2, ..., X_n$ consiste en:
    - $V = \{X_1, ..., X_n\}$ son nodos (variables)
    - $E \subseteq V \times V$ son aristas dirigidas (dependencias)
    
-2. **Parámetros (Probabilidades Condicionales)**: 
+2. **Parámetros (Probabilidades Condicionales)**:
    - Para cada nodo $X_i$, una distribución de probabilidad condicional $P(X_i | Pa(X_i))$
    - Donde $Pa(X_i)$ son los padres de $X_i$ en el grafo
 
@@ -1319,9 +1309,9 @@ $$
 
 Esta factorización explota las independencias condicionales para reducir complejidad.
 
-#### 7.2.2 Ventajas de Redes Bayesianas
+#### 8.2.2 Ventajas de Redes Bayesianas
 
-1. **Reducción de Complejidad**: 
+1. **Reducción de Complejidad**:
    - Distribución conjunta completa: $O(2^n)$ parámetros
    - Red Bayesiana: $O(n \cdot 2^k)$ donde $k$ es número máximo de padres
    
@@ -1335,11 +1325,12 @@ Esta factorización explota las independencias condicionales para reducir comple
    - Interpretabilidad para humanos
    - Facilita incorporar conocimiento experto
 
-#### 7.2.3 Red Bayesiana para Combates Pokémon
+#### 8.2.3 Red Bayesiana para Combates Pokémon
 
 Modelamos las variables de estado de combate como una Red Bayesiana:
 
 **Variables del Modelo**:
+
 - $L_p$: Nivel del protagonista (observable)
 - $H_p$: HP del protagonista (observable)
 - $L_o$: Nivel del oponente (observable en combate)
@@ -1352,7 +1343,7 @@ Modelamos las variables de estado de combate como una Red Bayesiana:
 
 **Grafo de Dependencias**:
 
-```
+```text
        L_p ────┐
               ↓
        H_p ──→ S ←── H_o
@@ -1402,18 +1393,19 @@ $$
    - Si $H_p = 0$ → $P(S=derrota) = 1.0$
    - Si $H_p, H_o > 0$ → $P(S) = f(H_p/H_o, L_p/L_o)$
 
-#### 7.2.4 Ejemplo Concreto de Inferencia Bayesiana
+#### 8.2.4 Ejemplo Concreto de Inferencia Bayesiana
 
 **Escenario**: Entramos en combate con un oponente desconocido.
 
 **Observaciones Iniciales**:
+
 - $L_o = 12$ (nivel observable)
 - Sprite parece un Pokémon cuadrúpedo azul
 - Estamos en Ruta 24 (cerca de Cerulean City)
 
 **Inferencia Bayesiana Paso a Paso**:
 
-**Paso 1: Prior sobre Tipo**
+#### Paso 1: Prior sobre Tipo
 
 $$
 P(T_o | L_o=12, Ubicación=Ruta24) = \begin{cases}
@@ -1424,7 +1416,7 @@ P(T_o | L_o=12, Ubicación=Ruta24) = \begin{cases}
 \end{cases}
 $$
 
-**Paso 2: Inferencia sobre Movimientos (dado tipo inferido)**
+#### Paso 2: Inferencia sobre Movimientos (dado tipo inferido)
 
 Asumiendo $T_o = Water$ (más probable):
 
@@ -1437,7 +1429,7 @@ P(M_o | T_o=Water) = \begin{cases}
 \end{cases}
 $$
 
-**Paso 3: Predicción de Daño Esperado**
+#### Paso 3: Predicción de Daño Esperado
 
 Si usamos movimiento Fire (Ember) contra oponente Water:
 
@@ -1449,7 +1441,7 @@ E[D_t | A_t=Ember, T_o=Water] &= \sum_{m_o} P(m_o | T_o=Water) \cdot E[D | Ember
 \end{align}
 $$
 
-**Paso 4: Actualización tras Observar Acción del Oponente**
+#### Paso 4: Actualización tras Observar Acción del Oponente
 
 Oponente usa "Water Gun" → actualizar creencia:
 
@@ -1459,7 +1451,7 @@ $$
 
 Ahora tenemos **casi certeza** de que es tipo Water.
 
-**Paso 5: Predicción de Éxito Actualizada**
+#### Paso 5: Predicción de Éxito Actualizada
 
 Con creencia actualizada:
 
@@ -1475,11 +1467,9 @@ $$
 
 ---
 
-### 7.3 Ejemplos Concretos de Estados
+### 8.3 Ejemplos Concretos de Estados
 
-**Requisito del Profesor**: *"Se necesitan dar ejemplos de estados"*
-
-#### 7.3.1 Estado Ejemplo 1: Inicio del Juego
+#### 8.3.1 Estado Ejemplo 1: Inicio del Juego
 
 **Contexto**: El jugador acaba de seleccionar a Charmander como Pokémon inicial y está en Pallet Town.
 
@@ -1799,7 +1789,7 @@ class CombatAwareEnvironment:
         return observation, reward, terminated, truncated, info
 ```
 
-#### 7.1.2 Sistema de Recompensas Consciente de Incertidumbre
+#### 8.1.2 Sistema de Recompensas Consciente de Incertidumbre
 
 ```python
 class UncertaintyAwareRewardFunction:
@@ -1849,9 +1839,9 @@ class UncertaintyAwareRewardFunction:
             return 0   # Sin penalización para situaciones favorables
 ```
 
-### 7.2 Mecanismo de Toma de Decisiones
+### 8.2 Mecanismo de Toma de Decisiones
 
-#### 7.2.1 Planificador Consciente de Incertidumbre
+#### 8.2.1 Planificador Consciente de Incertidumbre
 
 ```python
 class UncertaintyAwarePlanner:
@@ -1898,9 +1888,9 @@ class UncertaintyAwarePlanner:
         return total_utility / num_simulations
 ```
 
-### 7.3 Validación y Métricas
+### 8.3 Validación y Métricas
 
-#### 7.3.1 Métricas de Evaluación
+#### 8.3.1 Métricas de Evaluación
 
 ```python
 class ModelValidationMetrics:
@@ -1939,15 +1929,13 @@ class ModelValidationMetrics:
 
 ---
 
-### 7.4 Modelo Gráfico de Probabilidades Condicionales
+### 8.4 Modelo Gráfico de Probabilidades Condicionales
 
-**Requisito del Profesor**: *"Hacer un modelo que sea de manera gráfica con probabilidades condicionales"*
-
-#### 7.4.1 Red Bayesiana Dinámica para Combate (Grafo Completo)
+#### 8.4.1 Red Bayesiana Dinámica para Combate (Grafo Completo)
 
 Presentamos un modelo gráfico formal que muestra todas las dependencias probabilísticas en un combate Pokémon:
 
-```
+```text
 Tiempo t=0                  Tiempo t=1                  Tiempo t=2
 (Estado Inicial)            (Después Turno 1)           (Después Turno 2)
 
@@ -2018,7 +2006,7 @@ LEYENDA:
   v   : Dirección de influencia
 ```
 
-#### 7.4.2 Probabilidades Condicionales Específicas (Tablas CPD)
+#### 8.4.2 Probabilidades Condicionales Específicas (Tablas CPD)
 
 **CPD 1: P(A_p^t | H_p^t, H_o^t, L_p, L_o)** - Probabilidad de Acción del Protagonista
 
@@ -2031,6 +2019,7 @@ LEYENDA:
 | <25% | >75% | <0.8 | 0.05 | 0.35 | 0.15 | **0.45** |
 
 **Interpretación**:
+
 - Con **HP alto y ventaja** (fila 1): 70% probabilidad de atacar agresivamente
 - Con **HP bajo y desventaja** (fila 5): 45% probabilidad de huir, solo 5% de atacar
 - Política **estocástica condicional** depende claramente del estado
@@ -2092,9 +2081,9 @@ P(S^t) &= sigmoid\left(2 \cdot \frac{0.7 - 0.56}{0.7 + 0.56}\right) \\
 \end{align}
 $$
 
-#### 7.4.3 Modelo Gráfico Simplificado con Probabilidades Numéricas
+#### 8.4.3 Modelo Gráfico Simplificado con Probabilidades Numéricas
 
-```
+```text
 EJEMPLO CONCRETO: Turno 1 del Combate contra Geodude
 
 Estado Inicial (t=0):
@@ -2181,11 +2170,9 @@ Estado Final t=1 (Caso más probable):
 
 ---
 
-### 7.5 Modelado de Golpes Críticos como Factor Multiplicativo
+### 8.5 Modelado de Golpes Críticos como Factor Multiplicativo
 
-**Requisito del Profesor**: *"El golpe crítico sería como un coeficiente multiplicativo de la función de transición de HP"*
-
-#### 7.5.1 Función de Transición de HP con Crítico Explícito
+#### 8.5.1 Función de Transición de HP con Crítico Explícito
 
 La función de transición de HP del oponente se modela formalmente como:
 
@@ -2194,6 +2181,7 @@ H_o^{t+1} = T_{HP}(H_o^t, A_p^t, Crit^t, \omega^t)
 $$
 
 Donde:
+
 - $H_o^t$: HP actual del oponente
 - $A_p^t$: Acción del protagonista en tiempo $t$
 - $Crit^t \in \{0, 1\}$: Variable binaria de golpe crítico
@@ -2220,7 +2208,7 @@ $$
 \end{cases}
 $$
 
-#### 7.5.2 Fórmula de Daño Completa (Pokémon Red Gen 1)
+#### 8.5.2 Fórmula de Daño Completa (Pokémon Red Gen 1)
 
 La fórmula exacta implementada en Pokémon Red Generation 1 es:
 
@@ -2232,6 +2220,7 @@ Damage = &\Bigg\lfloor \Bigg\lfloor \frac{\Big\lfloor \frac{2 \times Level_{atta
 $$
 
 Donde:
+
 - $Level_{attacker}$: Nivel del atacante
 - $Power$: Poder base del movimiento (ej: Ember = 40)
 - $Attack$, $Defense$: Estadísticas de ataque y defensa
@@ -2240,7 +2229,7 @@ Donde:
 - $STAB \in \{1.0, 1.5\}$: Same Type Attack Bonus
 - $Type1, Type2 \in \{0, 0.5, 1.0, 2.0\}$: Efectividad de tipo
 
-#### 7.5.3 Ejemplo Numérico Completo: Impacto del Crítico
+#### 8.5.3 Ejemplo Numérico Completo: Impacto del Crítico
 
 **Escenario**: Charmeleon (Fire, Level 16) usa Ember contra Geodude (Rock/Ground, Level 12)
 
@@ -2309,7 +2298,7 @@ H_o^{t+1} &= \max(0, H_o^t - Damage_{crit}) \\
 \end{align}
 $$
 
-#### 7.5.4 Distribución de Probabilidad de $H_o^{t+1}$
+#### 8.5.4 Distribución de Probabilidad de $H_o^{t+1}$
 
 La función de transición de HP es **estocástica** debido al crítico y la variación aleatoria:
 
@@ -2361,7 +2350,7 @@ El crítico, al ser un **factor multiplicativo**, tiene impacto significativo en
 - Los críticos **aumentan 6.3% la probabilidad de victoria** (68.2% → 74.5%)
 - El factor multiplicativo **2.0** del crítico es **crucial** para combates ajustados
 
-#### 7.5.6 Representación Formal en el POMDP
+#### 8.5.6 Representación Formal en el POMDP
 
 En el marco del POMDP, el crítico se incorpora como:
 
@@ -2428,11 +2417,11 @@ def transition_function_with_crit(state_t, action, critic_probability):
 
 ---
 
-## 8. Diagramas del Sistema
+## 9. Diagramas del Sistema
 
-### 8.1 Diagrama de Estados de Combate
+### 9.1 Diagrama de Estados de Combate
 
-```
+```text
    [Exploración]
        |
    Encuentro Pokémon
@@ -2457,9 +2446,9 @@ def transition_function_with_crit(state_t, action, critic_probability):
    [Exploración]
 ```
 
-### 8.2 Diagrama de Flujo de Predicción
+### 9.2 Diagrama de Flujo de Predicción
 
-```
+```text
 Estado_Observado → Estimador_Bayesiano → Belief_State
                                             |
                                             ↓
@@ -2475,9 +2464,9 @@ Estado_Observado → Estimador_Bayesiano → Belief_State
                                        Acción_Óptima
 ```
 
-### 8.3 Arquitectura del Sistema Completo
+### 9.3 Arquitectura del Sistema Completo
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Sistema de Predicción                        │
 ├─────────────────────────────────────────────────────────────────┤
@@ -2509,45 +2498,50 @@ Estado_Observado → Estimador_Bayesiano → Belief_State
 
 ---
 
-## 9. Resultados y Validación del Modelo
+## 10. Resultados y Validación del Modelo
 
-### 9.1 Casos de Prueba Propuestos
+### 10.1 Casos de Prueba Propuestos
 
-#### 9.1.1 Escenario 1: Combate Balanceado
+#### 10.1.1 Escenario 1: Combate Balanceado
+
 - **Configuración**: Nivel protagonista = 10, Nivel oponente = 10
 - **Variables**: HP = 100%, Sin estados alterados
 - **Predicción Esperada**: P(éxito) ≈ 0.6 ± 0.1
 - **Validación**: 1000 simulaciones Monte Carlo
 
-#### 9.1.2 Escenario 2: Desventaja Significativa  
+#### 10.1.2 Escenario 2: Desventaja Significativa
+
 - **Configuración**: Nivel protagonista = 8, Nivel oponente = 15
 - **Variables**: HP = 75%, Sin ventaja de tipo
 - **Predicción Esperada**: P(éxito) ≈ 0.2 ± 0.15
 - **Estrategia Óptima**: Consideración de huida
 
-#### 9.1.3 Escenario 3: Ventaja Abrumadora
+#### 10.1.3 Escenario 3: Ventaja Abrumadora
+
 - **Configuración**: Nivel protagonista = 20, Nivel oponente = 5  
 - **Variables**: HP = 100%, Ventaja de tipo 2x
 - **Predicción Esperada**: P(éxito) ≈ 0.95 ± 0.05
 - **Estrategia Óptima**: Combate agresivo
 
-### 9.2 Métricas de Desempeño Esperadas
+### 10.2 Métricas de Desempeño Esperadas
 
-#### 9.2.1 Precisión Predictiva
+#### 10.2.1 Precisión Predictiva
+
 - **Target**: Error de calibración < 0.1
 - **Target**: Brier Score < 0.25
 - **Target**: Área bajo curva ROC > 0.8
 
-#### 9.2.2 Eficiencia Computacional
+#### 10.2.2 Eficiencia Computacional
+
 - **Target**: Predicción en tiempo real < 50ms
 - **Target**: Memoria utilizada < 100MB
 - **Target**: Escalabilidad lineal con número de Pokémon
 
 ---
 
-## 10. Conclusiones y Recomendaciones
+## 11. Conclusiones y Recomendaciones
 
-### 10.1 Resumen de Hallazgos
+### 11.1 Resumen de Hallazgos
 
 1. **Variables de Estado Críticas Identificadas**:
    - HP fraccional del equipo (prioridad máxima)
@@ -2563,36 +2557,36 @@ Estado_Observado → Estimador_Bayesiano → Belief_State
    - Políticas estocásticas condicionales como estrategia práctica
    - Estimación Bayesiana para manejo de incertidumbre
 
-### 10.2 Recomendaciones de Implementación
+### 11.2 Recomendaciones de Implementación
 
-#### 10.2.1 Fase 1: Prototipo Básico
+#### 11.2.1 Fase 1: Prototipo Básico
 1. Implementar detector de combates basado en memoria
 2. Desarrollar estimador heurístico de probabilidad de éxito
 3. Integrar con sistema de recompensas existente
 
-#### 10.2.2 Fase 2: Modelo Completo
+#### 11.2.2 Fase 2: Modelo Completo
 1. Implementar estimación Bayesiana de estados
 2. Desarrollar simulador Monte Carlo para predicciones
 3. Implementar planificador consciente de incertidumbre
 
-#### 10.2.3 Fase 3: Optimización y Validación
+#### 11.2.3 Fase 3: Optimización y Validación
 1. Optimizar rendimiento computacional
 2. Validar modelo con datos de combates reales
 3. Ajustar parámetros basado en métricas de desempeño
 
-### 10.3 Limitaciones y Trabajo Futuro
+### 11.3 Limitaciones y Trabajo Futuro
 
-#### 10.3.1 Limitaciones Actuales
+#### 11.3.1 Limitaciones Actuales
 - Modelo simplificado de mecánicas de Pokémon Gen 1
 - Asumción de observabilidad parcial específica
 - Validación limitada a simulaciones
 
-#### 10.3.2 Extensiones Potenciales
+#### 11.3.2 Extensiones Potenciales
 - Inclusión de mecánicas avanzadas (critical hits, status effects)
 - Modelado de estrategias de IA más sofisticadas
 - Extensión a otros contextos del juego (gym battles, Elite Four)
 
-### 10.4 Impacto Esperado
+### 11.4 Impacto Esperado
 
 La implementación de este modelo proporcionará:
 
@@ -2620,41 +2614,37 @@ La implementación de este modelo proporcionará:
 
 Este documento ha sido revisado y mejorado rigurosamente para cumplir con los requisitos académicos del curso TEL351 - Agentes Inteligentes. Las mejoras incluyen:
 
-#### A.1.1 Sección 1.4 - Respuestas Explícitas a Guía de Trabajo (NUEVO)
+#### A.1.1 Sección 1.4 - Respuestas Explícitas a Guía de Trabajo
 
-Se agregó una sección completa que responde explícitamente las 7 preguntas de la guía de trabajo:
-
-1. ✅ **¿Qué agente eligió? ¿Cuál es su objetivo?**
+1.  **¿Qué agente eligió? ¿Cuál es su objetivo?**
    - Respuesta: Agente PPO con objetivo de maximizar progreso y ganar combates
    - Ubicación: Sección 1.4, pregunta 1
 
-2. ✅ **¿Cuál es el estado del ambiente y el agente?**
+2. **¿Cuál es el estado del ambiente y el agente?**
    - Respuesta: S = S_protagonist × S_opponent × S_environment × S_hidden
    - Ubicación: Secciones 1.4 (pregunta 2) y 3.1 (detalle completo)
 
-3. ✅ **¿Dónde se identifica incertidumbre?**
+3. **¿Dónde se identifica incertidumbre?**
    - Respuesta: Incertidumbre aleatoria (daño, críticos) y epistémica (IA, movimientos)
    - Ubicación: Secciones 1.4 (pregunta 3) y 5.4.1 (análisis detallado)
 
-4. ✅ **¿Cómo se relacionan las variables con la incertidumbre?**
+4. **¿Cómo se relacionan las variables con la incertidumbre?**
    - Respuesta: Variables observables vs parcialmente observables vs no observables
    - Ubicación: Secciones 1.4 (pregunta 4) y 5.1.1 (evidencia del código)
 
-5. ✅ **¿Qué acciones hace el agente?**
+5. **¿Qué acciones hace el agente?**
    - Respuesta: Acciones de combate, navegación y menú basadas en botones Game Boy
    - Ubicación: Secciones 1.4 (pregunta 5) y 3.2 (detalle completo)
 
-6. ✅ **¿Qué supuestos ha hecho usted?**
+6. **¿Qué supuestos ha hecho usted?**
    - Respuesta: Mecánicas Gen 1 conocidas, acceso a memoria, IA con patrones conocidos
    - Ubicación: Sección 1.4 (pregunta 6)
 
-7. ✅ **¿Qué supuestos puede hacer para simplificar el problema?**
+7. **¿Qué supuestos puede hacer para simplificar el problema?**
    - Respuesta: Abstracción de tipos, movimientos limitados, discretización de HP
    - Ubicación: Secciones 1.4 (pregunta 7) y 4.2 (justificación detallada)
 
-#### A.1.2 Sección 5.1 - Justificación Rigurosa de POMDP (NUEVO)
-
-Se agregó argumentación completa con evidencia del código sobre:
+#### A.1.2 Sección 5.1 - Justificación de POMDP
 
 **¿Por qué POMDP y no MDP?**
 - **Evidencia del código**: `observation_space` NO incluye movimientos del oponente, tipos exactos, PP, estadísticas
@@ -2676,7 +2666,6 @@ Se agregó argumentación completa con evidencia del código sobre:
 
 Se amplió la justificación de políticas estocásticas:
 
-- **Requisito del profesor**: Cita explícita sobre "política estocástica condicional que depende del estado del protagonista"
 - **Justificación teórica**: Por qué estocástica es mejor que determinista en POMDP
 - **Condicionamiento**: Explicación de cómo π(a|s_protagonist) varía según HP, nivel, ventaja
 - **Conexión con código**: Explicación de cómo PPO implementa esto naturalmente
@@ -2689,9 +2678,10 @@ Se agregó sección completa explicando:
 - **Horizonte finito**: Combates duran 5-15 turnos típicamente
 - **Implicaciones**: Función de valor episódica, no horizonte infinito
 
-#### A.1.5 Sección 6.1.2 - Protocolo de Estimación de Probabilidad (NUEVO)
+#### A.1.5 Sección 6.1.2 - Protocolo de Estimación de Probabilidad
 
 Se implementó exactamente lo solicitado por el profesor:
+Se implementó exactamente lo solicitado por la guía:
 
 **Paso 1: Cálculo Previo**
 - Función `calcular_probabilidad_previa_combate()` con código completo
@@ -2719,46 +2709,34 @@ Todo el documento ahora incluye referencias explícitas al código:
 | Recompensas multi-componente | `state_scores` dict con event, level, heal, etc. | v2/red_gym_env_v2.py:~600 |
 | PPO estocástico | Categorical(logits).sample() | Stable Baselines3 (baseline_fast_v2.py) |
 
-### A.3 Cumplimiento de Requisitos del Profesor
+### A.3 Cumplimiento de Requisitos de la Guía
 
-✅ **"Identificar variables y si incertidumbre"**
+**"Identificar variables y si incertidumbre"**
 - Sección 2.2: Variables identificadas con direcciones de memoria
 - Sección 5.4.1: Fuentes de incertidumbre clasificadas
 
-✅ **"No meter toda la lista de 150 Pokémon, estimar rangos o poner en función de transición"**
+**"No meter toda la lista de 150 Pokémon, estimar rangos o poner en función de transición"**
 - Sección 4.2: Propuesta de abstracción a 15 tipos
 - Sección 5.3: Función de transición con distribuciones probabilísticas
 
-✅ **"Política estocástica condicional que depende del estado del protagonista"**
+**"Política estocástica condicional que depende del estado del protagonista"**
 - Sección 5.3.2.1: Implementación completa con justificación
 
-✅ **"Modelar función de transición y observación"**
+**"Modelar función de transición y observación"**
 - Sección 5.2: Marco formal POMDP con T y O
 - Sección 5.3: Implementación de P(s'|s,a) descompuesta
 
-✅ **"Calcular probabilidad de éxito, primero previo, luego ver si sube o baja"**
+**"Calcular probabilidad de éxito, primero previo, luego ver si sube o baja"**
 - Sección 6.1.2: Protocolo completo con código
 - Paso 1: Cálculo previo
 - Paso 2: Actualización post-acción
 - Paso 3: Ejemplo completo de flujo
 
-✅ **"Es episódico"**
+ **"Es episódico"**
 - Sección 6.0: Explicación completa de naturaleza episódica
 - Estados iniciales, terminales, horizonte finito
 
-### A.4 Validación Académica
-
-Este documento cumple con los estándares de un reporte técnico de nivel universitario:
-
-- ✅ Fundamentación teórica rigurosa (POMDP, teoría de decisión)
-- ✅ Evidencia empírica del código fuente
-- ✅ Referencias a literatura (mecánicas Gen 1 documentadas)
-- ✅ Diagramas formales de sistemas
-- ✅ Pseudocódigo y código Python
-- ✅ Justificación de decisiones de diseño
-- ✅ Análisis de alternativas (MDP vs POMDP vs juego suma cero)
-
-### A.5 Recomendaciones para Extensiones Futuras
+### A.4 Recomendaciones para Extensiones Futuras
 
 Para trabajo futuro, se sugiere:
 
@@ -2766,13 +2744,3 @@ Para trabajo futuro, se sugiere:
 2. **Validación empírica**: Correr 1000 combates y comparar predicciones vs resultados reales
 3. **Refinamiento de belief state**: Implementar filtro de partículas para tracking en tiempo real
 4. **Extensión a combates entrenador**: Modelar gym leaders con estrategias más complejas
-
----
-
-*Documento revisado y mejorado - Octubre 2025*  
-*TEL351 - Sistemas Inteligentes*  
-*Análisis del Proyecto PokemonRed-RL para Modelado de Estados y Transiciones*  
-
-**Revisión académica**: Cumple con requisitos de guía de trabajo y especificaciones del profesor  
-**Validación técnica**: Todas las afirmaciones respaldadas por evidencia del código fuente  
-**Nivel de detalle**: Suficiente para comprensión completa e implementación práctica
