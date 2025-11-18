@@ -173,12 +173,12 @@ def main():
     python_version = sys.version_info
     if python_version < (3, 10) or python_version >= (3, 13):
         print("\n" + "=" * 70)
-        print("❌ ERROR: Versión de Python incompatible")
+        print("ERROR: Versión de Python incompatible")
         print("=" * 70)
         print(f"\nPython actual: {python_version.major}.{python_version.minor}.{python_version.micro}")
-        print("\n⚠️  PyBoy requiere Python 3.10, 3.11 o 3.12")
+        print("\nPyBoy requiere Python 3.10, 3.11 o 3.12")
         print("   Python 3.13+ NO es compatible debido a cambios en Cython")
-        print("\n📥 Soluciones:")
+        print("\nSoluciones:")
         print("   1. Instalar Python 3.12: https://www.python.org/downloads/")
         print("   2. Usar pyenv (Linux/macOS): pyenv install 3.12")
         print("   3. Crear entorno conda: conda create -n pokeenv python=3.12")
@@ -223,14 +223,14 @@ def main():
     # Instalación
     print(f"\n Modo de instalación:")
     if platform_info['is_windows']:
-        print("   • Windows: PyTorch CPU")
+        print("Windows: PyTorch CPU")
     elif platform_info['is_linux']:
         if args.gpu:
-            print("   • Linux: PyTorch + CUDA 12.4 (GPU)")
+            print("Linux: PyTorch + CUDA 12.4 (GPU)")
         else:
-            print("   • Linux: PyTorch CPU")
+            print("Linux: PyTorch CPU")
     else:
-        print(f"   • {platform_info['system']}: PyTorch CPU")
+        print(f"{platform_info['system']}: PyTorch CPU")
     
     # Confirmar instalación
     response = input("\n¿Continuar con la instalación? [S/n]: ").strip().lower()

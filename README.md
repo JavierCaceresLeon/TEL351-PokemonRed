@@ -11,25 +11,19 @@ El proyecto utiliza PyBoy (un emulador de Game Boy) junto con Stable Baselines3 
 
 > **IMPORTANTE**: Esta guía está diseñada para ejecutar la **versión V2** del proyecto, que es la versión mejorada y recomendada. V2 incluye optimizaciones significativas y es mucho más fácil de instalar gracias a su compatibilidad cross-platform automática.
 
-> **¿Tienes Python 3.13?** PyBoy NO funciona con Python 3.13. **[Consulta la guía de instalación de Python 3.12](PYTHON_VERSION_FIX.md)**
+> **PyBoy NO funciona con Python 3.13. **
 
-Esta instalación es **agnóstica al sistema operativo** y funciona en Windows, Linux y macOS sin modificaciones manuales.
+Esta instalación es **agnóstica al sistema operativo**.
 
 ### Requisitos Previos
 
 - **Python 3.10, 3.11 o 3.12** **Python 3.13+ NO es compatible con PyBoy**
 - **pip 21.0+** (para soporte de marcadores de entorno)
 - **ROM de Pokémon Red** legalmente obtenida (1MB, sha1: `ea9bcae617fdf159b045185467ae58b2e4a48b9a`)
-- **Sistema Operativo:** Windows 10+, Linux (Ubuntu 20.04+), o macOS 11+
-- **RAM:** Mínimo 4GB (recomendado 8GB para entrenamiento)
-
-> **IMPORTANTE - Versión de Python**: PyBoy no funciona con Python 3.13 o superior debido a incompatibilidades con Cython. Usa Python 3.10, 3.11 o 3.12.
 
 ---
 
-### Instalación Rápida - Opción 1: Script Automático (Más Fácil)
-
-El script detecta automáticamente tu sistema operativo e instala las dependencias correctas:
+### Instalación Rápida - Script Automático
 
 ```bash
 # 1. Clonar el repositorio
@@ -53,12 +47,6 @@ python -c "import torch; import pyboy; import gymnasium; print('Instalación exi
 python run_pretrained_interactive.py
 ```
 
-**Ventajas del script automático:**
-- Detecta Windows/Linux/macOS automáticamente
-- Instala solo dependencias compatibles con tu sistema
-- Valida la instalación automáticamente
-- Soporte para GPU en Linux con `--gpu`
-
 **Opciones del script:**
 ```bash
 python install_dependencies.py              # Instalación CPU (todas las plataformas)
@@ -68,7 +56,7 @@ python install_dependencies.py --dry-run    # Ver qué se instalará sin instala
 
 ---
 
-### Compatibilidad Automática por Sistema Operativo
+### Compatibilidad Automática por Sistema Operativo (no testeado)
 
 El archivo `v2/requirements.txt` usa **marcadores de entorno de pip** para instalar solo paquetes compatibles:
 
