@@ -158,6 +158,43 @@ class RedGymEnv(Env):
 
         if not config["headless"]:
             self.pyboy.set_emulation_speed(6)
+        
+        # Setup compatibility wrappers for PyBoy API variations
+        self._setup_pyboy_compat()
+
+    def _setup_pyboy_compat(self):
+        """Setup compatibility wrappers for various PyBoy versions (memory and screen)"""
+        pyboy = self.pyboy
+        
+        # memory access
+        if hasattr(pyboy, "memory"):
+            get_mem = lambda addr: int(pyboy.memory[addr])
+            set_mem = lambda addr, val: pyboy.memory.__setitem__(addr, val)
+        elif hasattr(pyboy, "get_memory_value"):
+            get_mem = lambda addr: int(pyboy.get_memory_value(addr))
+            if hasattr(pyboy, "set_memory_value"):
+                set_mem = lambda addr, val: pyboy.set_memory_value(addr, val)
+            else:
+                set_mem = lambda addr, val: None
+        elif hasattr(pyboy, "get_memory"):
+            mem = pyboy.get_memory()
+            get_mem = lambda addr: int(mem[addr])
+            set_mem = lambda addr, val: mem.__setitem__(addr, val)
+        else:
+            raise AttributeError("No memory interface found in PyBoy instance")
+        
+        # screen access
+        if hasattr(pyboy, "screen") and hasattr(pyboy.screen, "ndarray"):
+            get_screen = lambda: pyboy.screen.ndarray
+        elif hasattr(pyboy, "screen_buffer"):
+            get_screen = lambda: pyboy.screen_buffer()
+        else:
+            get_screen = lambda: None
+        
+        # Assign to instance attributes
+        self._get_mem = get_mem
+        self._set_mem = set_mem
+        self._get_screen = get_screen
 
     def reset(self, seed=None, options={}):
         self.seed = seed
@@ -252,8 +289,8 @@ class RedGymEnv(Env):
             return game_pixels
 
     def render(self, reduce_res=True):
-        # PyBoy API fix: use screen_buffer() instead of self.screen.ndarray
-        game_pixels_render = self.pyboy.screen_buffer()  # Returns ndarray (144, 160, 3)
+        # Use compatibility wrapper for screen access
+        game_pixels_render = self._get_screen()  # Returns ndarray (144, 160, 3)
         
         # Extract single channel if needed
         if len(game_pixels_render.shape) == 3:
@@ -564,8 +601,7 @@ class RedGymEnv(Env):
             self.map_frame_writer.close()
 
     def read_m(self, addr):
-        #return self.pyboy.get_memory_value(addr)
-        return self.pyboy.memory[addr]
+        return self._get_mem(addr)
 
     def read_bit(self, addr, bit: int) -> bool:
         # add padding so zero will read '0b100000000' instead of '0b0'
