@@ -96,6 +96,9 @@ def get_base_requirements():
         'websockets==13.1',
         'Werkzeug==3.0.4',
         'wheel==0.44.0',
+        'psutil==7.0.0',
+        'seaborn==0.13.2',
+        'scikit-learn==1.7.2',
     ]
 
 

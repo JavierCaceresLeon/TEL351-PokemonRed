@@ -151,9 +151,6 @@ echo "runs/poke_26214400_steps" | python baseline_fast_v2.py
 # O modificar línea 82 del archivo directamente:
 file_name = "runs/poke_26214400_steps"
 ```
-
-
-
 ---
 
 ### Evaluar Modelo Entrenado: run_ppo_interactive_metrics.py
@@ -398,68 +395,123 @@ A* usa el mismo entorno `pokeenv` (no requiere instalación adicional).
 
 ---
 
-### Comparación de Agentes: Sistema de Métricas Avanzadas
+### Comparación Visual de Agentes: Ejecución Dual Interactiva
 
-La carpeta `comparison_agents/` proporciona herramientas para comparar múltiples algoritmos de forma sistemática.
+La carpeta `comparison_agents/` incluye el script `run_dual_interactive.py` que permite **comparar visualmente** dos algoritmos ejecutándose simultáneamente con ventanas separadas del Game Boy.
 
-**Agentes incluidos en comparación:**
+**Agentes configurables para comparación:**
 
-1. **PPO (Proximal Policy Optimization)** - Deep Reinforcement Learning
-2. **Epsilon Greedy** - Búsqueda heurística adaptativa
-3. **Tabu Search** - Búsqueda con memoria tabú
-4. **A* Search** - Pathfinding óptimo
+Por defecto, el script compara:
+1. **Epsilon Greedy** (búsqueda heurística) vs **PPO** (deep learning)
 
-**Características del sistema de comparación:**
-- Métricas unificadas para todos los agentes
-- Generación automática de reportes comparativos
-- Visualizaciones estadísticas (gráficos, tablas)
-- Análisis de rendimiento detallado
-- Exportación en JSON, CSV y Markdown
+Pero puedes editarlo para comparar cualquier combinación:
+- Epsilon Greedy vs A* Search
+- Tabu Search vs PPO
+- A* vs Epsilon Greedy
+- Cualquier combinación de algoritmos disponibles
 
-**Ejecutar comparación de agentes:**
+**Ejecutar comparación dual:**
 
 ```bash
 # Activar entorno
 conda activate pokeenv
 
-# Navegar a carpeta raíz del proyecto
-cd TEL351-PokemonRed
+# Navegar a carpeta comparison_agents
+cd TEL351-PokemonRed/comparison_agents
 
-# Opción 1: Ejecutar comparación completa (todos los agentes)
-cd comparison_agents
-python run_comparison.py
-
-# Opción 2: Ejecutar agente específico con métricas
-cd comparison_agents
-python run_tabu_interactive_metrics.py    # Tabu Search
-python run_astar_interactive.py           # A* Search
-
-# Opción 3: Ejecutar dos agentes en paralelo (comparación visual)
-cd comparison_agents
+# Ejecutar comparación dual (por defecto: Epsilon Greedy vs PPO)
 python run_dual_interactive.py
 ```
 
-**Nota:** Para ejecutar Epsilon Greedy standalone, usar el script en la carpeta epsilon_greedy:
-```bash
-cd epsilon_greedy
-python run_epsilon_greedy_interactive.py
+**Salida esperada:**
+- Se abrirán **2 ventanas del Game Boy simultáneamente**
+- Ventana 1: Primer agente (por defecto Epsilon Greedy)
+- Ventana 2: Segundo agente (por defecto PPO)
+- Puedes observar en tiempo real cómo cada algoritmo toma decisiones diferentes
+
+**Detener la comparación:**
+- Presiona `Ctrl+C` en la terminal
+- Ambos agentes se detendrán
+- Las métricas se generarán automáticamente
+
+**Métricas generadas:**
+
+Al presionar `Ctrl+C`, cada agente guarda sus métricas en carpetas separadas:
+
+1. **Epsilon Greedy** → `epsilon_greedy/results/`
+   - `epsilon_greedy_metrics_[timestamp].md` - Reporte detallado
+   - `epsilon_greedy_raw_data_[timestamp].json` - Datos crudos
+   - `epsilon_greedy_summary_[timestamp].csv` - Resumen tabla
+
+2. **PPO** → `v2/ppo_results/`
+   - `ppo_metrics_[timestamp].md` - Reporte detallado
+   - `ppo_raw_data_[timestamp].json` - Datos crudos
+   - `ppo_summary_[timestamp].csv` - Resumen tabla
+
+**Personalizar la comparación:**
+
+Para cambiar qué algoritmos comparar, edita `comparison_agents/run_dual_interactive.py`:
+
+```python
+# Ejemplo 1: Comparar Epsilon Greedy vs A* Search
+def run_first_agent():
+    """Ejecutar primer agente"""
+    print("Iniciando Agente Epsilon Greedy...")
+    subprocess.run([
+        sys.executable, 
+        "run_epsilon_greedy_interactive.py"
+    ], cwd=Path(__file__).parent.parent / "epsilon_greedy", check=True)
+
+def run_second_agent():
+    """Ejecutar segundo agente (A*)"""
+    print("Iniciando Agente A*...")
+    subprocess.run([
+        sys.executable, 
+        "run_astar_interactive_simple.py"
+    ], cwd=Path(__file__).parent.parent / "astar_search", check=True)
+
+# Ejemplo 2: Comparar Tabu vs Epsilon Greedy
+def run_first_agent():
+    """Ejecutar Tabu Search"""
+    print("Iniciando Tabu Search...")
+    subprocess.run([
+        sys.executable, 
+        "run_tabu_interactive_metrics.py"
+    ], cwd=Path(__file__).parent, check=True)
+
+def run_second_agent():
+    """Ejecutar Epsilon Greedy"""
+    print("Iniciando Epsilon Greedy...")
+    subprocess.run([
+        sys.executable, 
+        "run_epsilon_greedy_interactive.py"
+    ], cwd=Path(__file__).parent.parent / "epsilon_greedy", check=True)
 ```
 
-**Análisis de resultados:**
+**Scripts disponibles para comparación:**
 
-```bash
-# Desde comparison_agents/
-cd comparison_agents
+| Algoritmo | Script | Carpeta |
+|-----------|--------|---------|
+| Epsilon Greedy | `run_epsilon_greedy_interactive.py` | `epsilon_greedy/` |
+| PPO | `run_pretrained_interactive.py` | `v2/` |
+| PPO con métricas | `run_ppo_interactive_metrics.py` | `v2/` |
+| A* Search | `run_astar_interactive_simple.py` | `astar_search/` |
+| Tabu Search | `run_tabu_interactive_metrics.py` | `comparison_agents/` |
 
-# Generar análisis estadístico de resultados guardados
-python analyze_results.py
+**Ventajas de la comparación dual:**
+- Observación visual directa de diferencias entre algoritmos
+- Mismas condiciones iniciales para ambos agentes
+- Métricas detalladas para análisis posterior
+- Fácil de personalizar para cualquier combinación
 
-# Generar visualizaciones (gráficos comparativos)
-python generate_metrics_visualizations.py
+**Uso recomendado:**
 
-# Análisis de métricas específicas
-python metrics_analyzer.py
-```
+La comparación dual es ideal para:
+- Validar mejoras entre algoritmos (versión antigua vs nueva)
+- Comparar enfoques (heurísticas vs aprendizaje profundo)
+- Demostrar diferencias de comportamiento visualmente
+- Generar datos para análisis comparativo posterior
+
 ---
 
 ### Compatibilidad Automática por Sistema Operativo
@@ -669,3 +721,15 @@ pip install pysdl2-dll==2.30.2 --force-reinstall
 -  **Streaming integrado** (visualización del mapa en tiempo real)
 
 ---
+
+**Checkpoints y continuación de entrenamiento:**
+
+Los checkpoints se guardan automáticamente en la carpeta `runs/` cada `ep_length//2` pasos. Para continuar desde un checkpoint:
+
+```bash
+# Redirigir stdin con el nombre del checkpoint
+echo "runs/poke_26214400_steps" | python baseline_fast_v2.py
+
+# O modificar línea 82 del archivo directamente:
+file_name = "runs/poke_26214400_steps"
+```
