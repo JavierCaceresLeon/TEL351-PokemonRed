@@ -16,8 +16,8 @@ from typing import Dict, List, Tuple, Optional
 sys.path.append(str(Path(__file__).parent.parent))
 
 # Import v2 environment
-from v2.red_gym_env import RedGymEnv
-from v2.stream_wrapper import StreamWrapper
+from v2.red_gym_env_v2 import RedGymEnv
+from v2.stream_agent_wrapper import StreamWrapper
 
 # Import our A* agent
 from astar_search.astar_agent import PokemonAStarAgent

@@ -21,14 +21,21 @@ import threading
 
 # Add paths for imports
 sys.path.append('../v2')
+sys.path.append('../epsilon_greedy')
 
+# Import v2 dependencies
 try:
     from red_gym_env_v2 import RedGymEnv
     from stream_agent_wrapper import StreamWrapper
     from stable_baselines3 import PPO
+    V2_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: Could not import v2 dependencies: {e}")
     print("Make sure you have the v2 environment and stable-baselines3 installed")
+    V2_AVAILABLE = False
+    RedGymEnv = None
+    StreamWrapper = None
+    PPO = None
 
 from epsilon_greedy_agent import EpsilonGreedyAgent, GameScenario
 
@@ -90,6 +97,9 @@ class AgentComparator:
         Run PPO agent and collect metrics
         """
         print("Running PPO Agent...")
+        
+        if not V2_AVAILABLE:
+            raise RuntimeError("V2 dependencies not available. Cannot run PPO agent.")
         
         if model_path is None:
             print("Warning: No pre-trained model provided. Using random PPO agent.")

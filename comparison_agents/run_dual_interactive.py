@@ -17,29 +17,29 @@ import threading
 
 def run_epsilon_greedy():
     """Ejecutar agente Epsilon Greedy"""
-    print("🎮 Iniciando Agente Epsilon Greedy...")
+    print("Iniciando Agente Epsilon Greedy...")
     try:
         subprocess.run([
             sys.executable, 
             "run_epsilon_greedy_interactive.py"
-        ], cwd=Path(__file__).parent, check=True)
+        ], cwd=Path(__file__).parent.parent / "epsilon_greedy", check=True)
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error ejecutando Epsilon Greedy: {e}")
+        print(f"Error ejecutando Epsilon Greedy: {e}")
     except KeyboardInterrupt:
-        print("\n🛑 Epsilon Greedy interrumpido por usuario")
+        print("\nEpsilon Greedy interrumpido por usuario")
 
 def run_ppo_agent():
     """Ejecutar agente PPO"""
-    print("🤖 Iniciando Agente PPO...")
+    print("Iniciando Agente PPO...")
     try:
         subprocess.run([
             sys.executable, 
             "run_pretrained_interactive.py"
         ], cwd=Path(__file__).parent.parent / "v2", check=True)
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error ejecutando PPO: {e}")
+        print(f"Error ejecutando PPO: {e}")
     except KeyboardInterrupt:
-        print("\n🛑 PPO interrumpido por usuario")
+        print("\nPPO interrumpido por usuario")
 
 if __name__ == "__main__":
     print("""
@@ -48,18 +48,18 @@ if __name__ == "__main__":
 ║                 Epsilon Greedy vs PPO Interactive                ║
 ╚═══════════════════════════════════════════════════════════════════╝
 
-📋 Instrucciones:
+Instrucciones:
    • Se abrirán 2 ventanas del Game Boy simultáneamente
    • Ventana 1: Agente Epsilon Greedy (Heurístico)
    • Ventana 2: Agente PPO (Deep Learning)
    • Usa Ctrl+C para detener ambos agentes
 
-⚠️  Requisitos:
+Requisitos:
    • Ambiente conda activado (pokemon-red-comparison)
    • Archivos events.json y map_data.json en ambos directorios
    • Modelo PPO entrenado en v2/runs/
 
-🚀 Iniciando ejecución simultánea...
+Iniciando ejecución simultánea...
 """)
     
     time.sleep(2)
@@ -74,23 +74,23 @@ if __name__ == "__main__":
         time.sleep(1)  # Pequeña pausa para evitar conflictos de inicio
         thread_ppo.start()
         
-        print("✅ Ambos agentes iniciados correctamente.")
-        print("💡 Presiona Ctrl+C para detener la ejecución simultánea.")
+        print("Ambos agentes iniciados correctamente.")
+        print("Presiona Ctrl+C para detener la ejecución simultánea.")
         
         # Esperar a que terminen ambos hilos
         thread_epsilon.join()
         thread_ppo.join()
         
-        print("\n🏁 Ejecución simultánea completada.")
+        print("\nEjecución simultánea completada.")
         
     except KeyboardInterrupt:
-        print("\n\n🛑 Deteniendo ejecución simultánea...")
-        print("⏳ Esperando que terminen los procesos...")
+        print("\n\nDeteniendo ejecución simultánea...")
+        print("Esperando que terminen los procesos...")
         time.sleep(2)
-        print("✅ Procesos finalizados.")
+        print("Procesos finalizados.")
     except Exception as e:
-        print(f"\n❌ Error durante la ejecución: {e}")
+        print(f"\nError durante la ejecución: {e}")
     
-    print("\n📊 Revisa las métricas guardadas en:")
+    print("\nRevisa las métricas guardadas en:")
     print("   • comparison_agents/results/ (Epsilon Greedy)")
     print("   • v2/session_*/ (PPO)")

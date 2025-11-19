@@ -17,6 +17,11 @@ from pathlib import Path
 import uuid
 import glob
 from datetime import datetime
+import sys
+
+# Add v2 directory to path for local imports
+sys.path.insert(0, str(Path(__file__).parent))
+
 from red_gym_env_v2 import RedGymEnv
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.common import env_checker
@@ -73,10 +78,10 @@ def save_ppo_metrics(step, episode_reward, start_time, process, action_history, 
     metrics_path = results_dir / f"ppo_metrics_{timestamp}.md"
     markdown_report = f"""
 ---
-# 🤖 Informe Completo: PPO Agent (Deep Learning)
+# Informe Completo: PPO Agent (Deep Learning)
 ## {scenario_text}
 
-### 🎯 **Rendimiento Principal**
+### **Rendimiento Principal**
 - **Recompensa Total:** `{episode_reward:.2f}`
 - **Recompensa Máxima:** `{detailed_stats['max_reward']:.2f}`
 - **Recompensa Mínima:** `{detailed_stats['min_reward']:.2f}`
@@ -84,53 +89,53 @@ def save_ppo_metrics(step, episode_reward, start_time, process, action_history, 
 - **Pasos Totales:** `{step:,}`
 - **Tipo de Agente:** PPO (Proximal Policy Optimization)
 
-### ⏱️ **Análisis Temporal**
+### **Análisis Temporal**
 - **Tiempo Total:** `{elapsed:.2f}` segundos ({elapsed/60:.2f} minutos)
 - **Pasos por Segundo:** `{steps_per_second:.2f}`
 - **Tiempo Promedio/Paso:** `{elapsed/max(step,1)*1000:.2f}` ms
 
-### 🧠 **Información del Modelo**
+### **Información del Modelo**
 - **Algoritmo:** PPO (Proximal Policy Optimization)
 - **Modelo Cargado:** `{model_path}`
 - **Modo:** Determinístico = False
 - **Estado:** Modelo preentrenado cargado desde checkpoint
 
-### 💻 **Uso de Recursos del Sistema**
+### **Uso de Recursos del Sistema**
 - **Memoria Actual:** `{mem_info.rss / (1024*1024):.2f}` MB
 - **Memoria Promedio:** `{avg_memory:.2f}` MB
 - **CPU Actual:** `{process.cpu_percent(interval=0.1):.1f}%`
 - **Posiciones Únicas Visitadas:** {len(detailed_stats['unique_positions']):,}
 
-### 📈 **Estadísticas de Acciones**
+### **Estadísticas de Acciones**
 - **Total de Acciones:** {detailed_stats['total_actions']:,}
 - **Distribución de Acciones:** {dict(sorted([(k,v) for k,v in zip(['↑','↓','←','→','A','B','START'], [action_history.count(i) for i in range(7)])], key=lambda x: x[1], reverse=True))}
 
-### 📊 **Análisis de Recompensas**
+### **Análisis de Recompensas**
 - **Recompensa Media por Acción:** {np.mean(reward_history[-1000:]):.4f} (últimas 1000 acciones)
 - **Desviación Estándar:** {np.std(reward_history[-1000:]):.4f}
 - **Recompensas Positivas:** {sum(1 for r in reward_history if r > 0):,} ({sum(1 for r in reward_history if r > 0)/len(reward_history)*100:.1f}%)
 - **Recompensas Negativas:** {sum(1 for r in reward_history if r < 0):,} ({sum(1 for r in reward_history if r < 0)/len(reward_history)*100:.1f}%)
 
-### 🎮 **Comportamiento del Agente**
+### **Comportamiento del Agente**
 - **Modo de Control:** Automático (IA controlando completamente)
 - **Predicciones Realizadas:** {step:,}
 - **Exploración:** Controlada por política entrenada
 - **Episodios Completados:** Variable (depende de duración)
 
-### 🔧 **Configuración del Entorno**
+### **Configuración del Entorno**
 - **Juego:** Pokemon Red (Game Boy)
 - **Frecuencia de Acción:** 24 frames por acción
 - **Estado Inicial:** init.state
 - **Máximos Pasos:** {2**23:,}
 - **Visualización:** Activada (ventana Game Boy)
 
-### 📝 **Notas Adicionales**
+### **Notas Adicionales**
 - Generado automáticamente el {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 - Sesión ID: {timestamp}
 - Razón de finalización: {reason if reason else "Manual por usuario"}
 - Agente preentrenado usando reinforcement learning
 
-### 🆚 **Comparación con Epsilon Greedy**
+### **Comparación con Epsilon Greedy**
 - **Ventaja PPO:** Aprendizaje por experiencia, comportamiento más sofisticado
 - **Entrenamiento:** Miles de horas de experiencia vs. heurísticas manuales
 - **Consistencia:** Más predecible en situaciones conocidas
@@ -194,16 +199,16 @@ def save_ppo_metrics(step, episode_reward, start_time, process, action_history, 
         writer.writerow(["Modelo", model_path])
         writer.writerow(["Razón", reason])
     
-    print(f"\n🤖 MÉTRICAS PPO GUARDADAS:")
-    print(f"📄 Markdown: {metrics_path.name}")
-    print(f"🔢 JSON: {json_path.name}")
-    print(f"📈 CSV: {csv_path.name}")
-    print(f"📁 Directorio: {results_dir}")
+    print(f"\nMÉTRICAS PPO GUARDADAS:")
+    print(f"Markdown: {metrics_path.name}")
+    print(f"JSON: {json_path.name}")
+    print(f"CSV: {csv_path.name}")
+    print(f"Directorio: {results_dir}")
     
     return metrics_path
 
 if __name__ == '__main__':
-    print("🤖 PPO Agent con Sistema de Métricas Avanzadas")
+    print("PPO Agent con Sistema de Métricas Avanzadas")
     print("=" * 60)
     
     sess_path = Path(f'ppo_session_{str(uuid.uuid4())[:8]}')
@@ -233,15 +238,15 @@ if __name__ == '__main__':
     most_recent_checkpoint, time_since = get_most_recent_zip_with_age("runs")
     if most_recent_checkpoint is not None:
         file_name = most_recent_checkpoint
-        print(f"📁 Usando checkpoint: {file_name}")
-        print(f"⏰ Edad del archivo: {time_since:.2f} horas")
+        print(f"Usando checkpoint: {file_name}")
+        print(f"Edad del archivo: {time_since:.2f} horas")
     else:
-        print("❌ No se encontraron checkpoints en la carpeta 'runs'")
+        print("No se encontraron checkpoints en la carpeta 'runs'")
         exit(1)
     
-    print('🔄 Cargando modelo PPO...')
+    print('Cargando modelo PPO...')
     model = PPO.load(file_name, env=env, custom_objects={'lr_schedule': 0, 'clip_range': 0})
-    print('✅ Modelo cargado correctamente')
+    print('Modelo cargado correctamente')
     
     # VARIABLES PARA MÉTRICAS AVANZADAS
     process = psutil.Process()
@@ -259,8 +264,8 @@ if __name__ == '__main__':
         "cpu_usage_history": []
     }
     
-    print("\n🎮 Iniciando ejecución del agente PPO...")
-    print("🛑 Presiona Ctrl+C para parar y generar métricas completas")
+    print("\nIniciando ejecución del agente PPO...")
+    print("Presiona Ctrl+C para parar y generar métricas completas")
     
     obs, info = env.reset()
     
@@ -326,16 +331,16 @@ if __name__ == '__main__':
                 break
                 
     except KeyboardInterrupt:
-        print("\n\n🛑 Interrumpido por el usuario. Generando métricas completas...")
+        print("\n\nInterrumpido por el usuario. Generando métricas completas...")
         save_ppo_metrics(step, episode_reward, start_time, process, action_history, 
                          reward_history, detailed_stats, file_name, "Interrumpido por usuario")
         
     except Exception as e:
-        print(f"\n❌ Error durante ejecución: {e}")
+        print(f"\nError durante ejecución: {e}")
         save_ppo_metrics(step, episode_reward, start_time, process, action_history,
                          reward_history, detailed_stats, file_name, f"Error: {str(e)}")
     
     finally:
-        print("🔒 Cerrando entorno...")
+        print("Cerrando entorno...")
         env.close()
-        print("👋 Sesión finalizada")
+        print("Sesión finalizada")

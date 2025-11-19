@@ -248,6 +248,13 @@ config = Config()
 
 
 # Utility functions for common configuration tasks
+def get_v2_config(**overrides) -> Dict[str, Any]:
+    """
+    Get V2 environment configuration (used by A* and other agents)
+    """
+    return Config.get_env_config(**overrides)
+
+
 def get_session_config(session_name: str, **overrides) -> Dict[str, Any]:
     """
     Get configuration for a specific session

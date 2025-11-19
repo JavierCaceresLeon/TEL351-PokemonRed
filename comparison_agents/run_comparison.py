@@ -14,6 +14,7 @@ import numpy as np
 
 # Add paths
 sys.path.append('../v2')
+sys.path.append('../epsilon_greedy')
 sys.path.append('.')
 
 from agent_comparison import AgentComparator

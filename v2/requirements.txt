@@ -54,6 +54,7 @@ pure_eval==0.2.3
 pyboy==2.4.0
 Pygments==2.18.0
 pyparsing==3.2.0
+psutil==6.1.0
 PySDL2==0.9.16
 pysdl2-dll==2.30.2
 python-dateutil==2.9.0.post0

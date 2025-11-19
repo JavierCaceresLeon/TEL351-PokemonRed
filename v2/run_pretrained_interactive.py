@@ -4,6 +4,14 @@ from pathlib import Path
 import uuid
 import time
 import glob
+import sys
+import os
+from pathlib import Path
+
+# Add v2 directory to path to enable local imports
+current_dir = Path(__file__).parent
+sys.path.insert(0, str(current_dir))
+
 from red_gym_env_v2 import RedGymEnv
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.common import env_checker

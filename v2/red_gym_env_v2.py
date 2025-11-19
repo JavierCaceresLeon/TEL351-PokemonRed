@@ -13,7 +13,12 @@ from einops import repeat
 from gymnasium import Env, spaces
 from pyboy.utils import WindowEvent
 
-from global_map import local_to_global, GLOBAL_MAP_SHAPE
+# Handle both relative and absolute imports for compatibility
+try:
+    from .global_map import local_to_global, GLOBAL_MAP_SHAPE
+except (ImportError, ValueError):
+    # Fallback to absolute import when not run as package
+    from global_map import local_to_global, GLOBAL_MAP_SHAPE
 
 event_flags_start = 0xD747
 event_flags_end = 0xD87E # expand for SS Anne # old - 0xD7F6 
@@ -131,7 +136,7 @@ class RedGymEnv(Env):
             try:
                 # Use PyBoy's window_title property
                 self.pyboy.window_title = window_title
-                print(f"🏷️ Título de ventana configurado: {window_title}")
+                print(f"Título de ventana configurado: {window_title}")
                 
                 # Configure color overlay based on demo type
                 color_configs = {
@@ -146,11 +151,11 @@ class RedGymEnv(Env):
                     config_info = color_configs[window_color]
                     self.demo_identifier['overlay_enabled'] = True
                     self.demo_identifier['color_config'] = config_info
-                    print(f"🎨 Identificador visual: {config_info['emoji']} {config_info['name']}")
+                    print(f"Identificador visual: {config_info['emoji']} {config_info['name']}")
                     
             except Exception as e:
                 # If setting title fails, just print info
-                print(f"🏷️ Demo identificado como: {window_title} (configuración parcial: {e})")
+                print(f"Demo identificado como: {window_title} (configuración parcial: {e})")
 
         # PyBoy API fix: use screen_buffer() instead of deprecated screen attribute
         # self.screen = self.pyboy.screen  # DEPRECATED in newer PyBoy versions
@@ -285,7 +290,7 @@ class RedGymEnv(Env):
             
         except Exception as e:
             # En caso de cualquier error, devolver píxeles originales
-            print(f"⚠️ Error aplicando overlay visual: {e}")
+            print(f"Error aplicando overlay visual: {e}")
             return game_pixels
 
     def render(self, reduce_res=True):
