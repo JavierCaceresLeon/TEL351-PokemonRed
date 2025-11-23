@@ -186,7 +186,8 @@ class CombatRewardWrapper(RewardWrapper):
         return super().reset(**kwargs)
 
     def reward(self, reward):
-        return reward + self._logic.shape(self.env)
+        # Pass the unwrapped environment to the shaper logic
+        return reward + self._logic.shape(self.env.unwrapped)
 
 
 class PuzzleRewardWrapper(RewardWrapper):

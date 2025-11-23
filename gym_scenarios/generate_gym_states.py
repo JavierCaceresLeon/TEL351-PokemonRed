@@ -39,18 +39,21 @@ class GymStateGenerator:
         if self.pyboy:
             self.pyboy.stop()
         
+        # PyBoy v2+ usa los argumentos 'window' y 'sound' (los anteriores fueron deprecados)
         self.pyboy = PyBoy(
             self.rom_path,
-            debugging=False,
-            disable_input=False,
-            window_type='headless',
-            sound_emulated=False
+            window="null",  # Ejecuta sin mostrar ventana
+            sound=False
         )
         print(f"✓ PyBoy inicializado con ROM: {self.rom_path}")
     
     def write_memory(self, address, value):
         """Escribe un valor en una dirección de memoria"""
-        self.pyboy.set_memory_value(address, value)
+        if hasattr(self.pyboy, "set_memory_value"):
+            self.pyboy.set_memory_value(address, value)
+        else:
+            # PyBoy v2 expone la memoria como un buffer mutable
+            self.pyboy.memory[address] = value & 0xFF
     
     def write_word(self, address, value):
         """Escribe un valor de 16-bit (word) en big-endian"""

@@ -41,6 +41,7 @@ class BaseAgentConfig:
     policy_kwargs: Optional[Dict[str, Any]] = None
     save_path: Path = field(default_factory=lambda: Path("advanced_agents/runs"))
     device: str = "auto"
+    tensorboard_log: Optional[str] = None
 
     def resolve_save_dir(self, run_name: str) -> Path:
         target = self.save_path / run_name
@@ -55,6 +56,7 @@ class AdvancedAgent:
 
     def __init__(self, config: BaseAgentConfig):
         self.config = config
+        self._model: Optional[PPO] = None
 
     # ---- hooks that subclasses override ---------------------------------
     def build_wrappers(self) -> Iterable[Callable[[Env], Env]]:
@@ -97,7 +99,9 @@ class AdvancedAgent:
             seed=self.config.seed,
             policy_kwargs=self.policy_kwargs(),
             device=self.config.device,
+            tensorboard_log=self.config.tensorboard_log,
         )
+        self._model = model
         return model
 
     def train(self, run_name: Optional[str] = None) -> AgentRuntime:
@@ -107,8 +111,13 @@ class AdvancedAgent:
         callbacks = list(self.extra_callbacks())
         model.learn(total_timesteps=self.config.total_timesteps, callback=callbacks)
         model.save(str(save_dir / "model"))
-        model.get_env().save(str(save_dir / "vec_env"))
-        return AgentRuntime(env_factory=self.make_env, model=model, save_dir=save_dir)
+        # Only save the env if it has a save method (e.g. VecNormalize)
+        env = model.get_env()
+        if hasattr(env, "save"):
+            env.save(str(save_dir / "vec_env"))
+        runtime = AgentRuntime(env_factory=self.make_env, model=model, save_dir=save_dir)
+        self._model = model
+        return runtime
 
     def evaluate(self, episodes: int = 5) -> Dict[str, float]:
         env = self.make_env()

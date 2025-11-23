@@ -56,7 +56,8 @@ class RedGymEnv(Env):
         }
 
         # Set this in SOME subclasses
-        self.metadata = {"render.modes": []}
+        self.metadata = {"render.modes": ["rgb_array"], "render_fps": 60}
+        self.render_mode = "rgb_array"
         self.reward_range = (0, 15000)
 
         self.valid_actions = [
@@ -83,6 +84,7 @@ class RedGymEnv(Env):
         with open("events.json") as f:
             event_names = json.load(f)
         self.event_names = event_names
+        self.missing_event_keys = set()
 
         self.output_shape = (72, 80, self.frame_stacks)
         self.coords_pad = 12
@@ -113,7 +115,7 @@ class RedGymEnv(Env):
             #debugging=False,
             #disable_input=False,
             window=head,
-            sound_emulated=False,
+            sound=False, # Disable sound to prevent buffer overruns
         )
         
         # Set window title and visual identification
@@ -344,10 +346,11 @@ class RedGymEnv(Env):
                     if bit == "1":
                         # TODO this currently seems to be broken!
                         key = f"0x{address:X}-{idx}"
-                        if key in self.event_names.keys():
-                            self.current_event_flags_set[key] = self.event_names[key]
+                        event_name = self.event_names.get(key)
+                        if event_name is not None:
+                            self.current_event_flags_set[key] = event_name
                         else:
-                            print(f"could not find key: {key}")
+                            self.current_event_flags_set[key] = f"unknown_event_{key}"
 
         self.step_count += 1
 

@@ -32,18 +32,11 @@ class CombatFeatureExtractor(BaseFeaturesExtractor):
         super().__init__(observation_space, features_dim=embed_dim)
         screen_shape = observation_space["screens"].shape
         
-        # Detect if CHW (channels first) or HWC (channels last)
-        # SB3 VecTranspose converts to CHW, so we need to handle both cases
-        if screen_shape[0] < screen_shape[1] and screen_shape[0] < screen_shape[2]:
-            # Likely CHW (e.g. 3, 72, 80)
-            in_channels = screen_shape[0]
-            self.is_chw = True
-        else:
-            # Likely HWC (e.g. 72, 80, 3)
-            in_channels = screen_shape[2]
-            self.is_chw = False
-
-        self.cnn = _make_cnn(in_channels, embed_dim)
+        # Robust channel detection: assume channels is the smallest dimension (usually 1, 3, or 4)
+        # This handles both (C, H, W) and (H, W, C)
+        self.in_channels = min(screen_shape)
+        
+        self.cnn = _make_cnn(self.in_channels, embed_dim)
         self.battle_proj = nn.Linear(observation_space["battle_features"].shape[0], embed_dim)
         encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim, nhead=4, batch_first=True)
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=2)
@@ -52,7 +45,10 @@ class CombatFeatureExtractor(BaseFeaturesExtractor):
     def forward(self, observations: Dict[str, torch.Tensor]) -> torch.Tensor:
         screens = observations["screens"].float()
         
-        if not self.is_chw:
+        # Robust permutation: ensure (N, C, H, W)
+        # If the second dimension (dim 1) matches in_channels, it's likely already CHW
+        if screens.shape[1] != self.in_channels and screens.shape[-1] == self.in_channels:
+            # HWC -> CHW
             screens = screens.permute(0, 3, 1, 2)
             
         screens = screens / 255.0
