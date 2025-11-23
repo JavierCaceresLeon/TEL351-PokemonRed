@@ -43,7 +43,8 @@ class GymStateGenerator:
             self.rom_path,
             debugging=False,
             disable_input=False,
-            window_type='headless'
+            window_type='headless',
+            sound_emulated=False
         )
         print(f"✓ PyBoy inicializado con ROM: {self.rom_path}")
     

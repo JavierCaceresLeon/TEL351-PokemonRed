@@ -62,6 +62,9 @@ class CombatApexAgent(AdvancedAgent):
         obs = buffer.observations["battle_features"]
         obs_tensor = torch.as_tensor(obs[: buffer.pos, 0], device=model.device, dtype=torch.float32)
         actions = torch.as_tensor(buffer.actions[: buffer.pos, 0], device=model.device)
+        # Squeeze the last dimension if it exists (N, 1) -> (N,)
+        if actions.dim() > 1:
+            actions = actions.squeeze(-1)
         action_oh = F.one_hot(actions.long(), num_classes=model.action_space.n).float()
         outputs = self.dynamics(obs_tensor, action_oh)
         target = torch.roll(obs_tensor[:, 0], shifts=-1)

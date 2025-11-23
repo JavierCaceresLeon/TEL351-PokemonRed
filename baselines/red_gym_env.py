@@ -106,6 +106,7 @@ class RedGymEnv(Env):
                 disable_input=False,
                 window_type=head,
                 hide_window='--quiet' in sys.argv,
+                sound_emulated=False,
             )
 
         self.screen = self.pyboy.botsupport_manager().screen()

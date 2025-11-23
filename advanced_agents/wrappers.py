@@ -131,8 +131,10 @@ class _CombatShaper:
         self._loss_history.clear()
 
     def shape(self, env) -> float:
-        player_hp = env.read_hp_fraction()
-        opp_hp = _normalize(_read_hp(env, 0xCFF3), _read_hp(env, 0xCFF5))
+        # Use unwrapped to ensure access to base env methods like read_hp_fraction
+        base_env = env.unwrapped
+        player_hp = base_env.read_hp_fraction()
+        opp_hp = _normalize(_read_hp(base_env, 0xCFF3), _read_hp(base_env, 0xCFF5))
         shaped = 4.0 * (self.state.last_opp_hp - opp_hp)
         shaped += 6.0 * (player_hp - self.state.last_player_hp)
         shaped -= 3.0 * max(0.0, self.state.last_player_hp - player_hp)
@@ -157,16 +159,18 @@ class _PuzzleShaper:
         self.prev_coord_count = 0
 
     def reset(self, env):
-        self.prev_badges = env.get_badges()
-        self.prev_coord_count = len(env.seen_coords)
+        base_env = env.unwrapped
+        self.prev_badges = base_env.get_badges()
+        self.prev_coord_count = len(base_env.seen_coords)
 
     def shape(self, env) -> float:
+        base_env = env.unwrapped
         steps_bonus = self.step_penalty
-        coord_bonus = 0.1 * max(0, len(env.seen_coords) - self.prev_coord_count)
-        badge_bonus = 40.0 if env.get_badges() > self.prev_badges else 0.0
-        non_leader_penalty = -25.0 if env.read_m(0xD057) != 0 else 0.0
-        self.prev_badges = env.get_badges()
-        self.prev_coord_count = len(env.seen_coords)
+        coord_bonus = 0.1 * max(0, len(base_env.seen_coords) - self.prev_coord_count)
+        badge_bonus = 40.0 if base_env.get_badges() > self.prev_badges else 0.0
+        non_leader_penalty = -25.0 if base_env.read_m(0xD057) != 0 else 0.0
+        self.prev_badges = base_env.get_badges()
+        self.prev_coord_count = len(base_env.seen_coords)
         return steps_bonus + coord_bonus + badge_bonus + non_leader_penalty
 
 

@@ -113,6 +113,7 @@ class RedGymEnv(Env):
             #debugging=False,
             #disable_input=False,
             window=head,
+            sound_emulated=False,
         )
         
         # Set window title and visual identification
@@ -253,7 +254,16 @@ class RedGymEnv(Env):
 
     def render(self, reduce_res=True):
         # PyBoy API fix: use screen_buffer() instead of self.screen.ndarray
-        game_pixels_render = self.pyboy.screen_buffer()  # Returns ndarray (144, 160, 3)
+        # game_pixels_render = self.pyboy.screen_buffer()  # Returns ndarray (144, 160, 3)
+        
+        if hasattr(self.pyboy, 'screen') and hasattr(self.pyboy.screen, 'ndarray'):
+            game_pixels_render = self.pyboy.screen.ndarray
+        elif hasattr(self.pyboy, 'botsupport_manager'):
+            game_pixels_render = self.pyboy.botsupport_manager().screen().screen_ndarray()
+        else:
+            game_pixels_render = self.pyboy.screen_image()
+            if not isinstance(game_pixels_render, np.ndarray):
+                game_pixels_render = np.array(game_pixels_render)
         
         # Extract single channel if needed
         if len(game_pixels_render.shape) == 3:

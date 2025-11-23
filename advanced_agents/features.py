@@ -31,14 +31,31 @@ class CombatFeatureExtractor(BaseFeaturesExtractor):
     def __init__(self, observation_space: spaces.Dict, embed_dim: int = 128):
         super().__init__(observation_space, features_dim=embed_dim)
         screen_shape = observation_space["screens"].shape
-        self.cnn = _make_cnn(screen_shape[2], embed_dim)
+        
+        # Detect if CHW (channels first) or HWC (channels last)
+        # SB3 VecTranspose converts to CHW, so we need to handle both cases
+        if screen_shape[0] < screen_shape[1] and screen_shape[0] < screen_shape[2]:
+            # Likely CHW (e.g. 3, 72, 80)
+            in_channels = screen_shape[0]
+            self.is_chw = True
+        else:
+            # Likely HWC (e.g. 72, 80, 3)
+            in_channels = screen_shape[2]
+            self.is_chw = False
+
+        self.cnn = _make_cnn(in_channels, embed_dim)
         self.battle_proj = nn.Linear(observation_space["battle_features"].shape[0], embed_dim)
         encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim, nhead=4, batch_first=True)
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=2)
         self.out = nn.Linear(embed_dim * 2, embed_dim)
 
     def forward(self, observations: Dict[str, torch.Tensor]) -> torch.Tensor:
-        screens = observations["screens"].float().permute(0, 3, 1, 2) / 255.0
+        screens = observations["screens"].float()
+        
+        if not self.is_chw:
+            screens = screens.permute(0, 3, 1, 2)
+            
+        screens = screens / 255.0
         z_screens = self.cnn(screens)
         battle = self.battle_proj(observations["battle_features"].float())
         seq = torch.stack([z_screens, battle], dim=1)

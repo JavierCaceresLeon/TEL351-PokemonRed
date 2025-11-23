@@ -113,6 +113,7 @@ class RedGymEnv(Env):
             #debugging=False,
             #disable_input=False,
             window=head,
+            sound_emulated=False,
         )
         
         # Set window title and visual identification

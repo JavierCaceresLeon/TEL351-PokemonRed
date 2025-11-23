@@ -34,6 +34,7 @@ class PokeRedEnv(Env):
             debugging=False,
             disable_input=False,
             window_type="headless" if self.headless else "SDL2",
+            sound_emulated=False,
         )
 
         self.screen = self.pyboy.botsupport_manager().screen()
