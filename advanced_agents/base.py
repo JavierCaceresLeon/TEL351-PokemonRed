@@ -35,6 +35,7 @@ class BaseAgentConfig:
     clip_range: float = 0.15
     vf_coef: float = 0.5
     ent_coef: float = 0.01
+    max_grad_norm: float = 0.5  # Limitar gradientes explosivos
     n_steps: int = 1024
     batch_size: int = 256
     seed: Optional[int] = None
@@ -94,12 +95,14 @@ class AdvancedAgent:
             clip_range=self.config.clip_range,
             vf_coef=self.config.vf_coef,
             ent_coef=self.config.ent_coef,
+            max_grad_norm=self.config.max_grad_norm,  # Limitar gradientes
             n_steps=self.config.n_steps,
             batch_size=self.config.batch_size,
             seed=self.config.seed,
             policy_kwargs=self.policy_kwargs(),
             device=self.config.device,
             tensorboard_log=self.config.tensorboard_log,
+            verbose=1,
         )
         self._model = model
         return model
@@ -109,7 +112,16 @@ class AdvancedAgent:
         save_dir = self.config.resolve_save_dir(run_name)
         model = self.make_model()
         callbacks = list(self.extra_callbacks())
-        model.learn(total_timesteps=self.config.total_timesteps, callback=callbacks)
+        
+        # Activar barra de progreso solo si tqdm/rich están disponibles
+        try:
+            import tqdm
+            import rich
+            use_progress_bar = True
+        except ImportError:
+            use_progress_bar = False
+            
+        model.learn(total_timesteps=self.config.total_timesteps, callback=callbacks, progress_bar=use_progress_bar)
         model.save(str(save_dir / "model"))
         # Only save the env if it has a save method (e.g. VecNormalize)
         env = model.get_env()

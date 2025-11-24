@@ -47,12 +47,50 @@ if __name__ == '__main__':
 
     sess_path = Path(f'session_{str(uuid.uuid4())[:8]}')
     ep_length = 2**23
+    
+    # ========================================================================
+    # CONFIGURACIÓN: Usar el mismo escenario que el agente especializado
+    # ========================================================================
+    SCENARIO_ID = 'pewter_brock'  # Cambia a 'cerulean_misty', etc. según necesites
+    PHASE_NAME = 'battle'         # 'battle' o 'puzzle'
+    
+    # Cargar configuración del escenario desde scenarios.json
+    import json
+    scenarios_path = 'gym_scenarios/scenarios.json'
+    if os.path.exists(scenarios_path):
+        with open(scenarios_path, 'r') as f:
+            scenarios_data = json.load(f)
+        
+        # Buscar el escenario
+        scenario = next((s for s in scenarios_data['scenarios'] if s['id'] == SCENARIO_ID), None)
+        if scenario:
+            # Buscar la fase específica
+            phase = next((p for p in scenario['phases'] if p['name'] == PHASE_NAME), None)
+            if phase:
+                state_file = phase['state_file']
+                print(f"✅ Usando escenario: {SCENARIO_ID} ({PHASE_NAME})")
+                print(f"   State file: {state_file}")
+            else:
+                print(f"⚠️  Fase '{PHASE_NAME}' no encontrada en {SCENARIO_ID}, usando default")
+                state_file = 'init.state'
+        else:
+            print(f"⚠️  Escenario '{SCENARIO_ID}' no encontrado, usando default")
+            state_file = 'init.state'
+    else:
+        print(f"⚠️  {scenarios_path} no encontrado, usando default")
+        state_file = 'init.state'
+    
+    # Verificar que el archivo .state existe
+    if not os.path.exists(state_file):
+        print(f"❌ ERROR: State file no encontrado: {state_file}")
+        print("Genera los archivos .state con: python generate_gym_states.py")
+        exit(1)
 
     env_config = {
                 'headless': False, 'save_final_state': True, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../init.state', 'max_steps': ep_length, 
+                'action_freq': 24, 'init_state': state_file, 'max_steps': ep_length, 
                 'print_rewards': True, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'sim_frame_dist': 2_000_000.0, 'extra_buttons': False
+                'gb_path': 'PokemonRed.gb', 'debug': False, 'sim_frame_dist': 2_000_000.0, 'extra_buttons': False
             }
     
     num_cpu = 1 #64 #46  # Also sets the number of episodes per training iteration
@@ -60,9 +98,18 @@ if __name__ == '__main__':
     
     #env_checker.check_env(env)
     most_recent_checkpoint, time_since = get_most_recent_zip_with_age("runs")
+    file_name = None
     if most_recent_checkpoint is not None:
         file_name = most_recent_checkpoint
         print(f"using checkpoint: {file_name}, which is {time_since} hours old")
+    else:
+        # Intentar con el modelo conocido
+        file_name = "v2/runs/poke_26214400.zip"
+        if not os.path.exists(file_name):
+            print(f"ERROR: No se encontró checkpoint en 'runs/' ni en {file_name}")
+            print("Descarga el modelo baseline o especifica la ruta correcta.")
+            exit(1)
+        print(f"Usando modelo por defecto: {file_name}")
     
     # could optionally manually specify a checkpoint here
     #file_name = "runs/poke_41943040_steps.zip"

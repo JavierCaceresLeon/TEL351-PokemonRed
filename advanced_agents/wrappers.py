@@ -8,6 +8,17 @@ from typing import Dict, Tuple
 import numpy as np
 from gymnasium import ObservationWrapper, RewardWrapper, spaces
 
+try:
+    from numba import jit
+    HAS_NUMBA = True
+except ImportError:
+    HAS_NUMBA = False
+    # Dummy decorator if numba is missing
+    def jit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+
 
 def _normalize(val: float, denom: float = 1.0) -> float:
     return float(val) / max(denom, 1e-6)
@@ -99,16 +110,13 @@ class PuzzleObservationWrapper(ObservationWrapper):
             center_x - self.patch_radius : center_x,
             center_y - self.patch_radius : center_y,
         ]
-        patch = patch / 255.0
-        feature_vec = np.zeros((self.patch_radius * self.patch_radius + 16,), dtype=np.float32)
-        flat = patch.flatten()
-        feature_vec[: flat.shape[0]] = flat
-        # append location cues
-        feature_vec[-4] = coords[0] / 255.0
-        feature_vec[-3] = coords[1] / 255.0
-        feature_vec[-2] = coords[2] / 255.0
-        feature_vec[-1] = len(self.env.seen_coords) / 10_000.0
-        return feature_vec
+        
+        # Use Numba optimized function
+        return _process_puzzle_features(
+            patch, 
+            np.array(coords, dtype=np.float32), 
+            len(self.env.seen_coords)
+        )
 
 
 @dataclass
@@ -135,17 +143,21 @@ class _CombatShaper:
         base_env = env.unwrapped
         player_hp = base_env.read_hp_fraction()
         opp_hp = _normalize(_read_hp(base_env, 0xCFF3), _read_hp(base_env, 0xCFF5))
-        shaped = 4.0 * (self.state.last_opp_hp - opp_hp)
-        shaped += 6.0 * (player_hp - self.state.last_player_hp)
-        shaped -= 3.0 * max(0.0, self.state.last_player_hp - player_hp)
-        if opp_hp <= 0.0:
-            shaped += 25.0
+        
         if player_hp <= 0.0:
-            shaped -= 100.0
-            self._loss_history.append(self.state.step_count)
-        if self._loss_history:
-            tail = np.percentile(np.array(self._loss_history, dtype=np.float32), 10)
-            shaped -= self.risk_penalty * tail
+            self._loss_history.append(float(self.state.step_count))
+            
+        loss_history_arr = np.array(self._loss_history, dtype=np.float32)
+        
+        shaped = _compute_combat_reward(
+            self.state.last_opp_hp,
+            opp_hp,
+            self.state.last_player_hp,
+            player_hp,
+            self.risk_penalty,
+            loss_history_arr
+        )
+
         self.state.last_player_hp = player_hp
         self.state.last_opp_hp = opp_hp
         self.state.step_count += 1
@@ -229,3 +241,53 @@ class HybridRewardWrapper(RewardWrapper):
         w = 1.0 / (1.0 + np.exp(-bias))
         shaped = w * combat_rew + (1 - w) * puzzle_rew - 0.1 * usage_rate
         return reward + shaped
+
+
+@jit(nopython=True, fastmath=True)
+def _compute_combat_reward(
+    last_opp_hp: float,
+    opp_hp: float,
+    last_player_hp: float,
+    player_hp: float,
+    risk_penalty: float,
+    loss_history: np.ndarray
+) -> float:
+    shaped = 4.0 * (last_opp_hp - opp_hp)
+    shaped += 6.0 * (player_hp - last_player_hp)
+    shaped -= 3.0 * max(0.0, last_player_hp - player_hp)
+    
+    if opp_hp <= 0.0:
+        shaped += 25.0
+    
+    if player_hp <= 0.0:
+        shaped -= 100.0
+        
+    if loss_history.size > 0:
+        # Numba supports np.percentile since version 0.50+
+        tail = np.percentile(loss_history, 10)
+        shaped -= risk_penalty * tail
+        
+    return shaped
+
+@jit(nopython=True, fastmath=True)
+def _process_puzzle_features(
+    patch: np.ndarray, 
+    coords: np.ndarray, 
+    seen_coords_len: int
+) -> np.ndarray:
+    # Normalize patch (assumed uint8 input)
+    norm_patch = patch.astype(np.float32) / 255.0
+    flat = norm_patch.flatten()
+    
+    # Create feature vec
+    total_size = flat.size + 4
+    feature_vec = np.zeros(total_size, dtype=np.float32)
+    feature_vec[:flat.size] = flat
+    
+    # Append location cues
+    feature_vec[-4] = coords[0] / 255.0
+    feature_vec[-3] = coords[1] / 255.0
+    feature_vec[-2] = coords[2] / 255.0
+    feature_vec[-1] = seen_coords_len / 10_000.0
+    
+    return feature_vec
