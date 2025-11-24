@@ -10,6 +10,9 @@ from stable_baselines3.common import env_checker
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.callbacks import CheckpointCallback
+import cv2
+import numpy as np
+from global_map import local_to_global
 
 def make_env(rank, env_conf, seed=0):
     """
@@ -47,6 +50,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run pretrained model interactively")
     parser.add_argument('--checkpoint', '-c', default=file_name, help='Path to a checkpoint file or folder (will search for poke_*_steps.zip)')
     parser.add_argument('--no-model', action='store_true', help='Run without loading a model')
+    parser.add_argument('--show-map', action='store_true', help='Show the agent position on the full map')
     args = parser.parse_args()
 
     def find_latest_checkpoint(path_str):
@@ -95,6 +99,20 @@ if __name__ == '__main__':
         
     #keyboard.on_press_key("M", toggle_agent)
     obs, info = env.reset()
+    
+    # Map visualization setup
+    if args.show_map:
+        script_dir = Path(__file__).parent
+        map_img_path = script_dir.parent / 'visualization' / 'poke_map' / 'pokemap_full_calibrated_CROPPED_1.png'
+        
+        if map_img_path.exists():
+            full_map_bg = cv2.imread(str(map_img_path))
+            # Resize for better visibility if needed, but let's keep original first
+            print(f"Map loaded from {map_img_path}")
+        else:
+            print(f"Map image not found at {map_img_path}. Map visualization disabled.")
+            args.show_map = False
+
     while True:
         action = 7 # pass action
         try:
@@ -110,6 +128,39 @@ if __name__ == '__main__':
                 action, _states = model.predict(obs, deterministic=False)
         obs, rewards, terminated, truncated, info = env.step(action)
         env.render()
+        
+        if args.show_map:
+            try:
+                # Get coordinates
+                x_pos = env.read_m(0xD362)
+                y_pos = env.read_m(0xD361)
+                map_n = env.read_m(0xD35E)
+                
+                # Convert to global
+                gy, gx = local_to_global(y_pos, x_pos, map_n)
+                
+                # Update the background with the path (small blue dot for history)
+                cv2.circle(full_map_bg, (gx, gy), 2, (255, 0, 0), -1) 
+                
+                # Create a view for the current frame
+                map_view = full_map_bg.copy()
+                
+                # Draw current position (larger red dot)
+                cv2.circle(map_view, (gx, gy), 4, (0, 0, 255), -1) 
+                
+                # Show
+                cv2.imshow('Global Map', map_view)
+                cv2.waitKey(1)
+            except Exception as e:
+                print(f"Error updating map: {e}")
+
+        if args.no_model:
+            # No model — random action
+            action = env.action_space.sample()
+            obs, rewards, terminated, truncated, info = env.step(action)
+            env.render()
+            continue
+
         if truncated:
             break
     env.close()

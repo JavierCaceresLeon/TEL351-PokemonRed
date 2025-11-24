@@ -1,6 +1,10 @@
 import sys
 from os.path import exists
 from pathlib import Path
+
+# Add v2 directory to path for local imports
+sys.path.insert(0, str(Path(__file__).parent))
+
 from red_gym_env_v2 import RedGymEnv
 from stream_agent_wrapper import StreamWrapper
 from stable_baselines3 import PPO
@@ -41,7 +45,7 @@ if __name__ == "__main__":
     sess_path = Path(sess_id)
 
     env_config = {
-                'headless': True, 'save_final_state': False, 'early_stop': False,
+                'headless': False, 'save_final_state': False, 'early_stop': False,
                 'action_freq': 24, 'init_state': '../init.state', 'max_steps': ep_length, 
                 'print_rewards': True, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
                 'gb_path': '../PokemonRed.gb', 'debug': False, 'reward_scale': 0.5, 'explore_weight': 0.25
@@ -49,7 +53,7 @@ if __name__ == "__main__":
     
     print(env_config)
     
-    num_cpu = 64 # Also sets the number of episodes per training iteration
+    num_cpu = 1 # Also sets the number of episodes per training iteration
     env = SubprocVecEnv([make_env(i, env_config) for i in range(num_cpu)])
     
     checkpoint_callback = CheckpointCallback(save_freq=ep_length//2, save_path=sess_path,

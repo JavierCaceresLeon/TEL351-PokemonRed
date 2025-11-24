@@ -13,7 +13,12 @@ from einops import repeat
 from gymnasium import Env, spaces
 from pyboy.utils import WindowEvent
 
-from global_map import local_to_global, GLOBAL_MAP_SHAPE
+# Handle both relative and absolute imports for compatibility
+try:
+    from .global_map import local_to_global, GLOBAL_MAP_SHAPE
+except (ImportError, ValueError):
+    # Fallback to absolute import when not run as package
+    from global_map import local_to_global, GLOBAL_MAP_SHAPE
 
 event_flags_start = 0xD747
 event_flags_end = 0xD87E # expand for SS Anne # old - 0xD7F6 
@@ -56,8 +61,7 @@ class RedGymEnv(Env):
         }
 
         # Set this in SOME subclasses
-        self.metadata = {"render.modes": ["rgb_array"], "render_fps": 60}
-        self.render_mode = "rgb_array"
+        self.metadata = {"render.modes": []}
         self.reward_range = (0, 15000)
 
         self.valid_actions = [
@@ -84,7 +88,6 @@ class RedGymEnv(Env):
         with open("events.json") as f:
             event_names = json.load(f)
         self.event_names = event_names
-        self.missing_event_keys = set()
 
         self.output_shape = (72, 80, self.frame_stacks)
         self.coords_pad = 12
@@ -115,7 +118,6 @@ class RedGymEnv(Env):
             #debugging=False,
             #disable_input=False,
             window=head,
-            sound=False, # Disable sound to prevent buffer overruns
         )
         
         # Set window title and visual identification
@@ -134,7 +136,7 @@ class RedGymEnv(Env):
             try:
                 # Use PyBoy's window_title property
                 self.pyboy.window_title = window_title
-                print(f"🏷️ Título de ventana configurado: {window_title}")
+                print(f"Título de ventana configurado: {window_title}")
                 
                 # Configure color overlay based on demo type
                 color_configs = {
@@ -149,11 +151,11 @@ class RedGymEnv(Env):
                     config_info = color_configs[window_color]
                     self.demo_identifier['overlay_enabled'] = True
                     self.demo_identifier['color_config'] = config_info
-                    print(f"🎨 Identificador visual: {config_info['emoji']} {config_info['name']}")
+                    print(f"Identificador visual: {config_info['emoji']} {config_info['name']}")
                     
             except Exception as e:
                 # If setting title fails, just print info
-                print(f"🏷️ Demo identificado como: {window_title} (configuración parcial: {e})")
+                print(f"Demo identificado como: {window_title} (configuración parcial: {e})")
 
         # PyBoy API fix: use screen_buffer() instead of deprecated screen attribute
         # self.screen = self.pyboy.screen  # DEPRECATED in newer PyBoy versions
@@ -161,6 +163,43 @@ class RedGymEnv(Env):
 
         if not config["headless"]:
             self.pyboy.set_emulation_speed(6)
+        
+        # Setup compatibility wrappers for PyBoy API variations
+        self._setup_pyboy_compat()
+
+    def _setup_pyboy_compat(self):
+        """Setup compatibility wrappers for various PyBoy versions (memory and screen)"""
+        pyboy = self.pyboy
+        
+        # memory access
+        if hasattr(pyboy, "memory"):
+            get_mem = lambda addr: int(pyboy.memory[addr])
+            set_mem = lambda addr, val: pyboy.memory.__setitem__(addr, val)
+        elif hasattr(pyboy, "get_memory_value"):
+            get_mem = lambda addr: int(pyboy.get_memory_value(addr))
+            if hasattr(pyboy, "set_memory_value"):
+                set_mem = lambda addr, val: pyboy.set_memory_value(addr, val)
+            else:
+                set_mem = lambda addr, val: None
+        elif hasattr(pyboy, "get_memory"):
+            mem = pyboy.get_memory()
+            get_mem = lambda addr: int(mem[addr])
+            set_mem = lambda addr, val: mem.__setitem__(addr, val)
+        else:
+            raise AttributeError("No memory interface found in PyBoy instance")
+        
+        # screen access
+        if hasattr(pyboy, "screen") and hasattr(pyboy.screen, "ndarray"):
+            get_screen = lambda: pyboy.screen.ndarray
+        elif hasattr(pyboy, "screen_buffer"):
+            get_screen = lambda: pyboy.screen_buffer()
+        else:
+            get_screen = lambda: None
+        
+        # Assign to instance attributes
+        self._get_mem = get_mem
+        self._set_mem = set_mem
+        self._get_screen = get_screen
 
     def reset(self, seed=None, options={}):
         self.seed = seed
@@ -251,21 +290,12 @@ class RedGymEnv(Env):
             
         except Exception as e:
             # En caso de cualquier error, devolver píxeles originales
-            print(f"⚠️ Error aplicando overlay visual: {e}")
+            print(f"Error aplicando overlay visual: {e}")
             return game_pixels
 
     def render(self, reduce_res=True):
-        # PyBoy API fix: use screen_buffer() instead of self.screen.ndarray
-        # game_pixels_render = self.pyboy.screen_buffer()  # Returns ndarray (144, 160, 3)
-        
-        if hasattr(self.pyboy, 'screen') and hasattr(self.pyboy.screen, 'ndarray'):
-            game_pixels_render = self.pyboy.screen.ndarray
-        elif hasattr(self.pyboy, 'botsupport_manager'):
-            game_pixels_render = self.pyboy.botsupport_manager().screen().screen_ndarray()
-        else:
-            game_pixels_render = self.pyboy.screen_image()
-            if not isinstance(game_pixels_render, np.ndarray):
-                game_pixels_render = np.array(game_pixels_render)
+        # Use compatibility wrapper for screen access
+        game_pixels_render = self._get_screen()  # Returns ndarray (144, 160, 3)
         
         # Extract single channel if needed
         if len(game_pixels_render.shape) == 3:
@@ -346,11 +376,10 @@ class RedGymEnv(Env):
                     if bit == "1":
                         # TODO this currently seems to be broken!
                         key = f"0x{address:X}-{idx}"
-                        event_name = self.event_names.get(key)
-                        if event_name is not None:
-                            self.current_event_flags_set[key] = event_name
+                        if key in self.event_names.keys():
+                            self.current_event_flags_set[key] = self.event_names[key]
                         else:
-                            self.current_event_flags_set[key] = f"unknown_event_{key}"
+                            print(f"could not find key: {key}")
 
         self.step_count += 1
 
@@ -577,8 +606,7 @@ class RedGymEnv(Env):
             self.map_frame_writer.close()
 
     def read_m(self, addr):
-        #return self.pyboy.get_memory_value(addr)
-        return self.pyboy.memory[addr]
+        return self._get_mem(addr)
 
     def read_bit(self, addr, bit: int) -> bool:
         # add padding so zero will read '0b100000000' instead of '0b0'
