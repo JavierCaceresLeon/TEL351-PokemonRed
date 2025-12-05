@@ -1,6 +1,6 @@
-# Demo: Modelo PPO Ultimate (Brock Gym)
+# Demo: Modelo PPO Ultimate
 
-Este branch mínimo incluye solo lo necesario para ejecutar el modelo entrenado "Ultimate" en la escena Brock Gym.
+Este branch incluye solo lo necesario para ejecutar el modelo entrenado
 
 ## Contenido clave
 
@@ -11,7 +11,6 @@ Este branch mínimo incluye solo lo necesario para ejecutar el modelo entrenado 
 
 ## Cómo ejecutar
 
-1. Crear entorno Python 3.10+ (recomendado virtualenv).
 1. Instalar dependencias:
 
 ```bash
@@ -58,4 +57,4 @@ Resumen de `CombatEvalEnv.update_reward` (entorno v2):
 
 ## Apreciación final
 
-El modelo Ultimate muestra capacidad de infligir daño inicial y conseguir algún faint, pero en la corrida reportada no logra ganar (pierde 3 veces al rival 1 vez, 27 de daño hecho vs 87 recibido en 386 pasos). No cumple todavía el objetivo de victoria consistente en Brock Gym; se sugieren más iteraciones de entrenamiento o ajustes en la recompensa para mayor estabilidad/aggresividad.
+El modelo enfocado en combate muestra capacidad de infligir daño inicial y conseguir algún faint, pero en la corrida reportada no logra ganar (pierde 3 veces al rival 1 vez, 27 de daño hecho vs 87 recibido en 386 pasos). No cumple todavía el objetivo de victoria consistente en Brock Gym; se sugieren más iteraciones de entrenamiento o ajustes en la recompensa para mayor estabilidad/agresividad.
