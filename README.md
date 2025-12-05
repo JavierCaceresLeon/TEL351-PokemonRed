@@ -7,12 +7,11 @@ En esta rama, se entrega el modelo PPO reentrenado enfocado en combate, junto co
 - `requirements.txt`: dependencias de ejecución y visualización opcional.
 - `session_ultimate_38883696/ultimate_combat_final.zip`: modelo PPO final.
 - `pewter_gym_configured.state`: estado inicial ubicado frente a Brock.
-- `PokemonRed.gb`: ROM (no incluida; el usuario debe aportar una copia legal).
+- `PokemonRed.gb`: ROM (incluida).
 - `RESULTADOS/`: carpeta donde `run_simple.py` escribe `comparison.json`.
 
 ## Prerrequisitos
 - Python 3.10+ en Windows.
-- ROM de Pokémon Red con hash SHA1 `ea9bcae617fdf159b045185467ae58b2e4a48b9a` renombrada a `PokemonRed.gb` en el directorio raíz.
 
 ## Instalación rápida
 1) Instalar dependencias:
