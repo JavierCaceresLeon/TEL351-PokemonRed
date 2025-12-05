@@ -5,7 +5,7 @@ import uuid
 import time
 import glob
 import sys
-import os
+import numpy as np
 from pathlib import Path
 
 # Add v2 directory to path to enable local imports
@@ -55,56 +55,54 @@ def get_most_recent_zip_with_age(folder_path):
     return most_recent_zip, age_in_hours
 
 if __name__ == '__main__':
-
+    
     sess_path = Path(f'session_{str(uuid.uuid4())[:8]}')
     ep_length = 2**23
 
+    # Usar estado del gimnasio de Brock desde gym_scenarios
+    gym_state = str(parent_dir / "gym_scenarios" / "state_files" / "pewter_battle.state")
+    
     env_config = {
                 'headless': False, 'save_final_state': True, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../init.state', 'max_steps': ep_length, 
+                'action_freq': 24, 'init_state': gym_state, 'max_steps': ep_length, 
                 'print_rewards': True, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'sim_frame_dist': 2_000_000.0, 'extra_buttons': False
+                'gb_path': str(parent_dir / 'PokemonRed.gb'), 'debug': False, 'sim_frame_dist': 2_000_000.0, 'extra_buttons': False
             }
+    
+    print(f"Cargando estado: {gym_state}")
     
     num_cpu = 1 #64 #46  # Also sets the number of episodes per training iteration
     env = make_env(0, env_config)() #SubprocVecEnv([make_env(i, env_config) for i in range(num_cpu)])
     
-    #env_checker.check_env(env)
+    # Cargar el estado ANTES del env_checker para evitar corrupcion
+    with open(gym_state, "rb") as f:
+        env.pyboy.load_state(f)
+    print("Estado del gimnasio cargado correctamente")
     
-    # Check multiple possible checkpoint locations
-    checkpoint_folders = [
-        "runs",
-        "../baselines/runs",
-        "../baselines",
-    ]
+    # Saltar env_checker - puede causar problemas con estados personalizados
+    # env_checker.check_env(env)
     
-    file_name = None
-    for folder in checkpoint_folders:
-        if os.path.exists(folder):
-            most_recent_checkpoint, time_since = get_most_recent_zip_with_age(folder)
-            if most_recent_checkpoint is not None:
-                file_name = most_recent_checkpoint
-                print(f"using checkpoint: {file_name}, which is {time_since:.2f} hours old")
-                break
+    # Directly specify the checkpoint to use
+    file_name = "C:\\Users\\Cris\\Documents\\GitHub\\TEL351-PokemonRed\\PokemonCombatAgent\\combat_agent_final_continued.zip"
     
-    if file_name is None:
-        print("No checkpoint found in any of these folders:")
-        for folder in checkpoint_folders:
-            print(f"  - {folder}")
-        print("\nPlease specify a checkpoint manually by uncommenting and editing the line below:")
-        print("  file_name = 'path/to/your/checkpoint.zip'")
-        print("\nNote: For combat agent checkpoints, use run_combat_agent_interactive.py instead")
+    # Verify the file exists
+    if not os.path.exists(file_name):
+        print(f"ERROR: Checkpoint not found: {file_name}")
         sys.exit(1)
     
-    # could optionally manually specify a checkpoint here
-    #file_name = "runs/poke_41943040_steps.zip"
-    #file_name = "../models_local/combat/pewter_brock_battle.zip"
-    
-    print('\nloading checkpoint')
+    print(f"Using checkpoint: {file_name}")
     model = PPO.load(file_name, env=env, custom_objects={'lr_schedule': 0, 'clip_range': 0})
         
-    #keyboard.on_press_key("M", toggle_agent)
+    # Primero hacer reset normal para inicializar todas las variables
     obs, info = env.reset()
+    
+    # Luego recargar el estado del gimnasio
+    with open(gym_state, "rb") as f:
+        env.pyboy.load_state(f)
+    print("Estado del gimnasio recargado - Ahora en el gimnasio de Brock")
+    
+    # Actualizar la observacion con el nuevo estado
+    obs = env._get_obs()
     while True:
         try:
             with open("agent_enabled.txt", "r") as f:

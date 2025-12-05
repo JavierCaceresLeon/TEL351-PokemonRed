@@ -100,8 +100,8 @@ class RedGymEnv(Env):
         self.observation_space = spaces.Dict(
             {
                 "screens": spaces.Box(low=0, high=255, shape=self.output_shape, dtype=np.uint8),
-                "health": spaces.Box(low=0, high=1),
-                "level": spaces.Box(low=-1, high=1, shape=(self.enc_freqs,)),
+                "health": spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32),
+                "level": spaces.Box(low=-1, high=1, shape=(self.enc_freqs,), dtype=np.float32),
                 "badges": spaces.MultiBinary(8),
                 "events": spaces.MultiBinary((event_flags_end - event_flags_start) * 8),
                 "map": spaces.Box(low=0, high=255, shape=(
@@ -115,9 +115,9 @@ class RedGymEnv(Env):
         #log_level("ERROR")
         self.pyboy = PyBoy(
             config["gb_path"],
-            #debugging=False,
-            #disable_input=False,
             window=head,
+            sound=False,  # Disable sound to prevent buffer overrun errors
+            sound_emulated=False,  # Completely disable sound emulation
         )
         
         # Set window title and visual identification
@@ -327,7 +327,7 @@ class RedGymEnv(Env):
 
         observation = {
             "screens": self.recent_screens,
-            "health": np.array([self.read_hp_fraction()]),
+            "health": np.array([self.read_hp_fraction()], dtype=np.float32),
             "level": self.fourier_encode(level_sum),
             "badges": np.array([int(bit) for bit in f"{self.read_m(0xD356):08b}"], dtype=np.int8),
             "events": np.array(self.read_event_bits(), dtype=np.int8),
@@ -505,7 +505,12 @@ class RedGymEnv(Env):
 
     def get_global_coords(self):
         x_pos, y_pos, map_n = self.get_game_coords()
-        return local_to_global(y_pos, x_pos, map_n)
+        if map_n == 255:
+            return (0, 0)
+        try:
+            return local_to_global(y_pos, x_pos, map_n)
+        except KeyError:
+            return (0, 0)
 
     def update_explore_map(self):
         c = self.get_global_coords()
@@ -722,7 +727,7 @@ class RedGymEnv(Env):
         return bin(bits).count("1")
     
     def fourier_encode(self, val):
-        return np.sin(val * 2 ** np.arange(self.enc_freqs))
+        return np.sin(val * 2 ** np.arange(self.enc_freqs)).astype(np.float32)
     
     def update_map_progress(self):
         map_idx = self.read_m(0xD35E)

@@ -1,0 +1,11 @@
+torch==2.3.0
+numpy==1.26.4
+stable-baselines3==2.3.0
+gymnasium==0.29.1
+matplotlib==3.8.4
+seaborn==0.13.2
+pandas==2.2.2
+scikit-image==0.22.0
+einops==0.7.0
+mediapy==1.2.0
+pyboy==1.6.13
